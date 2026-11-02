@@ -118,3 +118,8 @@ Critical minerals/**
 
 # Patents chart data (exported beside each chart; the dashboard embeds them as CSV downloads)
 !/Patents/*.csv
+
+# Local-only archive of the old "Data center archive (to delete)" page
+# ("Data centre archive.html" is already covered by *.html above)
+/Data centre archive (local)/
+/Data centre archive.html
