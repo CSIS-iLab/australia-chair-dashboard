@@ -2266,8 +2266,18 @@ plain_sitc <- function(x) {
 }
 
 top_yr <- max(us_vs_all$year)
+# Gold is left out too, non-monetary gold (SITC 971) and gold coin (SITC 951):
+# financial assets rather than traded products, and non-monetary gold is large
+# enough to crowd the chart. The caption says so and gives their value.
+TOP10_GOLD <- c(GOLD_SITC, "951")
+is_gold_top <- function(industry) substr(industry, 1, 3) %in% TOP10_GOLD
+gold_top <- as.data.frame(us_vs_all) |>
+  filter(year == top_yr, is_gold_top(industry)) |>
+  group_by(flow) |>
+  summarise(us_m = sum(us_m), .groups = "drop")
 top10 <- as.data.frame(us_vs_all) |>
-  filter(year == top_yr, industry != "Total goods", !grepl("^988", industry)) |>
+  filter(year == top_yr, industry != "Total goods", !grepl("^988", industry),
+         !is_gold_top(industry)) |>
   group_by(flow) |>
   slice_max(us_m, n = 10, with_ties = FALSE) |>
   ungroup() |>
@@ -2278,6 +2288,13 @@ write_csv(top10 |> select(flow, industry, product, year, us_m, total_m), "goods_
 
 make_top10 <- function(cur) {
   k <- if (cur == "USD") fx_calendar_year(top_yr) else 1
+  gold_bn <- function(f) {
+    v <- gold_top$us_m[gold_top$flow == f] * k / 1000
+    if (length(v)) sprintf("%s%.1fbn", cur_sym[[cur]], v) else "none"
+  }
+  gold_note <- sprintf(paste0("\nGold has been removed from both sides, non-monetary gold (SITC 971) and gold coin (SITC 951): ",
+                              "Australian exports to the US %s, imports from the US %s in %d."),
+                       gold_bn("Exports"), gold_bn("Imports"), top_yr)
   d <- top10 |>
     mutate(v = us_m * k / 1000,
            product = stringr::str_wrap(product, 34),
@@ -2296,7 +2313,7 @@ make_top10 <- function(cur) {
     labs(title = "Top ten goods traded with the United States",
          subtitle = sprintf("Value by product (SITC 3-digit), calendar %d, %s billion", top_yr, cur_sym[[cur]]),
          caption = paste0("Source: DFAT country and commodity pivot table (ABS cat. 5368.0). ",
-                          "Confidential items (SITC 988) are not shown.",
+                          "Confidential items (SITC 988) are not shown.", gold_note,
                           if (cur == "USD") fx_note[["USD"]] else ""),
          x = NULL, y = NULL) +
     theme_csis() +

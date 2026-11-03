@@ -116,6 +116,9 @@ Critical minerals/**
 # Data behind each chart, written by "0. Chart data.R" (the dashboard embeds them as CSV downloads)
 !*/*_data.csv
 
+# Hover maps for chart tooltips, written by write_hover() in "0. Chart data.R"
+!*/*_hover.json
+
 # Patents chart data (exported beside each chart; the dashboard embeds them as CSV downloads)
 !/Patents/*.csv
 

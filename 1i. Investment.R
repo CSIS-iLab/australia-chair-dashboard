@@ -422,6 +422,32 @@ make_iip_type <- function(cur) {
 save_both(make_iip_type, file.path(OUT_DIR, "iip_by_type_latest.png"),
           function(p, f) ggsave(f, p, width = 10, height = 5.5, dpi = 300, bg = "white"))
 
+# Hover tooltips: each bar segment shows its value and the partner's total
+for (cur in c("AUD", "USD")) {
+  f <- file.path(OUT_DIR, "iip_by_type_latest.png")
+  write_hover(make_iip_type(cur), if (cur == "USD") usd_file(f) else f,
+              width = 10, height = 5.5, dpi = 300,
+              spots = function(built) {
+                d <- built$plot$data
+                d$y <- as.integer(droplevels(d$partner))
+                d$PANEL <- as.integer(d$direction)
+                fmt <- function(v) scales::dollar(v, prefix = cur_sym[[cur]], suffix = "bn",
+                                                  accuracy = 0.1, big.mark = ",")
+                tot <- aggregate(value_bn ~ PANEL + y, d, sum)
+                names(tot)[3] <- "total"
+                d <- merge(d, tot)
+                # Same stacking as geom_col: Direct at the left, then Portfolio, then Other
+                d <- d[order(d$PANEL, d$y, -as.integer(d$group)), ]
+                d$xmax <- ave(d$value_bn, d$PANEL, d$y, FUN = cumsum)
+                d$xmin <- d$xmax - d$value_bn
+                data.frame(PANEL = d$PANEL, xmin = d$xmin, xmax = d$xmax,
+                           ymin = d$y - 0.35, ymax = d$y + 0.35,
+                           text = paste0("<b>", d$partner, "</b><br>", d$direction, "<br>",
+                                         d$group, ": ", fmt(d$value_bn), "<br>",
+                                         "All types: ", fmt(d$total)))
+              })
+}
+
 # ------------------------------------------------------------------------------
 # 4b. Direct investment by broad industry
 # ------------------------------------------------------------------------------

@@ -36,3 +36,83 @@
   });
 })();
 </script>
+<!-- Hover tooltips on charts that have a hover map (data-hover, from
+     theme/chart-hover.lua): the values under the pointer in a small box.
+     The map gives rectangles as fractions of the image, so it fits the chart
+     at any size, including the expanded (full-screen) view. -->
+<style>
+.chart-tip {
+  position: fixed; z-index: 2000; pointer-events: none; display: none;
+  max-width: 280px; padding: 6px 9px; border-radius: 4px;
+  background: #00205B; color: #FFFFFF; font-size: 0.8rem; line-height: 1.35;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
+}
+img[data-hover] { cursor: crosshair; }
+</style>
+<script>
+(function () {
+  var tip = document.createElement("div");
+  tip.className = "chart-tip";
+  tip.setAttribute("role", "tooltip");
+  document.body.appendChild(tip);
+
+  // The browser's own tooltip (the chart title) would cover the values
+  document.querySelectorAll("img[data-hover][title]").forEach(function (img) {
+    img.setAttribute("aria-label", img.getAttribute("title"));
+    img.removeAttribute("title");
+  });
+
+  function spots(img) {
+    var usd = img.dataset.hoverUsd && img.getAttribute("src") === img.dataset.usd;
+    var key = usd ? "_spotsUsd" : "_spots";
+    if (!img[key]) {
+      try { img[key] = JSON.parse(usd ? img.dataset.hoverUsd : img.dataset.hover); }
+      catch (e) { img[key] = []; }
+    }
+    return img[key];
+  }
+
+  // Position of the pointer on the picture itself, as fractions; images are
+  // drawn with object-fit: contain, so allow for any letterboxing.
+  function where(img, e) {
+    var r = img.getBoundingClientRect();
+    var nw = img.naturalWidth, nh = img.naturalHeight;
+    if (!nw || !nh) return null;
+    var s = Math.min(r.width / nw, r.height / nh);
+    var w = nw * s, h = nh * s;
+    return { x: (e.clientX - r.left - (r.width - w) / 2) / w,
+             y: (e.clientY - r.top - (r.height - h) / 2) / h, w: w, h: h };
+  }
+
+  function hide() { tip.style.display = "none"; }
+
+  document.addEventListener("mousemove", function (e) {
+    var img = e.target.closest && e.target.closest("img[data-hover]");
+    if (!img) { hide(); return; }
+    var p = where(img, e);
+    var hit = null;
+    if (p) {
+      // Data points (zero-size spots): the nearest within NEAR pixels.
+      // Areas (bars): the one under the pointer.
+      var NEAR = 10, best = NEAR;
+      spots(img).forEach(function (s) {
+        if (s.x0 === s.x1 && s.y0 === s.y1) {
+          var d = Math.hypot((p.x - s.x0) * p.w, (p.y - s.y0) * p.h);
+          if (d <= best) { best = d; hit = s; }
+        } else if (!hit && p.x >= s.x0 && p.x <= s.x1 && p.y >= s.y0 && p.y <= s.y1) {
+          hit = s;
+        }
+      });
+    }
+    if (!hit) { hide(); return; }
+    tip.innerHTML = hit.text;
+    tip.style.display = "block";
+    var x = e.clientX + 14, y = e.clientY + 14;
+    if (x + tip.offsetWidth > window.innerWidth - 8) x = e.clientX - tip.offsetWidth - 14;
+    if (y + tip.offsetHeight > window.innerHeight - 8) y = e.clientY - tip.offsetHeight - 14;
+    tip.style.left = x + "px";
+    tip.style.top = y + "px";
+  });
+  document.addEventListener("scroll", hide, true);
+})();
+</script>

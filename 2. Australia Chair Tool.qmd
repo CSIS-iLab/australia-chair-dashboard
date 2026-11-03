@@ -13,10 +13,11 @@ format:
 filters:
   - theme/currency.lua   # attaches each chart's US$ version for the toggle
   - theme/chart-data.lua # attaches each chart's data (CSV) and latest period
+  - theme/chart-hover.lua # attaches hover maps for chart tooltips (<chart>_hover.json)
   # - theme/takeaways.lua  # one-line finding under each chart (takeaways.tsv); switched off 26 Oct 2026
 ---
 
-# Overview {scrolling="true"}
+# Home {scrolling="true"}
 
 ::: {.card .ov-card}
 ```{r}
@@ -141,35 +142,43 @@ arcs <- paste0(
   '</g></svg>')
 
 # Land area, coastline and population (Overview/country_facts.csv, from 1a. Overview.R)
+# "Two countries at a glance": a band under the headline numbers with one card
+# each for land area, coastline and population. Each card leads with the
+# comparison, then a navy (Australia) and red (US) bar with the figures.
+# Replaced the table and maps at the foot of the page on 3 Nov 2026.
 facts <- safely_num(read.csv("Overview/country_facts.csv"))
-facts_html <- if (is.null(facts) || nrow(facts) != 2) "" else {
+glance_html <- if (is.null(facts) || nrow(facts) != 2) "" else {
   f  <- function(x) format(round(x), big.mark = ",")
   au <- facts[facts$country == "Australia", ]
   us <- facts[facts$country == "United States", ]
-  pop <- function(r) if (is.na(r$population)) "n/a" else
-    sprintf("%.1f million<small>%s</small>", r$population / 1e6, r$population_as_at)
-  row <- function(label, a, u) sprintf("<tr><th>%s</th><td>%s</td><td>%s</td></tr>", label, a, u)
+  ratio_text <- function(a, u, more, same) {
+    r <- a / u
+    if (abs(r - 1) < 0.03) same
+    else if (r > 1) sprintf(more[1], 100 * (r - 1))
+    else sprintf(more[2], u / a)
+  }
+  card <- function(key, head, a, u, a_lab, u_lab) {
+    w <- 100 * c(a, u) / max(a, u)
+    sprintf(paste0('<div class="ov-gl"><div class="ov-gl-key">%s</div><div class="ov-gl-head">%s</div>',
+                   '<div class="ov-gl-row"><span class="ov-gl-who">Australia</span><span class="ov-gl-bar au" style="width:%.1f%%"></span><span class="ov-gl-val">%s</span></div>',
+                   '<div class="ov-gl-row"><span class="ov-gl-who">United States</span><span class="ov-gl-bar us" style="width:%.1f%%"></span><span class="ov-gl-val">%s</span></div></div>'),
+            key, head, w[1] * 0.45, a_lab, w[2] * 0.45, u_lab)   # bars use up to 45% of the row
+  }
   paste0(
-    '<table class="ov-facts"><thead><tr><th></th><th>Australia</th><th>United States</th></tr></thead><tbody>',
-    row("Land area", sprintf("%s km&sup2;<small>%s sq mi</small>", f(au$land_km2), f(au$land_sqmi)),
-                     sprintf("%s km&sup2;<small>%s sq mi</small>", f(us$land_km2), f(us$land_sqmi))),
-    row("Coastline", sprintf("%s km<small>%s miles</small>", f(au$coastline_km), f(au$coastline_miles)),
-                     sprintf("%s km<small>%s miles</small>", f(us$coastline_km), f(us$coastline_miles))),
-    row("Population", pop(au), pop(us)),
-    '</tbody></table>',
-    '<p class="ov-facts-note">Land area for the US is the contiguous 48 states and DC, as in the map; ',
-    'coastline and population are for the whole country. Sources: CIA World Factbook (final edition, 2026) ',
-    'for Australia&rsquo;s land area and both coastlines; US Census Bureau for US land area and population; ',
-    'ABS for Australia&rsquo;s population.</p>')
+    '<section class="ov-glance"><div class="ov-glance-title">Two countries at a glance</div><div class="ov-glance-grid">',
+    card("Land area", ratio_text(au$land_km2, us$land_km2, c("Australia is %.0f%% larger", "The US is %.1f times larger"),
+                                 "Almost exactly the same size"),
+         au$land_km2, us$land_km2, sprintf("%s km&sup2;", f(au$land_km2)), sprintf("%s km&sup2;", f(us$land_km2))),
+    card("Coastline", ratio_text(au$coastline_km, us$coastline_km, c("Australia&rsquo;s coastline is %.0f%% longer", "The US coastline is %.1f times longer"),
+                                 "About the same length"),
+         au$coastline_km, us$coastline_km, sprintf("%s km", f(au$coastline_km)), sprintf("%s km", f(us$coastline_km))),
+    card("Population", ratio_text(au$population, us$population, c("Australia has %.0f%% more people", "The US has %.0f times the people"),
+                                  "About the same population"),
+         au$population, us$population, sprintf("%.1f million", au$population / 1e6), sprintf("%.1f million", us$population / 1e6)),
+    '</div><p class="ov-glance-note">Land area for the US is the contiguous 48 states and DC; coastline and population ',
+    'are for the whole country. Population: Australia ', au$population_as_at, ', US ', us$population_as_at,
+    '. Sources: CIA World Factbook (final edition, 2026); US Census Bureau; ABS.</p></section>')
 }
-
-maps <- paste0(
-  '<div class="ov-context">',
-  '<figure class="ov-figure"><img src="', knitr::image_uri("Overview/US-Australia distance map.png"), '" alt="">',
-  '<figcaption>Distances across the Pacific from Australian cities to US cities and territories.</figcaption></figure>',
-  '<figure class="ov-figure"><img src="', knitr::image_uri("Overview/australia_over_us.png"), '" alt="">',
-  '<figcaption>Australia and the contiguous United States drawn at the same scale.</figcaption>', facts_html, '</figure>',
-  '</div>')
 
 cat(paste0(
   '<div class="ov">',
@@ -183,7 +192,8 @@ cat(paste0(
   ' (Canberra time)</b></div>',
   '</section>',
   '<div class="ov-stats">', paste(stats, collapse = ""), '</div>',
-  '<section class="ov-section ov-about"><h2 class="ov-h2">About this dashboard</h2>',
+  glance_html,
+  '<section class="ov-section ov-about"><h2 class="ov-h2">About the U.S.-Australia Economic Dashboard</h2>',
   '<p>The United States and Australia are among each other’s closest strategic partners, and the economic dimension ',
   'of their alliance is growing in importance. Investment screening, critical minerals offtake, data-center ',
   'construction, energy policy, research collaboration, and defense-industrial integration now sit at the center ',
@@ -205,6 +215,7 @@ cat(paste0(
   '<section class="ov-section"><h2 class="ov-h2">Explore the relationship</h2>',
   '<p class="ov-sub">Each section opens a page of charts drawn from official US and Australian data.</p>',
   '<div class="ov-grid">', paste(tiles, collapse = ""), '</div></section>',
+  # Geography: the maps and land, coastline and population table, at the foot of the page
   '<p class="ov-sources">Sources: ABS, DFAT, US Bureau of Economic Analysis, USGS, Geoscience Australia, IRENA, AEMO, CAISO, ERCOT, EIA, IP Australia, OpenAlex and DCCEEW.</p>',
   '</div>',
   # Make the tiles and numbers switch dashboard pages like the top navigation does
@@ -213,22 +224,6 @@ cat(paste0(
   '  var nav = document.querySelector(\'.navbar .nav-link[href="#\' + a.dataset.page + \'"]\');',
   '  if (nav) { e.preventDefault(); nav.click(); window.scrollTo(0, 0); }',
   '});</script>'
-))
-```
-:::
-
-# Geography {scrolling="true"}
-
-::: {.card .ov-card}
-```{r}
-#| echo: false
-#| output: asis
-# The maps and land, coastline and population table are built in the Overview chunk above
-cat(paste0(
-  '<div class="ov">',
-  '<section class="ov-section"><h2 class="ov-h2">Across the Pacific</h2>',
-  '<p class="ov-sub">Two continent-sized countries, almost 16,000 kilometres apart from Canberra to Washington.</p>', maps, '</section>',
-  '</div>'
 ))
 ```
 :::
@@ -270,21 +265,11 @@ cat(paste0(
 
 # Intellectual property {orientation="columns"}
 
-## Column {.tabset width="50%" title="US patents and trade marks in Australia"}
+## Column {.tabset width="50%" title="US intellectual property in Australia"}
 
 ### Patents
 
 ![](Patents/us_applicants_count.png){title="Patents with a US applicant"}
-
-### Trade marks
-
-![](Patents/us_applicants_tm_count.png){title="Trade marks with a US applicant"}
-
-### Joint filings
-
-![](Patents/us_au_coapplied_trend.png){title="Joint US-Australian patent filings over time"}
-
-## Column {.tabset width="50%" title="More detail"}
 
 ### US share of patents
 
@@ -294,17 +279,13 @@ cat(paste0(
 
 ![](Patents/us_by_sector_trend.png){title="Patents by technology sector"}
 
-### US share by field
+### Patents by field
 
 ![](Patents/us_share_by_field.png){title="US share by field"}
 
-### Joint filings by field
+### Trade marks
 
-![](Patents/us_au_coapplied_fields.png){title="Joint filings by field"}
-
-### Joint filings by state
-
-![](Patents/us_au_coapplied_states.png){title="Joint filings by state"}
+![](Patents/us_applicants_tm_count.png){title="Trade marks with a US applicant"}
 
 ### US share of trade marks
 
@@ -318,15 +299,29 @@ cat(paste0(
 
 ![](Patents/tm_us_share_by_class.png){title="US share of trade marks by class"}
 
-### Joint trade marks
+## Column {.tabset width="50%" title="Joint US-Australian filings"}
+
+### Patents over time
+
+![](Patents/us_au_coapplied_trend.png){title="Joint US-Australian patent filings over time"}
+
+### Patents by field
+
+![](Patents/us_au_coapplied_fields.png){title="Joint filings by field"}
+
+### Patents by state
+
+![](Patents/us_au_coapplied_states.png){title="Joint filings by state"}
+
+### Trade marks over time
 
 ![](Patents/tm_us_au_coapplied_trend.png){title="Joint trade mark filings over time"}
 
-### Joint trade marks by class
+### Trade marks by class
 
 ![](Patents/tm_us_au_coapplied_classes.png){title="Joint trade mark filings by class"}
 
-### Joint trade marks by state
+### Trade marks by state
 
 ![](Patents/tm_us_au_coapplied_states.png){title="Joint trade mark filings by state"}
 
@@ -353,15 +348,17 @@ cat(paste0(
 
 ![](Trade/dfat_sector_composition_both.png){title="Goods trade by sector"}
 
-### Row {height="600px"}
+<!-- Same card type and height as the goods card above, so the two charts match in size -->
 
-::: {.card title="Australia's services trade"}
-![](Trade/services_trade_by_partner.png)
-:::
+### Row {.tabset height="660px" title="Australia's services trade"}
+
+#### Services by partner
+
+![](Trade/services_trade_by_partner.png){title="Australia's services trade by partner"}
 
 ## Column {width="50%"}
 
-::: {.card .trade-us title="US Trade Balance with Australia"}
+::: {.card .trade-us title="US trade balance with Australia"}
 ![](Trade/us_au_trade_balance.png)
 :::
 
@@ -381,6 +378,15 @@ cat(paste0(
 #| echo: false
 #| output: asis
 #| padding: 0
+
+# Hover tooltips (theme/chart-footer.html): these images are written out here
+# rather than as Markdown images, so their hover maps (<chart>_hover.json, from
+# '0. Chart data.R') are attached here instead of by theme/chart-hover.lua.
+hover_attr <- function(png) vapply(png, function(f) {
+  j <- sub("\\.png$", "_hover.json", f)
+  if (!file.exists(j)) return("")
+  paste0(" data-hover=\"", htmltools::htmlEscape(paste(readLines(j, warn = FALSE), collapse = ""), attribute = TRUE), "\"")
+}, "", USE.NAMES = FALSE)
 
 # Every chart in Trade/ named goods_exports_<div>_<code>_<label>.png
 # (or goods_imports_...) is picked up automatically, so new charts appear
@@ -412,8 +418,8 @@ if (length(files) == 0) {
   }, character(1))
 
   imgs <- paste0("<img src=\"Trade/", files, "\" data-flow=\"", flow,
-                 "\" data-id=\"", id, "\" loading=\"lazy\" alt=\"",
-                 flow, ": ", label, "\">", collapse = "")
+                 "\" data-id=\"", id, "\"", hover_attr(file.path("Trade", files)),
+                 " loading=\"lazy\" alt=\"", flow, ": ", label, "\">", collapse = "")
 
   flows  <- intersect(c("exports", "imports"), unique(flow))
   names(flows) <- c(exports = "Exports", imports = "Imports")[flows]
@@ -428,11 +434,13 @@ if (length(files) == 0) {
   cat(paste0(
     "<div class=\"svc-picker goods-picker\">",
     "<style>",
-    ".goods-picker .svc-filter{font:inherit;font-size:0.84rem;color:#1C2530;",
-    "border:1px solid #DDE1E6;border-radius:6px;padding:0.35rem 0.6rem;",
-    "background:#FFFFFF;min-width:11rem;flex:1 1 11rem;}",
-    ".goods-picker .svc-select{min-width:18rem;flex:2 1 18rem;}",
-    ".goods-picker .svc-count{font-size:0.75rem;color:#5E6B78;}",
+    # One slim row of controls; the chart takes the rest of the card
+    ".goods-picker .svc-toolbar{justify-content:flex-start;flex-wrap:nowrap;}",
+    ".goods-picker .svc-filter{font:inherit;font-size:0.8rem;color:#1C2530;",
+    "border:1px solid #DDE1E6;border-radius:6px;padding:0.2rem 0.55rem;",
+    "background:#FFFFFF;width:13rem;flex:0 1 13rem;min-width:8rem;}",
+    ".goods-picker .svc-select{font-size:0.8rem;padding:0.2rem 0.55rem;min-width:12rem;flex:0 1 26rem;}",
+    ".goods-picker .svc-count{font-size:0.75rem;color:#5E6B78;white-space:nowrap;}",
     "</style>",
     "<div class=\"svc-toolbar\">", toggle,
     "<input type=\"search\" class=\"svc-filter\" placeholder=\"Filter products\" ",
@@ -487,7 +495,7 @@ if (length(files) == 0) {
 ## Column {width="45%"}
 
 ```{r}
-#| title: "Services trade by type and partner"
+#| title: "Services trade by type with the US"
 #| echo: false
 #| output: asis
 #| padding: 0
@@ -534,7 +542,8 @@ if (length(svc_files) == 0) {
 
   flow_name <- c(credits = "Exports", debits = "Imports")
   imgs <- paste0("<img src=\"Trade/", svc_files, "\" data-flow=\"", svc_flow,
-                 "\" data-idx=\"", svc_idx, "\" loading=\"lazy\" alt=\"",
+                 "\" data-idx=\"", svc_idx, "\"", hover_attr(file.path("Trade", svc_files)),
+                 " loading=\"lazy\" alt=\"",
                  flow_name[svc_flow], ": ", vapply(svc_idx, label_of, ""), "\">",
                  collapse = "")
 
@@ -542,7 +551,13 @@ if (length(svc_files) == 0) {
     "<div class=\"svc-picker services-picker\">",
     "<style>",
     ".svc-picker{display:flex;flex-direction:column;height:100%;min-height:0;gap:0.6rem;}",
-    ".svc-toolbar{display:flex;flex-wrap:wrap;gap:0.5rem;align-items:center;justify-content:space-between;}",
+    # Quarto's fill layout would let the toolbar grow like the chart (and stretch the
+    # boxes in it); keep it at its natural height so the chart gets the space
+    ".svc-toolbar{display:flex;flex-wrap:wrap;gap:0.5rem;align-items:center;justify-content:space-between;",
+    "flex:0 0 auto !important;flex-direction:row !important;align-content:flex-start;",
+    "padding:0.5rem 0.75rem 0;}",   # the card itself has no padding
+    ".svc-toolbar > *{align-self:center;height:auto !important;}",
+    ".svc-toolbar > .svc-toggle{flex:0 0 auto !important;flex-direction:row !important;}",
     ".svc-toggle{display:inline-flex;border:1px solid #DDE1E6;border-radius:6px;overflow:hidden;}",
     ".svc-toggle button{border:none;background:#FFFFFF;color:#5E6B78;font:inherit;font-size:0.84rem;font-weight:500;padding:0.35rem 0.8rem;cursor:pointer;}",
     ".svc-toggle button+button{border-left:1px solid #DDE1E6;}",
@@ -554,13 +569,22 @@ if (length(svc_files) == 0) {
     ".svc-stage img.is-on{display:block;}",
     ".svc-empty{display:none;font-size:0.84rem;color:#5E6B78;}",
     ".svc-empty.is-on{display:block;}",
+    # Search box like the goods picker's, on the same slim row
+    ".services-picker .svc-toolbar{justify-content:flex-start;flex-wrap:nowrap;}",
+    ".services-picker .svc-filter{font:inherit;font-size:0.8rem;color:#1C2530;",
+    "border:1px solid #DDE1E6;border-radius:6px;padding:0.2rem 0.55rem;",
+    "background:#FFFFFF;width:9rem;flex:0 1 9rem;min-width:6rem;}",
+    ".services-picker .svc-select{font-size:0.8rem;padding:0.2rem 0.55rem;min-width:9rem;flex:0 1 16rem;}",
+    ".services-picker .svc-count{font-size:0.75rem;color:#5E6B78;white-space:nowrap;}",
     "</style>",
     "<div class=\"svc-toolbar\">",
     "<div class=\"svc-toggle\" role=\"group\" aria-label=\"Direction of trade\">",
     "<button type=\"button\" data-flow=\"credits\" class=\"is-on\" aria-pressed=\"true\">Exports</button>",
     "<button type=\"button\" data-flow=\"debits\" aria-pressed=\"false\">Imports</button>",
     "</div>",
+    "<input type=\"search\" class=\"svc-filter\" placeholder=\"Search services\" aria-label=\"Search services\">",
     "<select class=\"svc-select\" aria-label=\"Type of service\">", opts, "</select>",
+    "<span class=\"svc-count\"></span>",
     "</div>",
     "<div class=\"svc-stage\">", imgs,
     "<p class=\"svc-empty\">No chart for this service in this direction.</p>",
@@ -574,15 +598,26 @@ if (length(svc_files) == 0) {
     "var buttons=root.querySelectorAll('.svc-toggle button');",
     "var imgs=root.querySelectorAll('.svc-stage img');",
     "var empty=root.querySelector('.svc-empty');",
+    "var filter=root.querySelector('.svc-filter');",
+    "var count=root.querySelector('.svc-count');",
+    "var all=[].map.call(select.options,function(o){return {value:o.value,text:o.textContent};});",
     "function show(){var any=false;imgs.forEach(function(img){",
     "var on=img.dataset.flow===flow&&img.dataset.idx===select.value;",
     "img.classList.toggle('is-on',on);if(on){any=true;}});",
     "empty.classList.toggle('is-on',!any);}",
+    # Keep only the services whose name contains the search text
+    "function rebuild(){var q=filter.value.trim().toLowerCase();",
+    "var keep=all.filter(function(i){return !q||i.text.toLowerCase().indexOf(q)>-1;});",
+    "var current=select.value;",
+    "select.innerHTML=keep.map(function(i){return '<option value=\"'+i.value+'\">'+i.text+'</option>';}).join('');",
+    "if(keep.some(function(i){return i.value===current;})){select.value=current;}",
+    "count.textContent=keep.length+' of '+all.length;show();}",
     "buttons.forEach(function(b){b.addEventListener('click',function(){",
     "flow=b.dataset.flow;buttons.forEach(function(x){x.classList.toggle('is-on',x===b);",
     "x.setAttribute('aria-pressed',x===b);});show();});});",
     "select.addEventListener('change',show);",
-    "show();})();",
+    "filter.addEventListener('input',rebuild);",
+    "rebuild();})();",
     "</script>"
   ))
 }
@@ -727,9 +762,9 @@ map
 
 ![](Energy/09_renewable_share_au_us.png){title="Renewable share of generation, Australia and the United States"}
 
-### Australia renewables by technology
+### Carbon-free by technology
 
-![](Energy/05_renewables_composition.png){title="Australian renewable generation by technology"}
+![](Energy/05_carbon_free_by_technology.png){title="Carbon-free electricity generation by technology, Australia and the United States"}
 
 ### Targets
 
