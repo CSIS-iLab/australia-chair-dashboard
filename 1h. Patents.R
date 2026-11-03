@@ -5,6 +5,8 @@ if (Sys.getenv("DASHBOARD_DIR") == "")
   stop("Dashboard folder not set. Run section 1 of '1. Refresh all data.R' first.")
 setwd(file.path(Sys.getenv("DASHBOARD_DIR"), "Patents"))
 source(file.path(Sys.getenv("DASHBOARD_DIR"), "0. Takeaways.R"))       # line under each chart
+source(file.path(Sys.getenv("DASHBOARD_DIR"), "0. Chart data.R"))      # hover tooltips beside each chart
+CHART_DATA_CSV <- FALSE   # this script writes its own <chart>.csv files
 
 # ==============================================================================
 # IP RAPID (IP Australia) — patent applications joined to party activity

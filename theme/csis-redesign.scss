@@ -121,6 +121,26 @@ $border-radius:           6px;
 @media (max-width: 640px)  { .ov-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } .ov-stat-num { font-size: 1.45rem; } }
 .ov-stat-note { color: $muted; font-size: 0.78rem; margin-top: 8px; }
 
+// "Two countries at a glance": land area, coastline and population
+.ov .ov-glance {
+  display: block !important; margin: 24px 24px 0; padding: 18px 22px 14px;
+  background: #fff; border-radius: 8px; box-shadow: 0 6px 18px rgba(0, 32, 91, 0.08);
+}
+.ov-glance-title { font-size: 0.78rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: $muted; margin-bottom: 12px; }
+.ov .ov-glance-grid { display: grid !important; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px; }
+.ov-gl-key { font-size: 0.74rem; color: $muted; text-transform: uppercase; letter-spacing: 0.08em; }
+.ov-gl-head { font-family: $headings-font-family; color: $navy; font-size: 1.15rem; font-weight: 600; line-height: 1.25; margin: 2px 0 10px; }
+// Quarto's fill layout turns these divs into column flex boxes; keep them as written
+.ov .ov-gl-row { display: flex !important; flex-direction: row !important; align-items: center; gap: 8px; margin-top: 6px; font-size: 0.82rem; }
+.ov .ov-gl { display: block !important; }
+.ov .ov-gl-who { flex: 0 0 5.8rem !important; width: 5.8rem; color: $ink; }
+.ov-gl-bar { display: inline-block; height: 10px; border-radius: 2px; flex: none; }
+.ov-gl-bar.au { background: $navy; }
+.ov-gl-bar.us { background: #D2232A; }
+.ov-gl-val { color: $muted; white-space: nowrap; }
+.ov-glance-note { color: $muted; font-size: 0.72rem; margin: 14px 0 0; }
+@media (max-width: 900px) { .ov .ov-glance-grid { grid-template-columns: 1fr; gap: 16px; } }
+
 // Explore grid
 .ov-grid { display: grid; gap: 18px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
 @media (max-width: 1100px) { .ov-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
@@ -269,14 +289,15 @@ $border-radius:           6px;
 // The US chart keeps its own height and stays in view while the left column scrolls
 #trade-overview .trade-us { align-self: start; height: auto !important; position: sticky; top: 0; }
 
-// Economy page: the stacked two-chart images (GDP, OECD comparison,
-// Productivity) shrink to fit their card rather than scrolling inside it
-#economic-indicators .card-body { overflow: hidden !important; }
-#economic-indicators .card-body img { max-height: 100%; max-width: 100%; width: auto; height: auto; object-fit: contain; display: block; margin: 0 auto; }
-// ...except the growth-and-level charts on the right, which keep full width:
-// scroll down within the card to the level chart
-#economic-indicators .econ-over-time .card-body { overflow-y: auto !important; }
-#economic-indicators .econ-over-time .card-body img { max-height: none; width: 100%; }
+// Every chart on every page shrinks to fit its card rather than scrolling
+// inside it (the expand button shows it full size). Cards holding a map,
+// a picker or the Home page are not chart images and are left alone.
+.quarto-dashboard .card-body:has(> img) { overflow: hidden !important; }
+.quarto-dashboard .card-body > img { max-height: 100%; max-width: 100%; width: auto; height: auto; object-fit: contain; display: block; margin: 0 auto; }
+// Charts placed in a plain card sit inside a paragraph
+.quarto-dashboard .card-body:has(> p > img) { overflow: hidden !important; }
+.quarto-dashboard .card-body > p:has(> img) { height: 100%; margin: 0; }
+.quarto-dashboard .card-body > p > img { max-height: 100%; max-width: 100%; width: auto; height: auto; object-fit: contain; display: block; margin: 0 auto; }
 
 // Data centres page: a thin strip on each panel header says whose data it is,
 // navy for Australia and red for the US benchmarks
@@ -306,3 +327,11 @@ $border-radius:           6px;
 // Home page: "About this dashboard" paragraph under the headline numbers
 .ov .ov-about p { max-width: none; font-size: 1.02rem; line-height: 1.6; color: $ink; margin: 0; }
 .ov .ov-about p + p { margin-top: 0.9em; }
+
+// ---- Expand (full-screen) on charts inside a tabset card -----------------------
+// Quarto gives every card body z-index 4. A card body is a flex item, so that
+// makes it a stacking context: a chart card expanded from inside a tabset card
+// stayed trapped beneath the cards that follow it (e.g. on Energy, expanding
+// "By state" left "Wholesale electricity prices" showing on top). Release the
+// card body that holds the expanded card.
+.quarto-dashboard .card .card-body:has(.bslib-card[data-full-screen="true"]) { z-index: auto; }

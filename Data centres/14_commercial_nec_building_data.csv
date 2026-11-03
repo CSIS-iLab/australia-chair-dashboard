@@ -197,8 +197,9 @@
 "A119227564K","2026-04-01","1601.284","approved","1140.91058333333","Value of building approved, per month (12-month moving average)",
 "A119227564K","2026-05-01","5649.193","approved","1488.52658333333","Value of building approved, per month (12-month moving average)",
 "A119227564K","2026-06-01","682.718","approved","1470.80275","Value of building approved, per month (12-month moving average)",
-"A119227564K","2026-07-01","3206.908","approved","1649.65941666667","Value of building approved, per month (12-month moving average)",
-"A119227564K","2026-08-01","284.002","approved","1607.90458333333","Value of building approved, per month (12-month moving average)",
+"A119227564K","2026-07-01","3219.008","approved","1650.66775","Value of building approved, per month (12-month moving average)",
+"A119227564K","2026-08-01","285.556","approved","1609.04241666667","Value of building approved, per month (12-month moving average)",
+"A119227564K","2026-09-01","2307.01","approved","1792.81025","Value of building approved, per month (12-month moving average)",
 "A751834F","2010-03-01","56.705","done","259.883","Value of work done, per year (rolling four-quarter sum)",
 "A751834F","2010-06-01","52.208","done","242.602","Value of work done, per year (rolling four-quarter sum)",
 "A751834F","2010-09-01","66.675","done","228.375","Value of work done, per year (rolling four-quarter sum)",
@@ -463,5 +464,6 @@
 "A119227564K","2026-04-01","1601.284","approved","1140.91058333333","Value of building approved, per month (12-month moving average)","GeomLine"
 "A119227564K","2026-05-01","5649.193","approved","1488.52658333333","Value of building approved, per month (12-month moving average)","GeomLine"
 "A119227564K","2026-06-01","682.718","approved","1470.80275","Value of building approved, per month (12-month moving average)","GeomLine"
-"A119227564K","2026-07-01","3206.908","approved","1649.65941666667","Value of building approved, per month (12-month moving average)","GeomLine"
-"A119227564K","2026-08-01","284.002","approved","1607.90458333333","Value of building approved, per month (12-month moving average)","GeomLine"
+"A119227564K","2026-07-01","3219.008","approved","1650.66775","Value of building approved, per month (12-month moving average)","GeomLine"
+"A119227564K","2026-08-01","285.556","approved","1609.04241666667","Value of building approved, per month (12-month moving average)","GeomLine"
+"A119227564K","2026-09-01","2307.01","approved","1792.81025","Value of building approved, per month (12-month moving average)","GeomLine"

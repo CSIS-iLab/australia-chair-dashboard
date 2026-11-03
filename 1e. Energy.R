@@ -627,39 +627,44 @@ write_csv(bind_rows(renew_hist |> mutate(series = "Australia: renewables (year =
 
 
 # ------------------------------------------------------------------------------
-# 7. CHART 5 - rooftop solar as the largest single renewable asset class
+# 7. CHART 5 - carbon-free generation by technology, Australia and the US
 #
-# So what: rooftop PV generated 34.8 TWh in calendar 2025 against 21.4 TWh
-# utility-scale solar and 40.2 TWh wind. Millions of household systems sit
-# outside utility dispatch control - a distributed asset base with a very
-# different resilience and cyber profile from a centralised fleet. Relevant to
-# anyone writing on grid security or minimum-demand events.
+# Renewables plus nuclear, as shares of each country's total generation so the
+# two very different-sized grids sit on one scale; the height of each column
+# is the carbon-free share. Nuclear is most of the US's carbon-free power and
+# none of Australia's; rooftop solar is Australia's largest single source.
 # ------------------------------------------------------------------------------
 
-p5 <- gen_fy |>
-  filter(region == "AUS", fuel %in% RENEWABLES, year >= 2005) |>
-  mutate(fuel = as_fuel(fuel),
-         twh  = gwh / 1000) |>          # named column so the CSV export can find it
-  mutate(fuel = droplevels(fuel)) |>   # legend lists only the renewable fuels shown
-  ggplot(aes(year, twh, fill = fuel)) +
+CARBON_FREE <- c("Nuclear", "Geothermal", "Bioenergy", "Hydro", "Wind", "Utility solar", "Rooftop solar")
+cf_ts <- mix_ts |>
+  filter(fuel %in% CARBON_FREE, year >= 2005) |>
+  mutate(fuel = factor(as.character(fuel), levels = CARBON_FREE),
+         country = recode(country, Australia = "Australia (financial years, by the year they start)",
+                          `United States` = "United States (calendar years)"))
+
+p5 <- ggplot(cf_ts, aes(year, share, fill = fuel)) +
   geom_col(width = 0.75) +
-  scale_fill_manual(values = fuel_cols, drop = TRUE) +
-  scale_y_continuous(labels = comma, expand = expansion(c(0, 0.05))) +
+  facet_wrap(~country) +
+  scale_fill_manual(values = cmp_cols, labels = function(x) recode(x, !!!cmp_lab)) +
+  scale_y_continuous(labels = percent_format(accuracy = 1), expand = expansion(c(0, 0.05))) +
   scale_x_continuous(breaks = seq(2005, 2025, 5)) +
   labs(
-    title    = "Australian renewable electricity generation by technology",
-    subtitle = "Renewable generation by technology, TWh, financial years shown by the year they start",
-    x = NULL, y = "TWh", caption = SRC
+    title    = "Carbon-free electricity generation by technology, Australia and the United States",
+    subtitle = "Renewables and nuclear, share of total generation",
+    x = NULL, y = NULL,
+    caption  = paste0("Sources: Australia: ", sub("^Source: ", "", SRC), "\n", US_SRC,
+                      "\nAustralia has no nuclear generation.")
   ) +
-  theme_csis()
+  theme_csis() +
+  theme(strip.text = element_text(face = "bold", hjust = 0))
 
-ggsave("05_renewables_composition.png", p5, width = 9, height = 5, dpi = 150, bg = "white")
+ggsave("05_carbon_free_by_technology.png", p5, width = 10, height = 5.4, dpi = 150, bg = "white")
 
-export_chart_csv(p5, "05_renewables_composition.csv",
-                 y_format = "number", chart_type = "Stacked vertical bar",
-                 extra = "fuel",
-                 notes = paste0("Values are TWh (not counts). year = start year of the financial year. ",
-                                "Fill colours: ", fuel_col_note(RENEWABLES), "."))
+export_chart_csv(p5, "05_carbon_free_by_technology.csv",
+                 y_format = "percent", chart_type = "Stacked vertical bar, one panel per country",
+                 extra = c("country", "fuel"),
+                 notes = paste0("Values are shares of each country's total generation. Australia: year = start ",
+                                "year of the financial year; US: calendar year."))
 
 
 # ------------------------------------------------------------------------------
@@ -1101,9 +1106,13 @@ local({
   takeaway(en("04_renewables_vs_target.png"), sprintf(
     "Renewables supplied %.0f%% of Australian electricity in %s; reaching 82%% by 2030 needs about %.0f percentage points a year.",
     100 * last_pt$share, fy(last_pt$year), 100 * (0.82 - last_pt$share) / (2030 - last_pt$year)))
-  rn <- gen_fy |> filter(region == "AUS", fuel %in% RENEWABLES, year == max(year)) |> arrange(desc(gwh))
-  takeaway(en("05_renewables_composition.png"), sprintf(
-    "%s was the largest renewable source in %s, at %.1f TWh.", rn$fuel[1], fy(max(gen_fy$year)), rn$gwh[1] / 1000))
+  cf <- mix_ts |> filter(fuel %in% CARBON_FREE) |> group_by(country) |> filter(year == max(year)) |>
+    summarise(year = first(year), share = sum(share), nuclear = sum(share[fuel == "Nuclear"]), .groups = "drop")
+  takeaway(en("05_carbon_free_by_technology.png"), sprintf(
+    "Carbon-free sources supplied %.0f%% of Australian electricity in %s and %.0f%% of US electricity in %d, %.0f points of it nuclear.",
+    100 * cf$share[cf$country == "Australia"], fy(cf$year[cf$country == "Australia"]),
+    100 * cf$share[cf$country == "United States"], cf$year[cf$country == "United States"],
+    100 * cf$nuclear[cf$country == "United States"]))
   l7 <- function(cur) {
     p <- price_latest |> mutate(v = if (cur == "USD") price_usd else price_aud)
     g <- function(r) p$v[p$region == r]

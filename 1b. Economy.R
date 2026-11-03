@@ -354,7 +354,7 @@ p_prod <- prod |>
   scale_colour_manual(values = au_us_colours) +
   scale_y_continuous(labels = label_number(accuracy = 1)) +
   scale_x_date(date_breaks = "5 years", date_labels = "%Y") +
-  labs(title = "Labour Productivity, Australia vs. United States",
+  labs(title = "Labour productivity, Australia vs. United States",
        subtitle = paste0("Output per hour worked. Index, ", prod_base_year, " = 100."),
        x = NULL, y = NULL,
        caption = paste("Sources: ABS, Australian System of National Accounts;",
@@ -546,7 +546,7 @@ p_ind <- ind_share |>
   ggplot(aes(share, group, fill = country)) +
   geom_col(position = position_dodge(width = 0.92), width = 0.9) +
   geom_text(aes(label = sprintf("%.1f%%", share)), position = position_dodge(width = 0.92),
-            hjust = -0.15, size = 2.6, family = "source_sans", colour = csis_colours[["grey"]]) +
+            hjust = -0.15, size = 3.9, family = "source_sans", colour = csis_colours[["grey"]]) +
   scale_fill_manual(values = au_us_colours, breaks = c("Australia", "United States")) +
   scale_x_continuous(labels = label_percent(scale = 1, accuracy = 1), breaks = seq(0, 30, 2),
                      expand = expansion(mult = c(0, 0.12))) +
@@ -559,7 +559,11 @@ p_ind <- ind_share |>
                         "Owner-occupied housing (imputed rent) is excluded; the 19 groups sum to 100%. Current prices.\n",
                         sprintf("Australia: financial year %s; United States: calendar %d.", au_yr_lab, ind_yr))) +
   theme_csis() +
-  theme_bars
+  theme_bars +
+  # Shown half-width on the dashboard, so industry names, values and legend are enlarged
+  theme(axis.text.y = element_text(size = rel(1.15), colour = csis_colours[["grey"]]),
+        axis.text.x = element_text(size = rel(1.05), colour = csis_colours[["grey"]]),
+        legend.text = element_text(size = rel(1.1)))
 
 save_plot(p_ind, "industry_shares_au_us.png", width = 8.5, height = 8)
 readr::write_csv(ind_share |> mutate(year = ind_yr, australia_year = au_yr_lab), "industry_shares_au_us.csv")
@@ -746,7 +750,7 @@ make_states <- function(cur) {
   ggplot(states_plot |> mutate(value = value * conv), aes(value, name, fill = is_au)) +
   geom_col(width = 0.72) +
   geom_text(aes(label = sprintf("%s%.2ftn", sym, value)), hjust = -0.15,
-            size = 2.9, family = "source_sans", colour = csis_colours[["grey"]]) +
+            size = 4.4, family = "source_sans", colour = csis_colours[["grey"]]) +
   scale_fill_manual(values = c(`TRUE`  = csis_colours[["navy"]],
                                `FALSE` = "#E8A9AB"), guide = "none") +   # US states: light red
   scale_x_continuous(labels = label_number(prefix = sym, suffix = "tn", accuracy = 0.5),
@@ -759,7 +763,10 @@ Australia, ", GDP_SRC_AU, ".",
                         if (au_yr != states_yr) paste0(" Australia ", au_yr, ".") else "",
                         if (cur == "AUD") fx_note_aud_from_usd else "")) +
   theme_csis() +
-  theme_bars
+  theme_bars +
+  # Shown half-width on the dashboard, so state names and values are enlarged
+  theme(axis.text.y = element_text(size = rel(1.15), colour = csis_colours[["grey"]]),
+        axis.text.x = element_text(size = rel(1.05), colour = csis_colours[["grey"]]))
 }
 
 save_both(make_states, "au_vs_us_states.png", save_plot, width = 8, height = 6)

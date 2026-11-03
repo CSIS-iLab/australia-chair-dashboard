@@ -224,7 +224,8 @@ ggsave(file.path(OUT_DIR, "nom_usa_states.png"), p_states,
        width = 11, height = 6, dpi = 300)
 # The dashboard reads the charts from Migration/ itself, so copy them up a level
 file.copy(file.path(OUT_DIR, c("nom_usa_national.png", "nom_usa_states.png",
-                             "nom_usa_national_data.csv", "nom_usa_states_data.csv")), ".", overwrite = TRUE)
+                             "nom_usa_national_data.csv", "nom_usa_states_data.csv",
+                             "nom_usa_national_hover.json", "nom_usa_states_hover.json")), ".", overwrite = TRUE)
 
 
 # --- Optional: USA against peer countries of birth -------------------------

@@ -653,7 +653,7 @@ p <- ggplot() +
          fill   = guide_legend(order = 2, override.aes = list(size = 3.5))) +
   coord_quickmap(xlim = c(105, 250), ylim = c(-47, 56), expand = FALSE) +
   labs(
-    title    = "US-Australia: Distances Across the Pacific",
+    title    = "US-Australia: distances across the Pacific",
     subtitle = "Great-circle distance from HMAS Stirling (SRF-West) to US Navy bases",
     x = NULL, y = NULL,
     caption  = "Distances in statute miles, great-circle. Island markers show capital cities. Pacific-centred projection."
@@ -825,7 +825,7 @@ p <- ggplot() +
          fill   = guide_legend(order = 2, override.aes = list(size = 3.5))) +
   coord_quickmap(xlim = c(105, 295), ylim = c(-47, 62), expand = FALSE) +
   labs(
-    title    = "US-Australia: Distances Across the Pacific",
+    title    = "US-Australia: distances across the Pacific",
     subtitle = "",
     x = NULL, y = NULL,
     caption  = ""
