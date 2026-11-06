@@ -176,8 +176,13 @@ write.csv(nom_all, file.path(OUT_DIR, "abs_nom_all_countries.csv"), row.names = 
 
 abs_caption <- paste0(
   "Source: ABS, Overseas Migration, cube ", CUBE_ID,
-  ". Years ending 30 June. Rounded to the nearest 10. ",
-  "Latest year preliminary. Retrieved ", Sys.Date(), "."
+  ". Years ending 30 June. Rounded to the nearest 10. Latest year preliminary.\n",
+  # Checked against the ABS Overseas Migration methodology (2024-25): NOM covers
+  # people regardless of nationality, citizenship or legal status, and country
+  # of birth is usually taken from the traveller's passport or visa.
+  "Counts people born in the United States, whatever their citizenship: it includes Australian and dual citizens\n",
+  "born in the US, and leaves out US citizens born elsewhere. People count as migrants when they spend\n",
+  "12 months or more of a 16-month period in (or away from) Australia. Retrieved ", Sys.Date(), "."
 )
 
 p_national <- nom_usa |>
@@ -505,8 +510,8 @@ p_sk <- ggplot(sk_occ, aes(holders, occupation)) +
             colour = csis_colours[["grey"]]) +
   scale_x_continuous(labels = comma, expand = expansion(c(0, 0.12))) +
   labs(title = "Skilled visas held by Americans in Australia, by occupation",
-       subtitle = sprintf("US citizens holding temporary skilled visas (primary applicants) at %s, top 15 nominated occupations (of %s in total)",
-                          trimws(format(sk_last, "%e %B %Y")), comma(sk_total)),
+       subtitle = sprintf("US citizens holding temporary skilled visas (primary applicants) at %s, top 15 nominated occupations",
+                          trimws(format(sk_last, "%e %B %Y"))),
        x = NULL, y = NULL,
        caption = paste0(HA_CAPTION, ", Temporary Resident (Skilled) visa holders (BP0014). ",
                         "Covers Temporary Skill Shortage / Skills in Demand and\nearlier 457 visas; ",

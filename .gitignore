@@ -75,6 +75,8 @@ Critical minerals/**
 !Trade/goods_top10_us.png
 !Trade/credits_*.png
 !Trade/debits_*.png
+!Data centres/Archived charts/
+!Data centres/Archived charts/*
 !Data centres/01_divj_by_asset.png
 !Data centres/02_divj_share.png
 !Data centres/03_epm_actual_by_industry.png
@@ -90,6 +92,9 @@ Critical minerals/**
 !Data centres/dc_reference_data.csv
 !Data centres/dc_projects_tracker.csv
 !Energy/0*.png
+# DCCEEW tables saved by hand each year (energy.gov.au blocks scripted downloads; see ReadME.txt)
+!Energy/table-o-*.xlsx
+!Energy/Australian Energy Statistics * Table ?.xlsx
 !Critical minerals/minerals_au_*.png
 !Migration/nom_usa_national.png
 !Migration/nom_usa_states.png
