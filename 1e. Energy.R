@@ -50,13 +50,35 @@ path <- utils::URLdecode(basename(TABLE_O_URL))
 
 if (!file.exists(path)) {
   message("Downloading ", path)
-  httr2::request(TABLE_O_URL) |>
-    httr2::req_user_agent("Mozilla/5.0 (Windows NT 10.0; Win64; x64)") |>   # site blocks requests without one
-    httr2::req_timeout(120) |>
-    httr2::req_retry(max_tries = 3) |>
-    httr2::req_perform(path = path)
+  try(httr2::request(TABLE_O_URL) |>
+        httr2::req_user_agent("Mozilla/5.0 (Windows NT 10.0; Win64; x64)") |>   # site blocks requests without one
+        httr2::req_timeout(120) |>
+        httr2::req_retry(max_tries = 3) |>
+        httr2::req_perform(path = path))
 }
-stopifnot(file.exists(path))
+if (!file.exists(path))
+  stop("Table O is missing. energy.gov.au usually blocks scripted downloads: open\n  ", TABLE_O_URL,
+       "\nin your web browser and save the file into the Energy folder as\n  ", path,
+       "\n(see ReadME.txt).", call. = FALSE)
+
+# Table C (energy consumption by state and fuel, financial years) for the
+# energy mix charts. Saved by hand from energy.gov.au each September (see
+# ReadME.txt); put the new edition's file name here.
+TABLE_C_URL  <- "https://www.energy.gov.au/sites/default/files/Australian%20Energy%20Statistics%202026%20Table%20C.xlsx"
+TABLE_C_FILE <- "Australian Energy Statistics 2026 Table C.xlsx"
+if (!file.exists(TABLE_C_FILE))
+  stop("Table C is missing. energy.gov.au blocks scripted downloads: open\n  ", TABLE_C_URL,
+       "\nin your web browser and save the file into the Energy folder as\n  ", TABLE_C_FILE,
+       "\n(see ReadME.txt).", call. = FALSE)
+
+# Table J (energy supply and trade by fuel, financial years) for the energy
+# security chart. Saved by hand each September, like Table C.
+TABLE_J_URL  <- "https://www.energy.gov.au/sites/default/files/Australian%20Energy%20Statistics%202026%20Table%20J.xlsx"
+TABLE_J_FILE <- "Australian Energy Statistics 2026 Table J.xlsx"
+if (!file.exists(TABLE_J_FILE))
+  stop("Table J is missing. energy.gov.au blocks scripted downloads: open\n  ", TABLE_J_URL,
+       "\nin your web browser and save the file into the Energy folder as\n  ", TABLE_J_FILE,
+       "\n(see ReadME.txt).", call. = FALSE)
 
 
 # ------------------------------------------------------------------------------
@@ -596,7 +618,7 @@ p4 <- ggplot() +
              shape = 21, fill = "white", colour = "#D2232A", size = 3) +
   annotate("text", x = 2029.6, y = 0.82, label = "Australia: 82% renewable\nby 2030 (current target)",
            hjust = 1, vjust = 0.4, size = 3, colour = "#00205B", lineheight = 0.95) +
-  annotate("text", x = 2034.6, y = 1, label = "US: 100% carbon-free by 2035\n(former goal, revoked 2025)",
+  annotate("text", x = 2034.6, y = 1, label = "US: 100% carbon-free by 2035\n(former target, revoked 2025)",
            hjust = 1, vjust = 0.4, size = 3, colour = "#D2232A", lineheight = 0.95) +
   scale_colour_manual(values = tgt_cols, name = NULL) +
   guides(colour = guide_legend(override.aes = list(linetype = c("solid", "22")))) +
@@ -610,7 +632,7 @@ p4 <- ggplot() +
     caption = paste0(SRC, "
 ", US_SRC,
                      "\nAustralia's 82% target applies to the main grids (NEM and WA's SWIS); this all-Australia share is a close proxy. ",
-                     "The US has no current national target;\nthe 2035 goal (2021) was reversed in January 2025. ",
+                     "The US has no current national target;\nthe 2035 target (2021) was reversed in January 2025. ",
                      "Several states have their own, e.g. California 60% renewable by 2030 and 100% clean by 2045.")
   ) +
   theme_csis() +
@@ -622,7 +644,7 @@ write_csv(bind_rows(renew_hist |> mutate(series = "Australia: renewables (year =
                     us_lowc |> mutate(series = "United States: renewables plus nuclear (calendar year)"),
                     tibble(year = c(2030, 2035), share = c(0.82, 1),
                            series = c("Australia target (82% by 2030)",
-                                      "US former goal (100% carbon-free by 2035, revoked 2025)"))),
+                                      "US former target (100% carbon-free by 2035, revoked 2025)"))),
           "04_renewables_vs_target.csv")
 
 
@@ -665,6 +687,237 @@ export_chart_csv(p5, "05_carbon_free_by_technology.csv",
                  extra = c("country", "fuel"),
                  notes = paste0("Values are shares of each country's total generation. Australia: year = start ",
                                 "year of the financial year; US: calendar year."))
+
+
+# ------------------------------------------------------------------------------
+# 7b. ENERGY MIX - energy use by source, Australia and the US
+#
+# Primary energy consumption by fuel, so oil (mostly transport fuel) and gas
+# burned directly in industry and homes count, not only power generation.
+# Australia: DCCEEW, Australian Energy Statistics, Table C (financial years;
+# coal, oil, gas and renewables, which Table C does not split by technology).
+# US: EIA Monthly Energy Review Table 1.3 (calendar years), grouped the same
+# way, plus nuclear, which Australia does not have. Energy units differ (PJ and Btu), so
+# the charts compare shares.
+# ------------------------------------------------------------------------------
+
+PE_LEVELS <- c("Coal", "Oil", "Gas", "Nuclear", "Renewables")
+pe_cols   <- c(Coal = "#2c2c2a", Oil = fuel_cols[["Oil"]], Gas = fuel_cols[["Gas"]],
+               Nuclear = "#b8478c", Renewables = fuel_cols[["Wind"]])
+PE_SRC <- paste0("Sources: Australia: DCCEEW, Australian Energy Statistics, Table C (primary energy consumption).\n",
+                 "US: EIA, Monthly Energy Review, Table 1.3 (primary energy consumption by source).")
+
+# Table C: one sheet per state ("AUS" is Australia), a header row starting
+# "Year", then one row per financial year. Column names may carry notes ("[note b]").
+read_table_c <- function(sheet) {
+  x <- read_excel(TABLE_C_FILE, sheet = sheet, col_names = FALSE, col_types = "text", .name_repair = "minimal")
+  hdr <- which(trimws(x[[1]]) == "Year")[1]
+  stopifnot("Table C layout changed: no 'Year' header row" = !is.na(hdr))
+  names(x) <- sub("\\s*\\[.*$", "", trimws(unlist(x[hdr, ])))
+  x <- x[(hdr + 1):nrow(x), ]
+  x <- x[grepl("^\\d{4}-\\d{2}$", trimws(x$Year)), ]
+  stopifnot("Table C layout changed: fuel columns not found" = all(c("Coal", "Oil", "Gas", "Renewables") %in% names(x)))
+  tibble(year = as.integer(substr(trimws(x$Year), 1, 4)),
+         Coal = x$Coal, Oil = x$Oil, Gas = x$Gas, Renewables = x$Renewables) |>
+    pivot_longer(-year, names_to = "fuel", values_to = "pj") |>
+    mutate(pj = coalesce(suppressWarnings(as.numeric(pj)), 0), region = sheet)   # "-" and "na" are zero
+}
+au_pe <- read_table_c("AUS")                                         # Australia as a whole
+au_pe_last <- max(au_pe$year[au_pe$region == "AUS"])
+stopifnot("Table C: Australia's total looks wrong" =
+            between(sum(au_pe$pj[au_pe$region == "AUS" & au_pe$year == au_pe_last]), 4000, 8000))
+
+# US national (quadrillion Btu)
+PE_US_MAP <- c(CLTCBUS = "Coal", PMTCBUS = "Oil", NNTCBUS = "Gas", NUETBUS = "Nuclear", RETCBUS = "Renewables")
+us_pe <- mer_annual("T01.03") |>
+  filter(msn %in% names(PE_US_MAP), !is.na(gwh)) |>
+  transmute(year, fuel = PE_US_MAP[msn], quads = pmax(gwh, 0))   # mer_annual's value column is named gwh
+us_pe_last <- max(us_pe$year)
+
+pe_ts <- bind_rows(
+  au_pe |> filter(region == "AUS") |> transmute(country = "Australia", year, fuel, value = pj),
+  us_pe |> transmute(country = "United States", year, fuel, value = quads)
+) |>
+  filter(year >= 1990) |>
+  tidyr::complete(tidyr::nesting(country, year), fuel = PE_LEVELS, fill = list(value = 0)) |>
+  group_by(country, year) |> mutate(share = value / sum(value)) |> ungroup() |>
+  mutate(fuel = factor(fuel, levels = PE_LEVELS))
+
+fy <- function(y) sprintf("%d-%02d", y, (y + 1) %% 100)
+
+# ---- Energy chart 1: source, latest year ----------------------------------------
+pe_now <- pe_ts |>
+  filter((country == "Australia" & year == au_pe_last) | (country == "United States" & year == us_pe_last)) |>
+  mutate(country = factor(recode(country, Australia = sprintf("Australia (%s)", fy(au_pe_last)),
+                                 `United States` = sprintf("United States (%d)", us_pe_last)),
+                          levels = c(sprintf("United States (%d)", us_pe_last), sprintf("Australia (%s)", fy(au_pe_last)))))
+
+pe1 <- ggplot(pe_now, aes(share, country, fill = fuel)) +
+  geom_col(width = 0.6) +
+  geom_text(aes(label = ifelse(share >= 0.04, percent(share, accuracy = 1), "")),
+            position = position_stack(vjust = 0.5), colour = "white", size = 3.2) +
+  scale_fill_manual(values = pe_cols, drop = TRUE) +
+  scale_x_continuous(labels = percent_format(accuracy = 1), expand = c(0, 0)) +
+  labs(
+    title    = "Energy use by source, Australia and the United States",
+    subtitle = "Share of primary energy consumption, latest year. Oil is mostly transport fuel.",
+    x = NULL, y = NULL,
+    caption  = paste0(PE_SRC, " Labels shown for shares of 4% or more.")
+  ) +
+  theme_csis()
+
+ggsave("08_energy_source_au_us.png", pe1, width = 9, height = 3.8, dpi = 150, bg = "white")
+export_chart_csv(pe1, "08_energy_source_au_us.csv",
+                 y_format = "percent", chart_type = "Stacked horizontal bar (100%)",
+                 value_var = "share", extra = "fuel",
+                 notes = sprintf("Australia financial year %s; US calendar %d. Shares of primary energy consumption.",
+                                 fy(au_pe_last), us_pe_last))
+
+# ------------------------------------------------------------------------------
+# 7c. ENERGY SECURITY - net energy trade by source, Australia and the US
+#
+# Net exports (+) or net imports (-) of each fuel, as a share of the country's
+# own primary energy use, so the two very different-sized economies compare.
+# Australia: DCCEEW, Australian Energy Statistics, Table J (financial years, PJ).
+# US: EIA Monthly Energy Review Table 1.4c (net imports by source) and Table 1.3
+# (primary energy consumption), calendar years. Neither country's energy
+# statistics count uranium as energy trade, so uranium is described in the
+# caption: the share of US reactor uranium bought from abroad comes from EIA's
+# Uranium Marketing Annual Report, Table 2.
+# ------------------------------------------------------------------------------
+
+SEC_LEVELS <- c("Coal", "Natural gas", "Crude oil", "Refined fuels", "Biofuels and biomass", "Electricity")
+sec_cols   <- c(Coal = "#2c2c2a", `Natural gas` = fuel_cols[["Gas"]], `Crude oil` = fuel_cols[["Oil"]],
+                `Refined fuels` = "#c98a6b", `Biofuels and biomass` = fuel_cols[["Bioenergy"]], Electricity = "#8c96a3")
+
+# Table J: one sheet, a "Fuel type" header row with one column per financial
+# year, then blocks headed "Indigenous production", "Imports", "Exports".
+tj <- read_excel(TABLE_J_FILE, sheet = "Table J", col_names = FALSE, col_types = "text", .name_repair = "minimal")
+tj_hdr <- which(trimws(tj[[1]]) == "Fuel type")[1]
+stopifnot("Table J layout changed: no 'Fuel type' header row" = !is.na(tj_hdr))
+tj_years <- trimws(unlist(tj[tj_hdr, -1]))
+tj_col   <- max(which(grepl("^\\d{4}-\\d{2}$", tj_years))) + 1        # latest financial year
+tj_fy    <- tj_years[tj_col - 1]
+tj_rows  <- tibble(item  = sub("\\s*\\[.*$", "", trimws(tj[[1]])),
+                   value = coalesce(suppressWarnings(as.numeric(tj[[tj_col]])), 0))
+block_of <- function(start, end) {
+  i <- which(tj_rows$item == start)[1]; j <- which(tj_rows$item == end)[1]
+  stopifnot("Table J layout changed: trade blocks not found" = !is.na(i) && !is.na(j) && j > i)
+  tj_rows[(i + 1):(j - 1), ]
+}
+au_source <- function(item) dplyr::case_when(
+  item %in% c("Black coal", "Brown coal", "Coke", "Briquettes", "Brown coal briquettes") ~ "Coal",
+  item == "Natural gas"      ~ "Natural gas",
+  item == "Crude oil and ORF" ~ "Crude oil",
+  TRUE                        ~ "Refined fuels")                       # LPG and petroleum products
+au_trade <- bind_rows(
+  block_of("Imports", "Exports") |> mutate(flow = -1),
+  block_of("Exports", "Stock changes and discrepancies") |> mutate(flow = 1)
+) |>
+  mutate(source = au_source(item)) |>
+  group_by(source) |> summarise(net = sum(flow * value), .groups = "drop")
+au_tpes <- tj_rows$value[tj_rows$item == "Total primary energy supply"][1]
+stopifnot("Table J: total primary energy supply looks wrong" = between(au_tpes, 4000, 8000))
+
+# US: net imports by source (quadrillion Btu), turned round into net exports
+US_NI_MAP <- c(CLNIBUS = "Coal", CCNIBUS = "Coal", NGNIBUS = "Natural gas", CONIBUS = "Crude oil",
+               RQNIBUS = "Refined fuels", BMNIBUS = "Biofuels and biomass", ELNIBUS = "Electricity")
+us_ni <- mer_annual("T01.04C") |> filter(msn %in% names(US_NI_MAP), !is.na(gwh))
+us_sec_year <- max(us_ni$year)
+us_trade <- us_ni |> filter(year == us_sec_year) |>
+  transmute(source = US_NI_MAP[msn], net = -gwh) |>                   # mer_annual's value column is named gwh
+  group_by(source) |> summarise(net = sum(net), .groups = "drop")
+us_use <- mer_annual("T01.03") |> filter(msn == "TETCBUS", year == us_sec_year) |> pull(gwh)
+
+# Uranium: share of US reactor purchases that was foreign-origin (EIA UMAR Table 2)
+umar_file <- eia_get("https://www.eia.gov/uranium/marketing/xls/umartable2figures3n4.xlsx", "umartable2figures3n4.xlsx")
+umar <- suppressMessages(read_excel(umar_file, col_names = FALSE, col_types = "text"))
+umar_yrow <- which(apply(umar, 1, function(r) sum(grepl("^\\d{4}$", r)) >= 3))[1]
+purchases_after <- function(label) {
+  i <- which(trimws(umar[[1]]) == label)[1]
+  j <- i + which(trimws(umar[[1]][(i + 1):nrow(umar)]) == "Purchases")[1]
+  suppressWarnings(as.numeric(unlist(umar[j, ])))
+}
+umar_foreign <- purchases_after("Foreign-origin uranium")
+umar_total   <- purchases_after("Total")
+umar_ok      <- which(!is.na(umar_foreign) & !is.na(umar_total) & grepl("^\\d{4}$", unlist(umar[umar_yrow, ])))
+uranium_note <- if (length(umar_ok)) {
+  k <- max(umar_ok)
+  sprintf("Uranium is not counted as energy trade by either country. In %s, %.0f%% of the uranium bought by US reactor operators was of foreign origin (EIA);\nAustralia, which has no nuclear power, exports almost all the uranium it mines.",
+          unlist(umar[umar_yrow, ])[k], 100 * umar_foreign[k] / umar_total[k])
+} else "Uranium is not counted as energy trade by either country."
+
+sec <- bind_rows(
+  au_trade |> mutate(country = sprintf("Australia (%s)", tj_fy), use = au_tpes, unit = "PJ"),
+  us_trade |> mutate(country = sprintf("United States (%d)", us_sec_year), use = us_use, unit = "quadrillion Btu")
+) |>
+  mutate(share  = net / use,
+         source = factor(source, levels = SEC_LEVELS),
+         country = factor(country, levels = rev(unique(country))))
+sec_tot <- sec |> group_by(country) |> summarise(share = sum(share), .groups = "drop") |>
+  mutate(strip = sprintf("%s: net %s of %s of its own energy use", country,
+                         if_else(share >= 0, "exporter", "importer"), percent(abs(share), accuracy = 1)))
+sec <- sec |> left_join(sec_tot |> select(country, strip), by = "country") |>
+  group_by(country) |>
+  # label a segment if it is at least 7% of its own panel's span
+  mutate(lab = ifelse(abs(share) >= 0.07 * (sum(pmax(share, 0)) - sum(pmin(share, 0))),
+                      paste0(if_else(share > 0, "+", ""), percent(share, accuracy = 1)), "")) |>
+  ungroup()
+sec_tot <- sec_tot |> mutate(strip = factor(strip, levels = unique(sec$strip[order(sec$country, decreasing = TRUE)])))
+sec <- sec |> mutate(strip = factor(strip, levels = levels(sec_tot$strip)))
+
+# Segments laid out here rather than by ggplot's stacking: exports run right
+# from zero and imports left, each in the order of SEC_LEVELS, so labels and
+# hover areas line up exactly
+sec <- sec |> arrange(country, source) |> group_by(country) |>
+  mutate(xmax = if_else(share >= 0, cumsum(pmax(share, 0)), cumsum(pmin(share, 0))),
+         xmin = xmax - share, row = 1) |>
+  ungroup()
+sec_tot$row <- 1                                                       # one bar per panel
+pe5 <- ggplot(sec, aes(share, row, fill = source)) +
+  geom_vline(xintercept = 0, colour = "grey40", linewidth = 0.4) +
+  geom_rect(aes(xmin = xmin, xmax = xmax, ymin = 0.72, ymax = 1.28), colour = "white", linewidth = 0.3) +
+  geom_text(aes(x = (xmin + xmax) / 2, label = lab), colour = "white", size = 3.1) +
+  geom_point(data = sec_tot, aes(share, row), inherit.aes = FALSE, shape = 23, size = 3,
+             fill = "white", colour = "black", stroke = 0.7) +
+  facet_wrap(~strip, ncol = 1, scales = "free_x") +
+  scale_fill_manual(values = sec_cols, drop = TRUE) +
+  scale_x_continuous(labels = function(x) ifelse(x > 0, paste0("+", percent(x, accuracy = 1)), percent(x, accuracy = 1)),
+                     breaks = scales::breaks_pretty(n = 6), expand = expansion(c(0.04, 0.04))) +
+  scale_y_continuous(breaks = NULL, limits = c(0.6, 1.4)) +
+  labs(
+    title    = "Energy security: net energy trade, Australia and the United States",
+    subtitle = paste0("Net exports (right of zero) and net imports (left) by source, as a share of each country's primary ",
+                      "energy use.\nDiamond = overall net position. Each country is drawn on its own scale."),
+    x = NULL, y = NULL,
+    caption  = paste0("Sources: Australia: DCCEEW, Australian Energy Statistics, Table J (", tj_fy, "). ",
+                      "US: EIA, Monthly Energy Review, Tables 1.3 and 1.4c (", us_sec_year, ").\n",
+                      "Refined fuels: LPG, petrol, diesel, jet fuel and other petroleum products. Small segments are not labelled.\n",
+                      uranium_note)
+  ) +
+  theme_csis() +
+  theme(panel.grid.major.y = element_blank(), panel.grid.major.x = element_line(colour = "grey92"),
+        strip.text = element_text(face = "bold", hjust = 0, size = 10.5), panel.spacing.y = unit(1.2, "lines"))
+
+ggsave("08_energy_security.png", pe5, width = 10, height = 5, dpi = 150, bg = "white")
+export_chart_csv(pe5, "08_energy_security.csv",
+                 y_format = "percent", chart_type = "Stacked horizontal bar (net exports positive, net imports negative)",
+                 value_var = "share", extra = c("country", "source"),
+                 notes = paste0("Share = net exports / primary energy use. Australia ", tj_fy, " (PJ, Table J); US ",
+                                us_sec_year, " (quadrillion Btu, EIA MER 1.4c and 1.3). ", uranium_note))
+
+# Hover tooltips: each segment's value, in its own units, and the share
+write_hover(pe5, "08_energy_security.png", width = 10, height = 5, dpi = 150, spots = function(built) {
+  lay <- built$layout$layout                                           # one panel per country
+  v   <- sec |> filter(abs(share) > 0)
+  fmt_v <- ifelse(v$unit == "PJ", sprintf("%s PJ", comma(abs(v$net), accuracy = 1)),
+                  sprintf("%.2f quadrillion Btu", abs(v$net)))
+  data.frame(PANEL = lay$PANEL[match(as.character(v$strip), as.character(lay$strip))],
+             xmin = v$xmin, xmax = v$xmax, ymin = 0.72, ymax = 1.28,
+             text = sprintf("<b>%s</b>, %s<br>Net %s %s<br>%s of its own energy use",
+                            sub(" \\(.*", "", as.character(v$country)), v$source,
+                            if_else(v$net >= 0, "exports", "imports"), fmt_v, percent(abs(v$share), accuracy = 0.1)))
+})
 
 
 # ------------------------------------------------------------------------------

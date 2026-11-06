@@ -1,5 +1,5 @@
 ---
-title: "Australia Chair Tool"
+title: "U.S.-Australia Economic Dashboard"
 format:
   dashboard:
     theme: [cosmo, theme/csis-redesign.scss]
@@ -142,10 +142,10 @@ arcs <- paste0(
   '</g></svg>')
 
 # Land area, coastline and population (Overview/country_facts.csv, from 1a. Overview.R)
-# "Two countries at a glance": a band under the headline numbers with one card
-# each for land area, coastline and population. Each card leads with the
-# comparison, then a navy (Australia) and red (US) bar with the figures.
-# Replaced the table and maps at the foot of the page on 3 Nov 2026.
+# "Two countries at a glance": a band with one card each for land area,
+# coastline and population. Each card leads with the comparison, then a navy
+# (Australia) and red (US) bar with the figures. Shown at the top of the
+# Geography page (below), above the two maps.
 facts <- safely_num(read.csv("Overview/country_facts.csv"))
 glance_html <- if (is.null(facts) || nrow(facts) != 2) "" else {
   f  <- function(x) format(round(x), big.mark = ",")
@@ -192,7 +192,6 @@ cat(paste0(
   ' (Canberra time)</b></div>',
   '</section>',
   '<div class="ov-stats">', paste(stats, collapse = ""), '</div>',
-  glance_html,
   '<section class="ov-section ov-about"><h2 class="ov-h2">About the U.S.-Australia Economic Dashboard</h2>',
   '<p>The United States and Australia are among each other’s closest strategic partners, and the economic dimension ',
   'of their alliance is growing in importance. Investment screening, critical minerals offtake, data-center ',
@@ -215,7 +214,6 @@ cat(paste0(
   '<section class="ov-section"><h2 class="ov-h2">Explore the relationship</h2>',
   '<p class="ov-sub">Each section opens a page of charts drawn from official US and Australian data.</p>',
   '<div class="ov-grid">', paste(tiles, collapse = ""), '</div></section>',
-  # Geography: the maps and land, coastline and population table, at the foot of the page
   '<p class="ov-sources">Sources: ABS, DFAT, US Bureau of Economic Analysis, USGS, Geoscience Australia, IRENA, AEMO, CAISO, ERCOT, EIA, IP Australia, OpenAlex and DCCEEW.</p>',
   '</div>',
   # Make the tiles and numbers switch dashboard pages like the top navigation does
@@ -224,6 +222,27 @@ cat(paste0(
   '  var nav = document.querySelector(\'.navbar .nav-link[href="#\' + a.dataset.page + \'"]\');',
   '  if (nav) { e.preventDefault(); nav.click(); window.scrollTo(0, 0); }',
   '});</script>'
+))
+```
+:::
+
+# Geography {scrolling="true"}
+
+::: {.card .ov-card}
+```{r}
+#| echo: false
+#| output: asis
+# Two countries at a glance (built in the Home chunk above), then the two maps
+# One map per row, full width; each map carries its own title and source line
+maps <- paste0(
+  '<div class="ov-context" style="grid-template-columns: minmax(0, 1100px); justify-content: center;">',
+  '<figure class="ov-figure"><img src="', knitr::image_uri("Overview/australia_over_us.png"), '" alt="Australia drawn over the contiguous United States at the same scale"></figure>',
+  '<figure class="ov-figure"><img src="', knitr::image_uri("Overview/US-Australia distance map.png"), '" alt="Map of distances across the Pacific from Australian cities to US cities and territories"></figure>',
+  '</div>')
+cat(paste0(
+  '<div class="ov ov-geo">', glance_html,
+  '<section class="ov-section">', maps, '</section>',
+  '</div>'
 ))
 ```
 :::
@@ -309,10 +328,6 @@ cat(paste0(
 
 ![](Patents/us_au_coapplied_fields.png){title="Joint filings by field"}
 
-### Patents by state
-
-![](Patents/us_au_coapplied_states.png){title="Joint filings by state"}
-
 ### Trade marks over time
 
 ![](Patents/tm_us_au_coapplied_trend.png){title="Joint trade mark filings over time"}
@@ -321,9 +336,6 @@ cat(paste0(
 
 ![](Patents/tm_us_au_coapplied_classes.png){title="Joint trade mark filings by class"}
 
-### Trade marks by state
-
-![](Patents/tm_us_au_coapplied_states.png){title="Joint trade mark filings by state"}
 
 
 # Trade overview {orientation="columns" scrolling="true"}
@@ -746,35 +758,50 @@ map
 
 ![](<Critical minerals/minerals_au_reserves_vs_production.png>){title="Australia's share of world reserves vs production"}
 
-# Energy {orientation="columns"}
+# Energy {orientation="columns" scrolling="true"}
 
-## Column {.tabset width="50%" title="Electricity mix"}
+## Column {width="50%"}
 
-### Generation mix
+### Row {.tabset height="660px" title="Electricity mix"}
+
+#### Source
 
 ![](Energy/03_primary_vs_electricity.png){title="Electricity generation by fuel, Australia and the United States"}
 
-### Mix over time
+#### Source over time
 
 ![](Energy/01_fuel_mix_timeseries.png){title="Share of generation by fuel over time, Australia and the US"}
 
-### Renewables share
+#### Renewables share
 
 ![](Energy/09_renewable_share_au_us.png){title="Renewable share of generation, Australia and the United States"}
 
-### Carbon-free by technology
+#### Carbon-free by technology
 
 ![](Energy/05_carbon_free_by_technology.png){title="Carbon-free electricity generation by technology, Australia and the United States"}
 
-### Targets
+#### Targets
 
 ![](Energy/04_renewables_vs_target.png){title="Clean electricity targets, Australia and the United States"}
 
-### By state
+#### By state
 
 ![](Energy/02_state_fuel_mix.png){title="Electricity generation mix by state"}
 
-## Column {.tabset width="50%" title="Relative costs and prices"}
+### Row {.tabset height="460px" title="Energy mix"}
+
+#### Source
+
+![](Energy/08_energy_source_au_us.png){title="Energy use by source, Australia and the United States"}
+
+
+### Row {.tabset height="560px" title="Energy security"}
+
+#### Net energy trade
+
+![](Energy/08_energy_security.png){title="Energy security: net energy trade, Australia and the United States"}
+
+## Column {.tabset .energy-costs width="50%" title="Relative costs and prices"}
 
 ### Wholesale prices, Australia vs US
 
@@ -783,10 +810,6 @@ map
 ### Cost of new solar and wind
 
 ![](Energy/06_lcoe_au_us.png){title="Cost of new solar and wind, Australia vs United States"}
-
-### US industrial power prices
-
-![](<Data centres/16_us_industrial_power_prices.png>){title="US benchmark: industrial electricity prices in data centre states"}
 
 # Research and AI {orientation="columns"}
 
@@ -844,19 +867,15 @@ map
 
 ## Column {.tabset width="50%" title="Australians in the United States"}
 
-### Skilled professional visas
+### Skilled visas
 
 ![](Migration/e3_visas_australians.png){title="Skilled professional visas issued to Australians"}
 
-### Skilled jobs by occupation
-
-![](Migration/e3_jobs_by_occupation.png){title="Skilled professional jobs certified for Australians, by occupation"}
-
-### Skilled jobs over time
+### Skilled visas over time
 
 ![](Migration/e3_jobs_trend.png){title="Skilled professional jobs certified for Australians, over time"}
 
-### Skilled jobs by employer and city
+### Skilled visas by employer/city
 
 ![](Migration/e3_employers_cities.png){title="Skilled professional jobs certified for Australians, by employer and city"}
 
@@ -866,14 +885,6 @@ map
 
 ## Column {.tabset width="50%" title="Americans in Australia"}
 
-### Skilled visas by occupation
-
-![](Migration/us_citizens_skilled_visas_occupation.png){title="Skilled visas held by Americans in Australia, by occupation"}
-
-### Temporary visas by type
-
-![](Migration/us_citizens_temporary_visas.png){title="Temporary visas held by Americans in Australia, by type"}
-
 ### Net migration
 
 ![](Migration/nom_usa_national.png){title="Net migration of Americans to Australia"}
@@ -881,3 +892,11 @@ map
 ### Net migration by state
 
 ![](Migration/nom_usa_states.png){title="Net migration of Americans to Australia, by state and territory"}
+
+### Skilled visas by occupation
+
+![](Migration/us_citizens_skilled_visas_occupation.png){title="Skilled visas held by Americans in Australia, by occupation"}
+
+### Temporary visas by type
+
+![](Migration/us_citizens_temporary_visas.png){title="Temporary visas held by Americans in Australia, by type"}

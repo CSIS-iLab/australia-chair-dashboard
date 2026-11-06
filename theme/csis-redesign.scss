@@ -32,7 +32,10 @@ $border-radius:           6px;
   background: $navy !important;
   border-bottom: 3px solid $gold;
   .navbar-brand, .navbar-title { color: #fff !important; font-family: $headings-font-family; font-weight: 600; }
-  .nav-link { color: rgba(255,255,255,0.78) !important; font-weight: 600; letter-spacing: 0.01em; }
+  // The longer "U.S.-Australia Economic Dashboard" title: a little smaller, so
+  // the page names fit on one line each
+  .navbar-title { font-size: 1.15rem; line-height: 1.2; }
+  .nav-link { color: rgba(255,255,255,0.78) !important; font-weight: 600; letter-spacing: 0.01em; white-space: nowrap; }
   .nav-link:hover { color: #fff !important; }
   .nav-link.active {
     color: #fff !important;
@@ -288,6 +291,9 @@ $border-radius:           6px;
 #trade-overview .card-body img { max-height: 100%; max-width: 100%; width: auto; height: auto; object-fit: contain; display: block; margin: 0 auto; }
 // The US chart keeps its own height and stays in view while the left column scrolls
 #trade-overview .trade-us { align-self: start; height: auto !important; position: sticky; top: 0; }
+// Energy: electricity mix and energy mix stacked on the left; the costs and
+// prices card keeps one card's height and stays in view while the page scrolls
+#energy .energy-costs { align-self: start; height: 660px !important; position: sticky; top: 0; }
 
 // Every chart on every page shrinks to fit its card rather than scrolling
 // inside it (the expand button shows it full size). Cards holding a map,

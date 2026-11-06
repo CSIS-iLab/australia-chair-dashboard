@@ -8,4 +8,10 @@ Quarterly editions: each quarter's dashboard is kept so readers can switch back 
 
 '0. Exchange rates.R' is run by the chart scripts themselves (no need to open it). It downloads the RBA's daily A$/US$ rates so every chart in dollars is saved twice, in A$ (name.png) and US$ (name_usd.png), for the A$/US$ toggle in the dashboard's top bar. Each value is converted at the average rate for its own period.
 
+Three energy files must be downloaded by hand once a year. energy.gov.au blocks scripted downloads, so R cannot fetch them. DCCEEW publishes new editions of the Australian Energy Statistics each year: Table O (electricity) in June, and Tables C (energy by fuel) and J (energy trade) in September, all listed on https://www.energy.gov.au/publications/australian-energy-update-2026 (the page name changes with the year). Open each link in your web browser and save the file, keeping its name, into the Energy folder:
+  - Table O, electricity generation by fuel type: https://www.energy.gov.au/sites/default/files/2026-06/table-o-electricity-generation-by-fuel%20type-2024-25-and-2025.xlsx
+  - Table C, energy consumption by state and fuel: https://www.energy.gov.au/sites/default/files/Australian%20Energy%20Statistics%202026%20Table%20C.xlsx
+  - Table J, energy supply and trade by fuel (energy security chart): https://www.energy.gov.au/sites/default/files/Australian%20Energy%20Statistics%202026%20Table%20J.xlsx
+Then put the new file names (or links) at the top of '1e. Energy.R' (TABLE_O_URL, TABLE_C_FILE and TABLE_J_FILE) before running '1. Refresh all data.R'. If a file is missing, the Energy script stops and says which one to download.
+
 Data sources and links are saved in https://csis365.sharepoint.com/:x:/s/Australia/IQDrSA6EMKEQTaaFrVvdDzzkARJpelangI6YcqL9G_NOScE?e=dy4MO5

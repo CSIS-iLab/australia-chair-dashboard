@@ -843,7 +843,9 @@ make_p16 <- function(cur) {
     theme(panel.grid.major.y = element_blank(),
           panel.grid.major.x = element_line(colour = "#E6E7E8", linewidth = 0.4))
 }
-save_both(make_p16, "16_us_industrial_power_prices.png", save_csis, height = 5)
+# Taken off the dashboard on 6 Nov 2026; still drawn, into the archive folder
+dir.create("Archived charts", showWarnings = FALSE)
+save_both(make_p16, file.path("Archived charts", "16_us_industrial_power_prices.png"), save_csis, height = 5)
 
 # Takeaways for section 13
 local({
@@ -891,5 +893,5 @@ local({
     "Industrial users paid an average %s%.0f/MWh in Virginia, the largest US data centre market, and %s%.0f/MWh in Texas in %d.",
     cur_sym[[cur]], eia$value[eia$region == "Virginia"] * eia_k(cur),
     cur_sym[[cur]], eia$value[eia$region == "Texas"] * eia_k(cur), eia_yr)
-  takeaway(dc("16_us_industrial_power_prices.png"), line16("AUD"), line16("USD"))
+  takeaway(dc("Archived charts/16_us_industrial_power_prices.png"), line16("AUD"), line16("USD"))
 })
