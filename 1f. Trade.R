@@ -31,6 +31,22 @@ TRADE_DIR     <- file.path(Sys.getenv("DASHBOARD_DIR"), "Trade")
 setwd(TRADE_DIR)   # charts saved without a folder land in Trade/
 source(file.path(Sys.getenv("DASHBOARD_DIR"), "0. Exchange rates.R"))   # A$/US$ toggle
 source(file.path(Sys.getenv("DASHBOARD_DIR"), "0. Takeaways.R"))       # line under each chart
+
+# Axis labels for U.S.-share charts: as many decimals as the axis steps need,
+# so small shares read 0.02%, 0.04%, ... rather than 0%, 0%, ... (whole
+# percentages, as before, whenever the steps are 1% or more)
+pct_axis <- function(x) {
+  v <- x[is.finite(x)] * 100
+  acc <- 1
+  for (a in c(1, 0.1, 0.01, 0.001)) {                  # fewest decimals that show every break exactly
+    acc <- a
+    if (all(abs(round(v / a) * a - v) < 1e-6)) break
+  }
+  out <- scales::percent(x, accuracy = acc)
+  out[is.finite(x) & x == 0] <- "0%"
+  out
+}
+
 RAW_DIR      <- file.path(TRADE_DIR, "raw")
 MAX_AGE_DAYS  <- 30
 FORCE_REFRESH <- FALSE
@@ -207,7 +223,7 @@ read_pivot_cache <- function(xlsx) {
   
   nf <- length(fnames)
   if (length(tag) %% nf != 0)
-    stop("Pivot cache layout not recognised (", length(tag),
+    stop("Pivot cache layout not recognized (", length(tag),
          " values for ", nf, " fields).")
   tag <- matrix(tag, ncol = nf, byrow = TRUE)
   val <- matrix(val, ncol = nf, byrow = TRUE)
@@ -436,7 +452,7 @@ us_vs_all <- rbindlist(lapply(c("Exports", "Imports"), function(fl) {
 }))
 
 if (!any(us_vs_all$us_m > 0))
-  warning("No US trade found. Check how the United States is labelled: ",
+  warning("No U.S. trade found. Check how the United States is labeled: ",
           paste(grep("United", unique(dfat$country), value = TRUE), collapse = ", "))
 
 fwrite(us_vs_all[, .(flow, industry, year, us_m, total_m)],
@@ -975,7 +991,7 @@ ggplot(plot_dat,
     expand = expansion(mult = c(0.02, 0.18))
   ) +
   scale_y_continuous(
-    labels = label_dollar(prefix = cur_sym[[cur]], suffix = "b", accuracy = 1),
+    labels = label_dollar(prefix = cur_sym[[cur]], suffix = "bn", accuracy = 1),
     limits = c(0, NA),
     expand = expansion(mult = c(0, 0.08))
   ) +
@@ -1200,7 +1216,7 @@ make_imports_long <- function(cur) plot_partner_series(
   imports_long |>
     mutate(value_bn = if (cur == "USD") aud_to_usd(value_bn, fx_calendar_year(year)) else value_bn),
   value_bn, paste0("Imports (", cur_sym[[cur]], " billion)"),
-  scale_y_continuous(labels = label_dollar(prefix = cur_sym[[cur]], suffix = "b", accuracy = 1),
+  scale_y_continuous(labels = label_dollar(prefix = cur_sym[[cur]], suffix = "bn", accuracy = 1),
                      limits = c(0, NA), expand = expansion(mult = c(0, 0.08))),
   #title    = "China supplies more than a quarter of Australia's goods imports",
    title = "Goods imports by origin",
@@ -1349,18 +1365,15 @@ make_services_partner <- function(cur) {
            share = 100 * value_m / svc_tot[as.character(flow)])
   ggplot(d, aes(value_bn, partner, fill = flow)) +
     geom_col(position = position_dodge(width = 0.8, reverse = TRUE), width = 0.75) +
-    geom_text(aes(label = sprintf("%s%.1fbn (%.0f%%)", cur_sym[[cur]], value_bn, share)),
-              position = position_dodge(width = 0.8, reverse = TRUE), hjust = -0.08, size = 2.7,
-              family = "source_sans", colour = csis_colours[["grey"]]) +
+    # Values and shares are in the hover pop-ups (below), not printed on the bars
     scale_fill_manual(values = c(Exports = csis_colours[["navy"]], Imports = csis_colours[["teal"]]),
                       breaks = c("Exports", "Imports")) +
     scale_x_continuous(labels = label_dollar(prefix = cur_sym[[cur]], suffix = "bn"),
-                       expand = expansion(mult = c(0, 0.25))) +
+                       expand = expansion(mult = c(0, 0.05))) +
     labs(
       title = "Australia's services trade by partner",
       subtitle = paste0("Services exports and imports, ten largest partners by two-way trade, ", cur_sym[[cur]], ", ",
-                        svc_yr, ".
-Share of each total in brackets."),
+                        svc_yr, ". Hover over a bar for its value and share."),
       x = NULL, y = NULL,
       caption = paste0("Source: ABS, International Trade: Supplementary Information, Calendar Year ", svc_yr, ".\n",
                        paste(svc_notes, collapse = " "),
@@ -1374,6 +1387,16 @@ Share of each total in brackets."),
 
 save_both(make_services_partner, "services_trade_by_partner.png",
           function(p, f) ggsave(f, p, width = 8.5, height = 6.2, dpi = 150, bg = "white"))
+# Hover pop-ups: each bar's value and its share of Australia's total
+partner_hover <- function(make, file, d, totals, cur_of) for (cur in c("AUD", "USD")) {
+  f <- if (cur == "USD") usd_file(file) else file
+  write_hover(make(cur), f, width = 8.5, height = 6.2, dpi = 150, spots = hbar_spots(function(cat, series, v) {
+    row <- d[as.character(d$partner) == cat & as.character(d$flow) == series, ]
+    sprintf("<b>%s</b><br>%s: %s%.1fbn<br>%.0f%% of Australia's %s", sub("^[0-9]+\\. ", "", cat), series,
+            cur_sym[[cur]], v, 100 * row$value_m[1] / totals[[series]], tolower(series))
+  }))
+}
+partner_hover(make_services_partner, "services_trade_by_partner.png", svc_partner, svc_tot)
 
 # ---------------------------------------------------------------
 # Goods trade by partner: exports and imports, latest year
@@ -1414,18 +1437,15 @@ make_goods_partner <- function(cur) {
     mutate(value_bn = if (cur == "USD") aud_to_usd(value_bn, fx_calendar_year(goods_yr)) else value_bn)
   ggplot(d, aes(value_bn, partner, fill = flow)) +
     geom_col(position = position_dodge(width = 0.8, reverse = TRUE), width = 0.75) +
-    geom_text(aes(label = sprintf("%s%.1fbn (%.0f%%)", cur_sym[[cur]], value_bn, share)),
-              position = position_dodge(width = 0.8, reverse = TRUE), hjust = -0.08, size = 2.7,
-              family = "source_sans", colour = csis_colours[["grey"]]) +
+    # Values and shares are in the hover pop-ups (below), not printed on the bars
     scale_fill_manual(values = c(Exports = csis_colours[["navy"]], Imports = csis_colours[["teal"]]),
                       breaks = c("Exports", "Imports")) +
     scale_x_continuous(labels = label_dollar(prefix = cur_sym[[cur]], suffix = "bn"),
-                       expand = expansion(mult = c(0, 0.25))) +
+                       expand = expansion(mult = c(0, 0.05))) +
     labs(
       title = "Australia's goods trade by partner",
       subtitle = paste0("Goods exports and imports, ten largest partners by two-way trade, ", cur_sym[[cur]], ", ",
-                        goods_yr, ".
-Share of each total in brackets."),
+                        goods_yr, ". Hover over a bar for its value and share."),
       x = NULL, y = NULL,
       caption = paste0("Source: DFAT, Australia's goods exports and imports by country and commodity ",
                        "(ABS cat. 5368.0), calendar ", goods_yr, ".\n",
@@ -1440,6 +1460,14 @@ Share of each total in brackets."),
 
 save_both(make_goods_partner, "goods_trade_by_partner.png",
           function(p, f) ggsave(f, p, width = 8.5, height = 6.2, dpi = 150, bg = "white"))
+for (cur in c("AUD", "USD")) {
+  f <- if (cur == "USD") usd_file("goods_trade_by_partner.png") else "goods_trade_by_partner.png"
+  write_hover(make_goods_partner(cur), f, width = 8.5, height = 6.2, dpi = 150, spots = hbar_spots(function(cat, series, v) {
+    row <- goods_partner[as.character(goods_partner$partner) == cat & as.character(goods_partner$flow) == series, ]
+    sprintf("<b>%s</b><br>%s: %s%.1fbn<br>%.0f%% of Australia's %s", sub("^[0-9]+\\. ", "", cat), series,
+            cur_sym[[cur]], v, row$share[1], tolower(series))
+  }))
+}
 
 
 
@@ -1613,11 +1641,11 @@ fwrite(dt[order(flow, tab_no, year), .(flow, table, service, year,
 
 # ---- Chart settings ---------------------------------------------------------
 flow_meta <- list(
-  Credits = list(colour = "#1F4E79",
-                 title  = "US share of Australia's services exports",
+  Credits = list(colour = "#00205B",
+                 title  = "U.S. share of Australia's services exports",
                  short  = "exports"),
-  Debits  = list(colour = "#C0504D",
-                 title  = "US share of Australia's services imports",
+  Debits  = list(colour = "#D2232A",
+                 title  = "U.S. share of Australia's services imports",
                  short  = "imports")
 )
 
@@ -1666,7 +1694,7 @@ for (fl in names(flow_meta)) {
     p <- ggplot(d, aes(x = year, y = share)) +
       geom_line(colour = fm$colour, linewidth = 0.9, na.rm = TRUE) +
       geom_point(colour = fm$colour, size = 2, na.rm = TRUE) +
-      scale_y_continuous(labels = percent_format(accuracy = 1),
+      scale_y_continuous(labels = pct_axis,
                          limits = c(0, NA), expand = expansion(mult = c(0, 0.05))) +
       scale_x_continuous(breaks = pretty_breaks(n = 8)) +
       labs(title    = service_title(fm, svc),
@@ -1692,14 +1720,17 @@ ov[, service := droplevels(service)]
 p_ov <- ggplot(ov, aes(x = year, y = share, colour = flow)) +
   geom_line(linewidth = 0.7, na.rm = TRUE) +
   geom_point(size = 1, na.rm = TRUE) +
+  # Panel titles: the ABS names tidied to CSIS (Chicago) title case, without
+  # the "n.i.e" (not included elsewhere) suffix, as in the single charts' titles
   facet_wrap(~ service, ncol = 3, scales = "free_y",
-             labeller = label_wrap_gen(width = 35)) +
+             labeller = as_labeller(function(x)
+               str_wrap(title_case(str_remove(x, regex("\\s*n\\.i\\.e\\.?$", ignore_case = TRUE))), 35))) +
   scale_colour_manual(values = c(Credits = flow_meta$Credits$colour,
                                  Debits  = flow_meta$Debits$colour),
-                      labels = c(Credits = "Exports to the US",
-                                 Debits  = "Imports from the US")) +
-  scale_y_continuous(labels = percent_format(accuracy = 1), limits = c(0, NA)) +
-  labs(title    = "US share of Australia's services trade, by service",
+                      labels = c(Credits = "Exports to the U.S.",
+                                 Debits  = "Imports from the U.S.")) +
+  scale_y_continuous(labels = pct_axis, limits = c(0, NA)) +
+  labs(title    = "U.S. share of Australia's services trade, by service",
        subtitle = "United States as a share of total services flows in each direction",
        caption  = "Source: ABS, International Trade: Supplementary Information, Calendar Year (Tables 5.x and 6.x). Gaps = not published (np).",
        x = NULL, y = NULL, colour = NULL) +
@@ -1856,11 +1887,11 @@ fwrite(goods[, .(flow, year, us_Am = us, total_Am = total,
 # ---- Charts: one per direction ----------------------------------------------
 goods_meta <- list(
   Exports = list(colour = flow_meta$Credits$colour,
-                 title  = "US share of Australia's goods exports",
+                 title  = "U.S. share of Australia's goods exports",
                  short  = "exports (FOB value)",
                  tab    = "1"),
   Imports = list(colour = flow_meta$Debits$colour,
-                 title  = "US share of Australia's goods imports",
+                 title  = "U.S. share of Australia's goods imports",
                  short  = "imports (customs value)",
                  tab    = "2")
 )
@@ -1873,7 +1904,7 @@ for (fl in names(goods_meta)) {
   p <- ggplot(d, aes(x = year, y = share)) +
     geom_line(colour = gm$colour, linewidth = 0.9, na.rm = TRUE) +
     geom_point(colour = gm$colour, size = 2, na.rm = TRUE) +
-    scale_y_continuous(labels = percent_format(accuracy = 1),
+    scale_y_continuous(labels = pct_axis,
                        limits = c(0, NA), expand = expansion(mult = c(0, 0.05))) +
     scale_x_continuous(breaks = pretty_breaks(n = 8)) +
     labs(title    = gm$title,
@@ -1997,7 +2028,7 @@ setorder(goods, flow, industry, year)
 # (wrong industry labels matched, or the "all" file isn't all countries)
 odd <- goods[!is.na(share) & share > 1.05]
 if (nrow(odd))
-  warning(sprintf("US value exceeds the all-countries value in %d cells, e.g. %s %s %d. Check the two files match.",
+  warning(sprintf("U.S. value exceeds the all-countries value in %d cells, e.g. %s %s %d. Check the two files match.",
                   nrow(odd), odd$flow[1], as.character(odd$industry[1]), odd$year[1]))
 
 # Tidy master file of all numbers behind the charts
@@ -2007,11 +2038,11 @@ fwrite(goods[, .(flow, industry, year, us_Am = round(us, 1), total_Am = round(to
 
 # ---- Chart settings ---------------------------------------------------------
 flow_meta <- list(
-  Exports = list(colour = "#1F4E79",
-                 title  = "US share of Australia's goods exports",
+  Exports = list(colour = "#00205B",
+                 title  = "U.S. share of Australia's goods exports",
                  short  = "exports"),
-  Imports = list(colour = "#C0504D",
-                 title  = "US share of Australia's goods imports",
+  Imports = list(colour = "#D2232A",
+                 title  = "U.S. share of Australia's goods imports",
                  short  = "imports")
 )
 
@@ -2049,7 +2080,7 @@ for (fl in names(flow_meta)) {
     p <- ggplot(d, aes(x = year, y = share)) +
       geom_line(colour = fm$colour, linewidth = 0.9, na.rm = TRUE) +
       geom_point(colour = fm$colour, size = 2, na.rm = TRUE) +
-      scale_y_continuous(labels = percent_format(accuracy = 1),
+      scale_y_continuous(labels = pct_axis,
                          limits = c(0, NA), expand = expansion(mult = c(0, 0.05))) +
       scale_x_continuous(breaks = pretty_breaks(n = 8)) +
       labs(title    = paste0(fm$title, ": ", ind),
@@ -2076,9 +2107,9 @@ p_ov <- ggplot(ov, aes(x = year, y = share, colour = flow)) +
              labeller = label_wrap_gen(width = 35)) +
   scale_colour_manual(values = c(Exports = flow_meta$Exports$colour,
                                  Imports = flow_meta$Imports$colour),
-                      labels = c(Exports = "Exports to US", Imports = "Imports from US")) +
-  scale_y_continuous(labels = percent_format(accuracy = 1), limits = c(0, NA)) +
-  labs(title    = "US share of Australia's goods trade, by industry",
+                      labels = c(Exports = "Exports to U.S.", Imports = "Imports from U.S.")) +
+  scale_y_continuous(labels = pct_axis, limits = c(0, NA)) +
+  labs(title    = "U.S. share of Australia's goods trade, by industry",
        subtitle = "United States as a share of total goods flows in each direction",
        caption  = src_caption,
        x = NULL, y = NULL, colour = NULL) +
@@ -2156,7 +2187,7 @@ us_balance <- bind_rows(us_balance, filter(gold_us, year %in% us_balance$year)) 
          surplus_ex_gold = (us_exports - gold_us_exports) - (au_exports - gold_au_exports)) |>
   arrange(year)
 
-flow_levels <- c("Australian exports to the US", "Australian imports from the US")
+flow_levels <- c("Australian exports to the U.S.", "Australian imports from the U.S.")
 flows_long <- bind_rows(
   us_balance |> transmute(year, value = au_exports, series = flow_levels[1]),
   us_balance |> transmute(year, value = us_exports, series = flow_levels[2])
@@ -2173,11 +2204,11 @@ flows_latest <- flows |> filter(year == max(year))
 bal_latest   <- bal |> filter(year == max(year))
 
 sym <- cur_sym[[cur]]
-bn_label <- function(x) ifelse(x < 0, paste0("-", sym, abs(x), "b"), paste0(sym, x, "b"))
+bn_label <- function(x) ifelse(x < 0, paste0("-", sym, abs(x), "bn"), paste0(sym, x, "bn"))
 
 ggplot() +
-  geom_col(data = bal, aes(year, surplus, fill = "US trade surplus"), width = 0.7) +
-  geom_line(data = bal, aes(year, surplus_ex_gold, linetype = "US surplus excluding gold"),
+  geom_col(data = bal, aes(year, surplus, fill = "U.S. trade surplus"), width = 0.7) +
+  geom_line(data = bal, aes(year, surplus_ex_gold, linetype = "U.S. surplus excluding gold"),
             colour = csis_colours[["grey"]], linewidth = 0.6) +
   geom_point(data = bal, aes(year, surplus_ex_gold), shape = 21, size = 1.4,
              colour = csis_colours[["grey"]], fill = "white") +
@@ -2194,9 +2225,10 @@ ggplot() +
            hjust = 1, vjust = -0.6, size = 3, family = "source_sans",
            colour = csis_colours[["navy"]]) +
   scale_colour_manual(values = setNames(unname(csis_colours[c("navy", "red")]), flow_levels)) +
-  scale_fill_manual(values = c("US trade surplus" = "#F7D98B")) +
-  scale_linetype_manual(values = c("US surplus excluding gold" = "22")) +
-  scale_y_continuous(labels = bn_label, breaks = scales::pretty_breaks(8)) +
+  scale_fill_manual(values = c("U.S. trade surplus" = "#F7D98B")) +
+  scale_linetype_manual(values = c("U.S. surplus excluding gold" = "22")) +
+  scale_y_continuous(labels = bn_label,                                  # a label every 20bn
+                     breaks = function(l) seq(20 * floor(l[1] / 20), 20 * ceiling(l[2] / 20), by = 20)) +
   scale_x_continuous(breaks = scales::pretty_breaks(8),
                      expand = expansion(mult = c(0.01, 0.15))) +
   guides(colour = guide_legend(order = 1), fill = guide_legend(order = 2),
@@ -2208,7 +2240,7 @@ ggplot() +
     caption  = paste0(
       "Sources: DFAT country and commodity pivot table (ABS cat. 5368.0)",
       if (INCLUDE_SERVICES) "; ABS, International Trade: Supplementary Information, Calendar Year" else "",
-      ".\nUS surplus = Australian imports from the US less Australian exports to the US.",
+      ".\nU.S. surplus = Australian imports from the U.S. less Australian exports to the U.S.",
       "
 Excluding gold removes SITC 971 (non-monetary gold) from both exports and imports.",
       if (cur == "USD") fx_note[["USD"]] else ""
@@ -2233,8 +2265,8 @@ local({
   line <- function(cur) {
     k <- if (cur == "USD") fx_calendar_year(c(last$year, prev$year)) else c(1, 1)
     s <- cur_sym[[cur]]
-    sprintf(paste("Exports to the US rose from %s to %s in %d, and %s of the rise was non-monetary gold.",
-                  "The US surplus was %s, or %s excluding gold."),
+    sprintf(paste("Exports to the U.S. rose from %s to %s in %d, and %s of the rise was non-monetary gold.",
+                  "The U.S. surplus was %s, or %s excluding gold."),
             fmt_bn(prev$au_exports * k[2], s), fmt_bn(last$au_exports * k[1], s), last$year,
             fmt_bn(last$gold_au_exports * k[1] - prev$gold_au_exports * k[2], s),
             fmt_bn(last$surplus * k[1], s), fmt_bn(last$surplus_ex_gold * k[1], s))
@@ -2282,8 +2314,8 @@ top10 <- as.data.frame(us_vs_all) |>
   slice_max(us_m, n = 10, with_ties = FALSE) |>
   ungroup() |>
   mutate(product = plain_sitc(industry),
-         flow = recode(flow, Exports = "Australian exports to the US",
-                       Imports = "Australian imports from the US"))
+         flow = recode(flow, Exports = "Australian exports to the U.S.",
+                       Imports = "Australian imports from the U.S."))
 write_csv(top10 |> select(flow, industry, product, year, us_m, total_m), "goods_top10_us.csv")
 
 make_top10 <- function(cur) {
@@ -2293,7 +2325,7 @@ make_top10 <- function(cur) {
     if (length(v)) sprintf("%s%.1fbn", cur_sym[[cur]], v) else "none"
   }
   gold_note <- sprintf(paste0("\nGold has been removed from both sides, non-monetary gold (SITC 971) and gold coin (SITC 951): ",
-                              "Australian exports to the US %s, imports from the US %s in %d."),
+                              "Australian exports to the U.S. %s, imports from the U.S. %s in %d."),
                        gold_bn("Exports"), gold_bn("Imports"), top_yr)
   d <- top10 |>
     mutate(v = us_m * k / 1000,
@@ -2302,14 +2334,13 @@ make_top10 <- function(cur) {
            key = reorder(key, v))
   ggplot(d, aes(v, key, fill = flow)) +
     geom_col(width = 0.7, show.legend = FALSE) +
-    geom_text(aes(label = sprintf("%s%.1fbn", cur_sym[[cur]], v)), hjust = -0.1, size = 3,
-              family = "source_sans", colour = csis_colours[["grey"]]) +
+  # values are in the hover pop-ups, not printed on the bars
     facet_wrap(~flow, scales = "free", ncol = 2) +
     scale_y_discrete(labels = function(x) sub("^.*\\|\\|", "", x)) +
-    scale_fill_manual(values = c("Australian exports to the US" = csis_colours[["navy"]],
-                                 "Australian imports from the US" = csis_colours[["red"]])) +
+    scale_fill_manual(values = c("Australian exports to the U.S." = csis_colours[["navy"]],
+                                 "Australian imports from the U.S." = csis_colours[["red"]])) +
     scale_x_continuous(labels = function(x) paste0(cur_sym[[cur]], x, "bn"),
-                       expand = expansion(mult = c(0, 0.3))) +
+                       expand = expansion(mult = c(0, 0.05))) +
     labs(title = "Top ten goods traded with the United States",
          subtitle = sprintf("Value by product (SITC 3-digit), calendar %d, %s billion", top_yr, cur_sym[[cur]]),
          caption = paste0("Source: DFAT country and commodity pivot table (ABS cat. 5368.0). ",
@@ -2357,11 +2388,11 @@ local({
   t10 <- top10 |> group_by(flow) |> slice_max(us_m, n = 1) |> ungroup()
   line_t10 <- function(cur) {
     k <- if (cur == "USD") fx_calendar_year(top_yr) else 1
-    sprintf("%s was Australia's largest export to the US in %d (%s) and %s its largest import from the US (%s).",
-            t10$product[t10$flow == "Australian exports to the US"], top_yr,
-            fmt_bn(t10$us_m[t10$flow == "Australian exports to the US"] * k / 1000, cur_sym[[cur]]),
-            tolower(t10$product[t10$flow == "Australian imports from the US"]),
-            fmt_bn(t10$us_m[t10$flow == "Australian imports from the US"] * k / 1000, cur_sym[[cur]]))
+    sprintf("%s was Australia's largest export to the U.S. in %d (%s) and %s its largest import from the U.S. (%s).",
+            t10$product[t10$flow == "Australian exports to the U.S."], top_yr,
+            fmt_bn(t10$us_m[t10$flow == "Australian exports to the U.S."] * k / 1000, cur_sym[[cur]]),
+            tolower(t10$product[t10$flow == "Australian imports from the U.S."]),
+            fmt_bn(t10$us_m[t10$flow == "Australian imports from the U.S."] * k / 1000, cur_sym[[cur]]))
   }
   takeaway(tr("goods_top10_us.png"), line_t10("AUD"), line_t10("USD"))
 })

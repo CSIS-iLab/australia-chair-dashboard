@@ -264,7 +264,7 @@ csis_navy <- "#00205B"; csis_teal <- "#0098A8"; csis_grey <- "#565A5C"
 font_family <- tryCatch({
   sysfonts::font_add_google("Source Sans 3", "source_sans")
   showtext::showtext_auto()
-  showtext::showtext_opts(dpi = 300)
+  showtext::showtext_opts(dpi = 200)
   "source_sans"
 }, error = function(e) "sans")          # offline: fall back to the default font
 
@@ -290,9 +290,7 @@ x_max <- max(plot_dat$value_bn, na.rm = TRUE) * 1.12   # headroom for value labe
 
 ggplot(plot_dat, aes(x = value_bn, y = partner, fill = direction)) +
   geom_col(position = position_dodge(width = 0.8), width = 0.75, na.rm = TRUE) +
-  geom_text(aes(label = label), hjust = -0.1,
-            position = position_dodge(width = 0.8),
-            size = 2.9, family = font_family, colour = csis_grey, na.rm = TRUE) +
+  # values are in the hover pop-ups, not printed on the bars
   scale_fill_manual(values = c("Australian investment abroad"    = csis_teal,
                                "Foreign investment in Australia" = csis_navy),
                     breaks = c("Australian investment abroad",
@@ -327,7 +325,7 @@ Converted to US$ at the RBA exchange rate on 31 December." else ""),
 }
 
 save_both(make_iip, file.path(OUT_DIR, "iip_levels_latest.png"),
-          function(p, f) ggsave(f, p, width = 9, height = 5.5, dpi = 300, bg = "white"))
+          function(p, f) ggsave(f, p, width = 9, height = 5.5, dpi = 200, bg = "white"))
 
 
 
@@ -420,13 +418,13 @@ make_iip_type <- function(cur) {
 }
 
 save_both(make_iip_type, file.path(OUT_DIR, "iip_by_type_latest.png"),
-          function(p, f) ggsave(f, p, width = 10, height = 5.5, dpi = 300, bg = "white"))
+          function(p, f) ggsave(f, p, width = 10, height = 5.5, dpi = 200, bg = "white"))
 
 # Hover tooltips: each bar segment shows its value and the partner's total
 for (cur in c("AUD", "USD")) {
   f <- file.path(OUT_DIR, "iip_by_type_latest.png")
   write_hover(make_iip_type(cur), if (cur == "USD") usd_file(f) else f,
-              width = 10, height = 5.5, dpi = 300,
+              width = 10, height = 5.5, dpi = 200,
               spots = function(built) {
                 d <- built$plot$data
                 d$y <- as.integer(droplevels(d$partner))
@@ -522,8 +520,7 @@ make_iip_industry <- function(cur) {
                                                     "Australian direct investment abroad")))
   ggplot(d, aes(value_bn, sector, fill = shade)) +
     geom_col(width = 0.7) +
-    geom_text(aes(label = sprintf("%s%.0fbn", cur_sym[[cur]], value_bn)), hjust = -0.12,
-              size = 3, family = font_family, colour = csis_grey) +
+  # values are in the hover pop-ups, not printed on the bars
     facet_wrap(~direction, ncol = 2) +
     scale_fill_manual(values = c(`FALSE` = csis_navy, `TRUE` = "#B1B3B3"), guide = "none") +
     scale_x_continuous(labels = dollar_format(prefix = cur_sym[[cur]], suffix = "bn", big.mark = ","),
@@ -535,7 +532,7 @@ make_iip_industry <- function(cur) {
                          unique(by_ind$year)[1], cur_sym[[cur]]),
       caption  = paste0("Source: ABS, International Investment Position, Australia: Supplementary Statistics, Tables 15a and 17a",
                         " (industry of the Australian enterprise, ANZSIC divisions).",
-                        "\nThe ABS does not publish industry by partner country, so this covers all countries, not just the US.",
+                        "\nThe ABS does not publish industry by partner country, so this covers all countries, not just the U.S.",
                         " Direct investment only.",
                         "\nUnallocated or not published = the total less the industries the ABS publishes.",
                         if (cur == "USD") "\nConverted to US$ at the RBA exchange rate on 31 December." else ""),
@@ -558,7 +555,7 @@ make_iip_industry <- function(cur) {
 }
 
 save_both(make_iip_industry, file.path(OUT_DIR, "iip_direct_by_industry_latest.png"),
-          function(p, f) ggsave(f, p, width = 10, height = 5.5, dpi = 300, bg = "white"))
+          function(p, f) ggsave(f, p, width = 10, height = 5.5, dpi = 200, bg = "white"))
 
 # ------------------------------------------------------------------------------
 # 5. Takeaways under each chart
@@ -570,7 +567,7 @@ local({
     k <- if (cur == "USD") inv$usd_per_aud[1] else 1
     us_in  <- inv$value_bn[inv$partner == "United States"] * k
     us_out <- out$value_bn[out$partner == "United States"] * k
-    sprintf("US investors held %s in Australia at the end of %d, %s; Australians held %s in the US.",
+    sprintf("U.S. investors held %s in Australia at the end of %d, %s; Australians held %s in the U.S.",
             fmt_bn(us_in, cur_sym[[cur]]), YEAR,
             if (inv$partner[1] == "United States") "more than any other country" else
               paste0("second to ", inv$partner[1]),
@@ -580,7 +577,7 @@ local({
   us_t <- by_type |> filter(partner == "United States")
   sh <- function(dir) { x <- us_t |> filter(direction == dir); 100 * sum(x$value_bn[x$group == "Direct"]) / sum(x$value_bn) }
   takeaway("Investment/iip_by_type_latest.png", sprintf(
-    "Direct investment is %.0f%% of US investment in Australia and %.0f%% of Australian investment in the US; the rest is mostly portfolio holdings.",
+    "Direct investment is %.0f%% of U.S. investment in Australia and %.0f%% of Australian investment in the U.S.; the rest is mostly portfolio holdings.",
     sh("Foreign investment in Australia"), sh("Australian investment abroad")))
 })
 

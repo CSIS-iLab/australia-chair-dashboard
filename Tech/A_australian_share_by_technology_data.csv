@@ -1,10 +1,11 @@
-"technology","au_papers","share","xintercept","layer"
-"Artificial intelligence","34628","0.0207928271111373",,
-"Quantum computing","1392","0.0238724061052993",,
-"Quantum sensing and comms","420","0.0243365395758489",,
-"Advanced comms (5G/6G)","526","0.0186062964273081",,
-"Cybersecurity","1312","0.0223231756078471",,
-"Semiconductors","294","0.0170890490583585",,
-"Autonomous systems and robotics","2141","0.0230314113597246",,
-"Critical minerals processing","155","0.036773428232503",,
-,,,"0.0233531416847533","GeomVline"
+"technology","au_papers","share","xintercept","layer","x","y"
+"Artificial intelligence","33157","0.0203789500080515",,,,
+"Quantum computing","1398","0.0239666729526324",,,,
+"Quantum sensing and comms","418","0.0243178777124905",,,,
+"Advanced comms (5G/6G)","522","0.0184778761061947",,,,
+"Cybersecurity","1278","0.0216287571080422",,,,
+"Semiconductors","287","0.0168358068868423",,,,
+"Autonomous systems and robotics","2139","0.0230061844581877",,,,
+"Critical minerals processing","150","0.0366032210834553",,,,
+,,,"0.0231519182894871","GeomVline",,
+,,,,"GeomLabel","0.0231519182894871","Inf"

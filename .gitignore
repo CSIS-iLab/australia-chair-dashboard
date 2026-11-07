@@ -11,6 +11,8 @@
 !/theme/page-guides.html
 !/theme/chart-footer.html
 !/editions/*.html
+!/docs/*.html
+!/docs/editions/*.html
 *.pptx
 .Rhistory
 .RData
@@ -123,6 +125,8 @@ Critical minerals/**
 
 # Hover maps for chart tooltips, written by write_hover() in "0. Chart data.R"
 !*/*_hover.json
+# Latest period named in a chart's title, for its "Data to" line ("0. Chart data.R")
+!*/*_period.txt
 
 # Patents chart data (exported beside each chart; the dashboard embeds them as CSV downloads)
 !/Patents/*.csv

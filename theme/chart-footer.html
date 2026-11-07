@@ -1,4 +1,4 @@
-<!-- Quotable charts: a small grey line under each chart with how recent the
+<!-- Quotable charts: a small gray line under each chart with how recent the
      data are, a CSV download of the data behind the chart, and the chart
      image. The data come from theme/chart-data.lua. -->
 <script>
@@ -58,7 +58,7 @@ img[data-hover] { cursor: crosshair; }
 
   // The browser's own tooltip (the chart title) would cover the values
   document.querySelectorAll("img[data-hover][title]").forEach(function (img) {
-    img.setAttribute("aria-label", img.getAttribute("title"));
+    if (!img.getAttribute("aria-label")) img.setAttribute("aria-label", img.getAttribute("title"));
     img.removeAttribute("title");
   });
 

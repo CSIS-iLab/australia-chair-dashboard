@@ -1,4 +1,4 @@
-﻿title,Where US and Australian applicants register brands together
+﻿title,Where U.S. and Australian applicants register brands together
 subtitle,"Co-applied trade mark applications by Nice class, 2021–2025"
 caption,"Source: IP Australia, IP RAPID. Multi-class applications split across classes."
 chart_type,Horizontal bar
@@ -13,7 +13,7 @@ value_axis_min,auto
 value_axis_max,auto
 series_variable,(none)
 series_colours,(none)
-layers,"Col (fill=#2a9d8f, width=0.7)"
+layers,"Col (fill=#0098A8, width=0.7)"
 title_style,Bold
 notes,Top 15 classes. Fractional counts: each application split equally across its Nice classes.
 

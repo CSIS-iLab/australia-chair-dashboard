@@ -8,7 +8,6 @@ format:
       - theme/navigation.html   # drop-down menus and the A$/US$ toggle
       - theme/page-guides.html  # "How to read this page" link and pop-up on pages with jargon
       - theme/chart-footer.html # data date, and CSV and chart downloads, under each chart
-    nav-buttons: [github]
     scrolling: false
 filters:
   - theme/currency.lua   # attaches each chart's US$ version for the toggle
@@ -73,7 +72,7 @@ min_tbl <- safely_num(read_csv("Critical minerals/minerals_au_us_tidy.csv", show
 li <- safely_num(min_tbl |> filter(mineral == "Lithium"))
 n_top3 <- safely_num(sum(min_tbl$au_world_rank <= 3, na.rm = TRUE))
 
-# US share of Australian patent applications (IP Australia, from '1h. Patents.R')
+# U.S. share of Australian patent applications (IP Australia, from '1h. Patents.R')
 pat <- safely_num({
   d <- read.csv("Patents/annual_us_applicants.csv")
   # The chart runs to last year with recent years shaded as incomplete; the
@@ -88,22 +87,22 @@ stat <- function(page, num, label, note) sprintf(
 
 stats <- c(
   stat("foreign-investment", money(us_in, us_in_usd),
-       sprintf("US investment in Australia, the %s source", largest(us_in_rank)),
+       sprintf("U.S. investment in Australia, the %s source", largest(us_in_rank)),
        sprintf("Stock at 31 December %s", inv_yr)),
   stat("foreign-investment", money(us_out, us_out_usd),
-       sprintf("Australian investment in the US, the %s destination", largest(us_out_rank)),
+       sprintf("Australian investment in the U.S., the %s destination", largest(us_out_rank)),
        sprintf("Stock at 31 December %s", inv_yr)),
   stat("trade-overview", money(two_way, two_way_usd),
        "Two-way trade in goods and services",
        sprintf("Calendar %s", bal$year)),
   stat("trade-overview", money(surplus, surplus_usd),
-       "US trade surplus with Australia",
+       "U.S. trade surplus with Australia",
        sprintf("Goods and services, %s", bal$year)),
   stat("critical-minerals", sprintf("%.0f%%", li$au_share_world_production_pct),
        sprintf("Australia's share of world lithium output, the %s producer", largest(li$au_world_rank)),
        sprintf("Top three producer of %d critical minerals", n_top3)),
   stat("intellectual-property", sprintf("%.0f%%", 100 * pat$share_us),
-       "Share of Australian patent applications with a US applicant",
+       "Share of Australian patent applications with a U.S. applicant",
        sprintf("Standard patents first filed in %s", pat$filing_year))
 )
 
@@ -116,15 +115,16 @@ tile <- function(page, title, text, img) {
 }
 
 tiles <- c(
-  tile("economic-indicators", "Economic indicators", "Size, growth and productivity of the two economies, and how Australia compares with US states.", "Economy/au_vs_us_states.png"),
-  tile("trade-overview", "Trade", "Goods and services flows each way, the US share of Australia's trade and the bilateral balance.", "Trade/us_au_trade_balance.png"),
+  tile("geography", "Geography", "Two continent-sized countries at the same scale, and the distances across the Pacific between them.", "Overview/australia_over_us.png"),
+  tile("economic-indicators", "Economic Indicators", "Size, growth and productivity of the two economies, and how Australia compares with U.S. states.", "Economy/au_vs_us_states.png"),
+  tile("trade-overview", "Trade", "Goods and services flows each way, the U.S. share of Australia's trade and the bilateral balance.", "Trade/us_au_trade_balance.png"),
   tile("foreign-investment", "Investment", "Two-way investment positions with the United States and Australia's other partners.", "Investment/iip_levels_latest.png"),
-  tile("critical-minerals", "Critical minerals", "Mines and deposits, Australia's share of world supply and US import reliance.", "Critical minerals/minerals_au_world_share_us_reliance.png"),
-  tile("energy", "Energy", "Australia's generation mix, the cost of new renewables and wholesale prices against US markets.", "Energy/07_wholesale_prices_au_us.png"),
-  tile("data-centres", "Data centres", "The investment surge in information media and telecommunications capital spending.", "Data centres/02_divj_share.png"),
-  tile("research-and-ai", "Technology", "Research strengths in critical technologies and collaboration with the US and China.", "Tech/D_collaboration_partners.png"),
-  tile("intellectual-property", "Intellectual property", "US patents and trade marks in Australia and joint US-Australian filings.", "Patents/us_au_coapplied_trend.png"),
-  tile("human-capital", "Human capital", "Two-way skilled and student flows: visas and jobs for Australian skilled professionals in the US, and Americans working and studying in Australia.", "Migration/e3_visas_australians.png")
+  tile("critical-minerals", "Critical Minerals", "Mines and deposits, Australia's share of world supply and U.S. import reliance.", "Critical minerals/minerals_au_world_share_us_reliance.png"),
+  tile("energy", "Energy", "Electricity and total energy by source, renewables, wholesale prices, the cost of new solar and wind, and each country's net energy trade.", "Energy/07_wholesale_prices_au_us.png"),
+  tile("data-centers", "Data Centers", "Data centers' share of electricity use, and the investment surge in information media and telecommunications.", "Data centres/08_divj_financial_year.png"),
+  tile("research-and-ai", "Technology", "Research strengths in critical technologies and collaboration with the U.S. and China.", "Tech/D_collaboration_partners.png"),
+  tile("intellectual-property", "Intellectual Property", "U.S. patents and trade marks in Australia and joint U.S.-Australian filings.", "Patents/us_au_coapplied_trend.png"),
+  tile("human-capital", "Human Capital", "Two-way skilled and student flows: visas and jobs for Australian skilled professionals in the U.S., and Americans working and studying in Australia.", "Migration/e3_visas_australians.png")
 )
 
 arcs <- paste0(
@@ -144,7 +144,7 @@ arcs <- paste0(
 # Land area, coastline and population (Overview/country_facts.csv, from 1a. Overview.R)
 # "Two countries at a glance": a band with one card each for land area,
 # coastline and population. Each card leads with the comparison, then a navy
-# (Australia) and red (US) bar with the figures. Shown at the top of the
+# (Australia) and red (U.S.) bar with the figures. Shown at the top of the
 # Geography page (below), above the two maps.
 facts <- safely_num(read.csv("Overview/country_facts.csv"))
 glance_html <- if (is.null(facts) || nrow(facts) != 2) "" else {
@@ -165,27 +165,27 @@ glance_html <- if (is.null(facts) || nrow(facts) != 2) "" else {
             key, head, w[1] * 0.45, a_lab, w[2] * 0.45, u_lab)   # bars use up to 45% of the row
   }
   paste0(
-    '<section class="ov-glance"><div class="ov-glance-title">Two countries at a glance</div><div class="ov-glance-grid">',
-    card("Land area", ratio_text(au$land_km2, us$land_km2, c("Australia is %.0f%% larger", "The US is %.1f times larger"),
+    '<section class="ov-glance"><div class="ov-glance-title">Two Countries at a Glance</div><div class="ov-glance-grid">',
+    card("Land Area", ratio_text(au$land_km2, us$land_km2, c("Australia is %.0f%% larger", "The U.S. is %.1f times larger"),
                                  "Almost exactly the same size"),
          au$land_km2, us$land_km2, sprintf("%s km&sup2;", f(au$land_km2)), sprintf("%s km&sup2;", f(us$land_km2))),
-    card("Coastline", ratio_text(au$coastline_km, us$coastline_km, c("Australia&rsquo;s coastline is %.0f%% longer", "The US coastline is %.1f times longer"),
+    card("Coastline", ratio_text(au$coastline_km, us$coastline_km, c("Australia&rsquo;s coastline is %.0f%% longer", "The U.S. coastline is %.1f times longer"),
                                  "About the same length"),
          au$coastline_km, us$coastline_km, sprintf("%s km", f(au$coastline_km)), sprintf("%s km", f(us$coastline_km))),
-    card("Population", ratio_text(au$population, us$population, c("Australia has %.0f%% more people", "The US has %.0f times the people"),
+    card("Population", ratio_text(au$population, us$population, c("Australia has %.0f%% more people", "The U.S. has %.0f times the people"),
                                   "About the same population"),
          au$population, us$population, sprintf("%.1f million", au$population / 1e6), sprintf("%.1f million", us$population / 1e6)),
-    '</div><p class="ov-glance-note">Land area for the US is the contiguous 48 states and DC; coastline and population ',
-    'are for the whole country. Population: Australia ', au$population_as_at, ', US ', us$population_as_at,
-    '. Sources: CIA World Factbook (final edition, 2026); US Census Bureau; ABS.</p></section>')
+    '</div><p class="ov-glance-note">Land area for the U.S. is the contiguous 48 states and DC; coastline and population ',
+    'are for the whole country. Population: Australia ', au$population_as_at, ', U.S. ', us$population_as_at,
+    '. Sources: CIA World Factbook (final edition, 2026); U.S. Census Bureau; ABS.</p></section>')
 }
 
 cat(paste0(
   '<div class="ov">',
   '<section class="ov-hero">', arcs,
   '<div class="ov-kicker">CSIS Australia Chair</div>',
-  '<h1 class="ov-title">Australia and the United States</h1>',
-  '<p class="ov-lede">An interactive guide to the full breadth of the US&ndash;Australia economic and strategic relationship: trade, investment, critical minerals, energy, technology, human capital and innovation.</p>',
+  '<h1 class="ov-title">U.S.-Australia Economic Dashboard</h1>',
+  '<p class="ov-lede">An interactive guide to the full breadth of the U.S.-Australia economic and strategic relationship: trade, investment, critical minerals, energy, technology, human capital and innovation.</p>',
   '<div class="ov-meta">Updated quarterly &middot; ', edition_stamp(edition), '</div>',
   # Time this page was built, Canberra time
   '<div class="ov-updated">Last updated: <b>', trimws(format(Sys.time(), "%e %B %Y, %l:%M %p", tz = "Australia/Sydney")),
@@ -193,28 +193,24 @@ cat(paste0(
   '</section>',
   '<div class="ov-stats">', paste(stats, collapse = ""), '</div>',
   '<section class="ov-section ov-about"><h2 class="ov-h2">About the U.S.-Australia Economic Dashboard</h2>',
-  '<p>The United States and Australia are among each other’s closest strategic partners, and the economic dimension ',
-  'of their alliance is growing in importance. Investment screening, critical minerals offtake, data-center ',
-  'construction, energy policy, research collaboration, and defense-industrial integration now sit at the center ',
-  'of the bilateral relationship. As these areas become increasingly consequential to both countries, so too does ',
-  'the need for a clearer, more comprehensive understanding of their economic ties. Yet the information needed to ',
-  'assess these ties remains fragmented across more than a dozen government agencies and market operators in the ',
-  'two countries, published on different cycles, and presented using inconsistent units and definitions. As a ',
-  'result, government officials, analysts, and business leaders are often forced to assemble an ad hoc picture of ',
-  'the relationship under time pressure, drawing on whichever sources are most readily available.</p>',
-  '<p>The Australia Chair at CSIS proposes to launch the U.S.-Australia Alliance Dashboard, an initiative that will ',
-  'aggregate the breadth of information defining this critical economic relationship into one platform, providing ',
-  'an authoritative, regularly updated view built entirely from official U.S. and Australian data. To mark its ',
-  'release, CSIS will host a launch workshop bringing together government officials, industry leaders, and ',
-  'scholars from both countries to demonstrate the tool, gather feedback, and identify priority areas for future ',
-  'development. CSIS will also produce an accompanying report that presents the dashboard’s methodology, key ',
-  'findings, and recommendations for strengthening data sharing and economic coordination across the alliance. In ',
-  'doing so, the project will replace the current scramble for information with a single resource that supports ',
-  'faster, better-informed decision-making on both sides of the Pacific.</p></section>',
-  '<section class="ov-section"><h2 class="ov-h2">Explore the relationship</h2>',
-  '<p class="ov-sub">Each section opens a page of charts drawn from official US and Australian data.</p>',
+  '<p>The United States and Australia are among each other’s closest strategic partners, and yet the economic ',
+  'dimension of their alliance has long been underweighted. Investment screening, critical minerals offtake, ',
+  'data-center construction, energy policy, research collaboration, and defense-industrial integration now sit at ',
+  'the center of the bilateral relationship. As these areas become increasingly consequential to both countries, so ',
+  'too does the need for a clearer, more comprehensive understanding of their economic ties. Yet the information ',
+  'needed to assess these ties remains fragmented across more than a dozen government agencies and market operators ',
+  'in the two countries, published on different cycles, and presented using inconsistent units and definitions. As a ',
+  'result, government officials, analysts, and business leaders are often forced to assemble an ad hoc picture of the ',
+  'relationship under time pressure, drawing on whichever sources are most readily available. The U.S.-Australia ',
+  'Economic Dashboard aggregates the breadth of information defining this critical economic relationship into one ',
+  'platform, providing an authoritative, regularly updated view built entirely from official U.S. and Australian ',
+  'data.</p></section>',
+  '<section class="ov-section"><h2 class="ov-h2">Explore the Relationship</h2>',
+  '<p class="ov-sub">Each section opens a page of charts drawn from official U.S. and Australian data.</p>',
   '<div class="ov-grid">', paste(tiles, collapse = ""), '</div></section>',
-  '<p class="ov-sources">Sources: ABS, DFAT, US Bureau of Economic Analysis, USGS, Geoscience Australia, IRENA, AEMO, CAISO, ERCOT, EIA, IP Australia, OpenAlex and DCCEEW.</p>',
+  '<p class="ov-sources">Sources: Australian Bureau of Statistics (ABS); Department of Foreign Affairs and Trade (DFAT); Department of Climate Change, Energy, the Environment and Water (DCCEEW); Department of Home Affairs; Geoscience Australia; IP Australia; Australian Energy Market Operator (AEMO); Reserve Bank of Australia (RBA); U.S. Bureau of Economic Analysis; U.S. Bureau of Labor Statistics; U.S. Census Bureau; U.S. Energy Information Administration (EIA); U.S. Geological Survey (USGS); U.S. Department of State; U.S. Department of Labor; CAISO; ERCOT; OECD; World Bank; IRENA; OpenAlex; Epoch AI; CIA World Factbook; Natural Earth.</p>',
+  # Footer: who publishes the dashboard, contact and methodology
+  '<footer class="ov-footer">&copy; ', format(Sys.Date(), "%Y"), ' Center for Strategic and International Studies (CSIS), ', '<a href="https://www.csis.org/programs/australia-chair" target="_blank" rel="noopener">Australia Chair</a>. ', 'Updated quarterly; ', edition_stamp(edition), '. ', '<a href="#methodology" data-page="methodology">Methodology, sources and how to cite</a>.</footer>',
   '</div>',
   # Make the tiles and numbers switch dashboard pages like the top navigation does
   '<script>document.addEventListener("click", function (e) {',
@@ -237,7 +233,7 @@ cat(paste0(
 maps <- paste0(
   '<div class="ov-context" style="grid-template-columns: minmax(0, 1100px); justify-content: center;">',
   '<figure class="ov-figure"><img src="', knitr::image_uri("Overview/australia_over_us.png"), '" alt="Australia drawn over the contiguous United States at the same scale"></figure>',
-  '<figure class="ov-figure"><img src="', knitr::image_uri("Overview/US-Australia distance map.png"), '" alt="Map of distances across the Pacific from Australian cities to US cities and territories"></figure>',
+  '<figure class="ov-figure"><img src="', knitr::image_uri("Overview/US-Australia distance map.png"), '" alt="Tyranny of Distance: map of distances across the Pacific from Australian cities to U.S. cities and territories"></figure>',
   '</div>')
 cat(paste0(
   '<div class="ov ov-geo">', glance_html,
@@ -247,146 +243,146 @@ cat(paste0(
 ```
 :::
 
-# Economic indicators {orientation="columns"}
+# Economic Indicators {orientation="columns"}
 
-## Column {.tabset width="50%" title="Economy in latest year"}
+## Column {.tabset width="50%" title="Economy in Latest Year"}
 
-### Australia vs. US states
+### Australia vs U.S. States
 
-![](<Economy/au_vs_us_states.png>){title="Australia vs. US states"}
+![](<Economy/au_vs_us_states.png>){title="GDP of Australia and U.S. States"}
 
-### Relative size
+### Relative Size
 
-![](<Economy/au_us_size.png>){title="Relative economy size"}
+![](<Economy/au_us_size.png>){title="Relative Economy Size"}
 
-### OECD comparison
+### OECD Comparison
 
-![](<Economy/oecd_comparison.png>){title="OECD comparison"}
+![](<Economy/oecd_comparison.png>){title="OECD Comparison"}
 
-### Industry composition
+### Industry Composition
 
-![](Economy/industry_shares_au_us.png){title="Industry shares of the economy, Australia and the United States"}
+![](Economy/industry_shares_au_us.png){title="Industry Shares of the Economy, Australia and the United States"}
 
-## Column {.tabset .econ-over-time width="50%" title="Economy over time"}
+## Column {.tabset .econ-over-time width="50%" title="Economy over Time"}
 
 ### GDP
 
 ![](<Economy/gdp_au_us.png>){title="Real GDP, Australia and the United States"}
 
-### GDP per person
+### GDP per Person
 
-![](<Economy/gdp_per_capita_au_us.png>){title="Real GDP per person, Australia and the United States"}
+![](<Economy/gdp_per_capita_au_us.png>){title="Real GDP per Person, Australia and the United States"}
 
 ### Productivity
 
-![](<Economy/productivity_both_au_us.png>){title="Labour productivity, Australia and the United States"}
+![](<Economy/productivity_both_au_us.png>){title="Labor Productivity, Australia and the United States"}
 
 
-# Intellectual property {orientation="columns"}
+# Intellectual Property {orientation="columns"}
 
-## Column {.tabset width="50%" title="US intellectual property in Australia"}
+## Column {.tabset width="50%" title="U.S. Intellectual Property in Australia"}
 
 ### Patents
 
-![](Patents/us_applicants_count.png){title="Patents with a US applicant"}
+![](Patents/us_applicants_count.png){title="Patents with a U.S. Applicant"}
 
-### US share of patents
+### U.S. Share of Patents
 
-![](Patents/us_applicants_share.png){title="US share of patents"}
+![](Patents/us_applicants_share.png){title="U.S. Share of Patents"}
 
-### Patents by sector
+### Patents by Sector
 
-![](Patents/us_by_sector_trend.png){title="Patents by technology sector"}
+![](Patents/us_by_sector_trend.png){title="Patents by Technology Sector"}
 
-### Patents by field
+### Patents by Field
 
-![](Patents/us_share_by_field.png){title="US share by field"}
+![](Patents/us_share_by_field.png){title="U.S. Share by Field"}
 
-### Trade marks
+### Trade Marks
 
-![](Patents/us_applicants_tm_count.png){title="Trade marks with a US applicant"}
+![](Patents/us_applicants_tm_count.png){title="Trade Marks with a U.S. Applicant"}
 
-### US share of trade marks
+### U.S. Share of Trade Marks
 
-![](Patents/us_applicants_tm_share.png){title="US share of trade marks"}
+![](Patents/us_applicants_tm_share.png){title="U.S. Share of Trade Marks"}
 
-### Trade marks by sector
+### Trade Marks by Sector
 
-![](Patents/tm_us_by_sector_trend.png){title="Trade marks by sector"}
+![](Patents/tm_us_by_sector_trend.png){title="Trade Marks by Sector"}
 
-### Trade marks by class
+### Trade Marks by Class
 
-![](Patents/tm_us_share_by_class.png){title="US share of trade marks by class"}
+![](Patents/tm_us_share_by_class.png){title="U.S. Share of Trade Marks by Class"}
 
-## Column {.tabset width="50%" title="Joint US-Australian filings"}
+## Column {.tabset width="50%" title="Joint U.S.-Australian Filings"}
 
-### Patents over time
+### Patents over Time
 
-![](Patents/us_au_coapplied_trend.png){title="Joint US-Australian patent filings over time"}
+![](Patents/us_au_coapplied_trend.png){title="Joint U.S.-Australian Patent Filings over Time"}
 
-### Patents by field
+### Patents by Field
 
-![](Patents/us_au_coapplied_fields.png){title="Joint filings by field"}
+![](Patents/us_au_coapplied_fields.png){title="Joint Filings by Field"}
 
-### Trade marks over time
+### Trade Marks over Time
 
-![](Patents/tm_us_au_coapplied_trend.png){title="Joint trade mark filings over time"}
+![](Patents/tm_us_au_coapplied_trend.png){title="Joint Trade Mark Filings over Time"}
 
-### Trade marks by class
+### Trade Marks by Class
 
-![](Patents/tm_us_au_coapplied_classes.png){title="Joint trade mark filings by class"}
+![](Patents/tm_us_au_coapplied_classes.png){title="Joint Trade Mark Filings by Class"}
 
 
 
-# Trade overview {orientation="columns" scrolling="true"}
+# Trade Overview {orientation="columns" scrolling="true"}
 
 ## Column {width="50%"}
 
-### Row {.tabset height="660px" title="Australia's goods trade"}
+### Row {.tabset height="660px" title="Australia's Goods Trade"}
 
-#### Trade by partner
+#### Trade by Partner
 
-![](Trade/goods_trade_by_partner.png){title="Australia's goods trade by partner"}
+![](Trade/goods_trade_by_partner.png){title="Australia's Goods Trade by Partner"}
 
-#### Exports by partner
+#### Exports by Partner
 
-![](Trade/dfat_exports_partners_long.png){title="Goods exports, five largest partners"}
+![](Trade/dfat_exports_partners_long.png){title="Goods Exports, Five Largest Partners"}
 
-#### Imports by partner
+#### Imports by Partner
 
-![](Trade/dfat_imports_partners_long.png){title="Goods imports, five largest partners"}
+![](Trade/dfat_imports_partners_long.png){title="Goods Imports, Five Largest Partners"}
 
-#### Trade by sector
+#### Trade by Sector
 
-![](Trade/dfat_sector_composition_both.png){title="Goods trade by sector"}
+![](Trade/dfat_sector_composition_both.png){title="Goods Trade by Sector"}
 
 <!-- Same card type and height as the goods card above, so the two charts match in size -->
 
-### Row {.tabset height="660px" title="Australia's services trade"}
+### Row {.tabset height="660px" title="Australia's Services Trade"}
 
-#### Services by partner
+#### Services by Partner
 
-![](Trade/services_trade_by_partner.png){title="Australia's services trade by partner"}
+![](Trade/services_trade_by_partner.png){title="Australia's Services Trade by Partner"}
 
 ## Column {width="50%"}
 
-::: {.card .trade-us title="US trade balance with Australia"}
+::: {.card .trade-us title="U.S. Trade Balance with Australia"}
 ![](Trade/us_au_trade_balance.png)
 :::
 
 
-# Trade in goods
+# Trade in Goods
 
-## Column {.tabset}
+## Column {.tabset title="Goods Traded with the U.S."}
 
-### Top ten products
+### Top Ten Products
 
-![](Trade/goods_top10_us.png){title="Top ten goods traded with the United States"}
+![](Trade/goods_top10_us.png){title="Top Ten Goods Traded with the United States"}
 
-### All products
+### All Products
 
 ```{r}
-#| title: "Goods trade by product with the US"
+#| title: "Goods Trade by Product with the U.S."
 #| echo: false
 #| output: asis
 #| padding: 0
@@ -429,7 +425,12 @@ if (length(files) == 0) {
            "</optgroup>")
   }, character(1))
 
-  imgs <- paste0("<img src=\"Trade/", files, "\" data-flow=\"", flow,
+  # The path goes in data-png, not src, so the charts are not embedded in the
+  # HTML (embed-resources: true would add every one, ~46 MB). show() below
+  # sets src when a chart is first displayed; the PNGs are published next to
+  # the HTML in docs/Trade/ by '4. Render and publish.R'. (Not data-src:
+  # Pandoc embeds data-src too.)
+  imgs <- paste0("<img data-png=\"Trade/", files, "\" data-flow=\"", flow,
                  "\" data-id=\"", id, "\"", hover_attr(file.path("Trade", files)),
                  " loading=\"lazy\" alt=\"", flow, ": ", label, "\">", collapse = "")
 
@@ -477,7 +478,10 @@ if (length(files) == 0) {
     "g.querySelectorAll('option').forEach(function(o){",
     "all.push({group:g.label,value:o.value,text:o.textContent});});});",
     "function show(){imgs.forEach(function(img){",
-    "img.classList.toggle('is-on',img.dataset.flow===flow&&img.dataset.id===select.value);});}",
+    "var on=img.dataset.flow===flow&&img.dataset.id===select.value;",
+    # load the chart the first time it is shown
+    "if(on&&!img.getAttribute('src')&&img.dataset.png){img.src=img.dataset.png;}",
+    "img.classList.toggle('is-on',on);});}",
     "function rebuild(){var q=filter.value.trim().toLowerCase();",
     "var keep=all.filter(function(i){return !q||i.text.toLowerCase().indexOf(q)>-1;});",
     "var current=select.value;var html='';var group=null;",
@@ -498,16 +502,18 @@ if (length(files) == 0) {
 }
 ```
 
-# Trade in services {orientation="columns"}
+# Trade in Services
 
-## Column {width="55%"}
+## Column {.tabset title="Services Traded with the U.S."}
 
-![](Trade/overview_us_share_by_service.png){title="US share of Australia's services trade, by service"}
+### U.S. Share by Service
 
-## Column {width="45%"}
+![](Trade/overview_us_share_by_service.png){title="U.S. Share of Australia's Services Trade, by Service"}
+
+### All Services
 
 ```{r}
-#| title: "Services trade by type with the US"
+#| title: "Services Trade by Type with the U.S."
 #| echo: false
 #| output: asis
 #| padding: 0
@@ -553,7 +559,10 @@ if (length(svc_files) == 0) {
                  "</option>", collapse = "")
 
   flow_name <- c(credits = "Exports", debits = "Imports")
-  imgs <- paste0("<img src=\"Trade/", svc_files, "\" data-flow=\"", svc_flow,
+  # As for the goods charts: the path goes in data-png, not src, so the charts
+  # are not embedded in the HTML; show() sets src when a chart is first
+  # displayed, and '4. Render and publish.R' copies the PNGs to docs/Trade/.
+  imgs <- paste0("<img data-png=\"Trade/", svc_files, "\" data-flow=\"", svc_flow,
                  "\" data-idx=\"", svc_idx, "\"", hover_attr(file.path("Trade", svc_files)),
                  " loading=\"lazy\" alt=\"",
                  flow_name[svc_flow], ": ", vapply(svc_idx, label_of, ""), "\">",
@@ -581,12 +590,12 @@ if (length(svc_files) == 0) {
     ".svc-stage img.is-on{display:block;}",
     ".svc-empty{display:none;font-size:0.84rem;color:#5E6B78;}",
     ".svc-empty.is-on{display:block;}",
-    # Search box like the goods picker's, on the same slim row
+    # Search box and list sized like the goods picker's, on the same slim row
     ".services-picker .svc-toolbar{justify-content:flex-start;flex-wrap:nowrap;}",
     ".services-picker .svc-filter{font:inherit;font-size:0.8rem;color:#1C2530;",
     "border:1px solid #DDE1E6;border-radius:6px;padding:0.2rem 0.55rem;",
-    "background:#FFFFFF;width:9rem;flex:0 1 9rem;min-width:6rem;}",
-    ".services-picker .svc-select{font-size:0.8rem;padding:0.2rem 0.55rem;min-width:9rem;flex:0 1 16rem;}",
+    "background:#FFFFFF;width:13rem;flex:0 1 13rem;min-width:8rem;}",
+    ".services-picker .svc-select{font-size:0.8rem;padding:0.2rem 0.55rem;min-width:12rem;flex:0 1 26rem;}",
     ".services-picker .svc-count{font-size:0.75rem;color:#5E6B78;white-space:nowrap;}",
     "</style>",
     "<div class=\"svc-toolbar\">",
@@ -615,6 +624,8 @@ if (length(svc_files) == 0) {
     "var all=[].map.call(select.options,function(o){return {value:o.value,text:o.textContent};});",
     "function show(){var any=false;imgs.forEach(function(img){",
     "var on=img.dataset.flow===flow&&img.dataset.idx===select.value;",
+    # load the chart the first time it is shown
+    "if(on&&!img.getAttribute('src')&&img.dataset.png){img.src=img.dataset.png;}",
     "img.classList.toggle('is-on',on);if(on){any=true;}});",
     "empty.classList.toggle('is-on',!any);}",
     # Keep only the services whose name contains the search text
@@ -635,23 +646,23 @@ if (length(svc_files) == 0) {
 }
 ```
 
-# Foreign investment
+# Foreign Investment
 
-## Row {.tabset}
+## Row {.tabset title="Australia's International Investment"}
 
-### By partner
+### By Partner
 
-![](<Investment/iip_levels_latest.png>){title="International investment position"}
+![](<Investment/iip_levels_latest.png>){title="International Investment Position"}
 
-### By type of investment
+### By Type of Investment
 
-![](<Investment/iip_by_type_latest.png>){title="Two-way investment by type: direct, portfolio and other"}
+![](<Investment/iip_by_type_latest.png>){title="Two-Way Investment by Type: Direct, Portfolio and Other"}
 
-### By industry
+### By Industry
 
-![](<Investment/iip_direct_by_industry_latest.png>){title="Direct investment by industry, all partner countries"}
+![](<Investment/iip_direct_by_industry_latest.png>){title="Direct Investment by Industry, All Partner Countries"}
 
-# Critical minerals
+# Critical Minerals
 
 ```{r}
 #| include: false
@@ -698,8 +709,10 @@ mines$Family[is.na(mines$Family)] <- "Other"
 
 status_levels <- c("Mineral deposit", "Mine - under development",
                    "Operating mine", "Mine - care and maintenance")
-# Care and maintenance in grey: not operating, rather than a warning
-pal <- colorFactor(c("#5b8bd0", "#e0a020", "#2a9d5c", "#8C9196"), status_levels)
+# Care and maintenance in gray: not operating, rather than a warning
+# levels + ordered keep the colors in the order of status_levels (by default
+# colorFactor sorts the levels alphabetically, which mismatched the colors)
+pal <- colorFactor(c("#5b8bd0", "#e0a020", "#2a9d5c", "#8C9196"), levels = status_levels, ordered = TRUE)
 
 mines <- mines |>
   mutate(Status = factor(Status, status_levels),
@@ -708,8 +721,8 @@ mines <- mines |>
                         "<br>Status: ", Status, "<br>State: ", State))
 
 sd <- SharedData$new(mines)
-filter_family <- filter_select("family", "End-use family", sd, ~Family, multiple = TRUE)
-filter_status <- filter_select("status", "Lifecycle stage", sd, ~Status, multiple = TRUE)
+filter_family <- filter_select("family", "End-Use Family", sd, ~Family, multiple = TRUE)
+filter_status <- filter_select("status", "Lifecycle Stage", sd, ~Status, multiple = TRUE)
 
 map <- leaflet(sd) |>                       # no fixed height -> fills the card
   # Esri basemaps: CARTO's (used before) now need an API key and show a
@@ -739,164 +752,307 @@ filter_family
 filter_status
 ```
 
-## Column {.tabset}
+## Column {.tabset title="Australia's Critical Minerals"}
 
 ### Map
 
 ```{r}
-#| title: "Critical minerals map"
+#| title: "Critical Minerals Map"
 #| echo: false
 #| padding: 0
 map
 ```
 
-### Australia's global share
+### Australia's Global Share
 
-![](<Critical minerals/minerals_au_world_share_us_reliance.png>){title="Australia's share of world production and US import reliance"}
+```{r}
+#| title: "Australia's Share of World Production and U.S. Import Reliance"
+#| echo: false
+#| output: asis
+#| padding: 0
 
-### Reserves vs production
+# A sortable table rather than a picture: click a column heading to sort by it
+# (click again to reverse). Bars show each value against 100%. Data from
+# '1j. Critical minerals.R' (USGS Mineral Commodity Summaries).
+mtab_file <- "Critical minerals/minerals_au_us_tidy.csv"
+if (!file.exists(mtab_file)) {
+  cat("<p style='color:#5E6B78'>No critical minerals data found.</p>")
+} else {
+  m <- read.csv(mtab_file, stringsAsFactors = FALSE, check.names = FALSE)
+  esc <- function(x) htmltools::htmlEscape(as.character(x))
+  # USGS gives some import reliance figures as bounds (">50", "<25"): shown as
+  # given, sorted at the bound
+  nir_num <- suppressWarnings(as.numeric(gsub("[<>]", "", m$us_net_import_reliance)))
+  bar <- function(v, txt, col, key) {
+    if (is.na(v)) return(sprintf('<td class="mt-na" data-sort="-1">%s</td>', txt))
+    sprintf('<td data-sort="%s"><div class="mt-cell"><span class="mt-bar" style="width:%.1f%%;background:%s"></span><span class="mt-val">%s</span></div></td>',
+            key, max(0.8, 0.7 * v), col, txt)   # 100% fills 70% of the cell, leaving room for the value
+  }
+  rows <- vapply(seq_len(nrow(m)), function(i) paste0(
+    '<tr><th scope="row" data-sort="', esc(m$mineral[i]), '">', esc(m$mineral[i]), '</th>',
+    bar(m$au_share_world_production_pct[i], sprintf("%.1f%%", m$au_share_world_production_pct[i]), "#00205B",
+        m$au_share_world_production_pct[i]),
+    '<td class="mt-rank" data-sort="', m$au_world_rank[i], '">#', m$au_world_rank[i], '</td>',
+    bar(nir_num[i], paste0(esc(m$us_net_import_reliance[i]), "%"), "#D2232A", nir_num[i]),
+    bar(m$au_share_us_imports_2021_24_pct[i],
+        if (is.na(m$au_share_us_imports_2021_24_pct[i])) "Not a major source" else sprintf("%.0f%%", m$au_share_us_imports_2021_24_pct[i]),
+        "#0098A8", m$au_share_us_imports_2021_24_pct[i]),
+    '</tr>'), "")
+  rows <- paste(rows, collapse = "")                      # one table, all rows
+  csv_uri <- paste0("data:text/csv;base64,", base64enc::base64encode(mtab_file))
+  head_cell <- function(lbl, type, cls = "") sprintf(
+    '<th scope="col" class="%s" data-type="%s"><button type="button">%s<span class="mt-arrow" aria-hidden="true"></span></button></th>',
+    cls, type, lbl)
+  cat(paste0(
+    '<div class="mt-wrap">',
+    '<style>',
+    '.mt-wrap{height:100%;overflow:auto;padding:0.25rem 0.75rem 0.5rem;}',
+    '.mt-table{width:100%;border-collapse:collapse;font-size:0.9rem;color:#1F2A3A;}',
+    '.mt-table thead th{position:sticky;top:0;background:#FFFFFF;z-index:1;border-bottom:2px solid #00205B;vertical-align:bottom;padding:0;}',
+    '.mt-table thead button{all:unset;cursor:pointer;display:block;width:100%;box-sizing:border-box;padding:0.45rem 0.6rem;font-weight:700;color:#00205B;line-height:1.25;}',
+    '.mt-table thead button:focus-visible{outline:2px solid #F2A900;outline-offset:-2px;}',
+    '.mt-arrow{margin-left:0.3rem;color:#8A94A6;font-size:0.75em;}',
+    '.mt-table th[aria-sort=ascending] .mt-arrow::after{content:"\\25B2";color:#00205B;}',
+    '.mt-table th[aria-sort=descending] .mt-arrow::after{content:"\\25BC";color:#00205B;}',
+    '.mt-table th:not([aria-sort]) .mt-arrow::after{content:"\\25B4\\25BE";}',
+    '.mt-table tbody th,.mt-table td{padding:0.32rem 0.6rem;border-bottom:1px solid #E3E6EB;text-align:left;font-weight:400;}',
+    '.mt-table tbody tr:nth-child(even){background:#F3F5F8;}',      # row guides
+    '.mt-table tbody tr:hover{background:#E6ECF5;}',
+    '.mt-table tbody th{font-weight:600;white-space:nowrap;}',
+    '.mt-table td{width:27%;}.mt-table td.mt-rank{width:7%;text-align:center;font-variant-numeric:tabular-nums;}',
+    '.mt-cell{display:flex !important;flex-direction:row !important;align-items:center;justify-content:flex-start;gap:0.4rem;height:auto !important;}',
+    '.mt-bar{display:inline-block;height:0.8rem;border-radius:2px;flex:0 0 auto;}',
+    '.mt-val{font-variant-numeric:tabular-nums;white-space:nowrap;}',
+    '.mt-na{color:#8A94A6;font-style:italic;}',
+    '.mt-note{font-size:0.75rem;color:#5E6B78;margin:0.6rem 0 0;line-height:1.4;}',
+    '.mt-note a{color:#00205B;}',
+    '</style>',
+    '<table class="mt-table"><thead><tr>',
+    head_cell("Mineral", "text"),
+    head_cell("Australia&rsquo;s share of world production", "num"),
+    head_cell("World rank", "num", "mt-rank"),
+    head_cell("U.S. net import reliance (share of U.S. use imported)", "num"),
+    head_cell("Australia&rsquo;s share of U.S. imports, 2021&ndash;24", "num"),
+    '</tr></thead><tbody>', rows, '</tbody></table>',
+    '<p class="mt-note">Click a column heading to sort; click again to reverse. ',
+    'Bars show each value out of 100%. ',
+    'Source: USGS, Mineral Commodity Summaries 2026 data release (doi:10.5066/P1WKQ63T); 2025 values are USGS estimates. ',
+    'Alumina is refinery output; all others are mine output. Titanium import share covers all titanium mineral concentrates. ',
+    'Import reliance for lead, zinc and tin is for refined metal, for rare earths compounds and metals, and for zirconium ores and concentrates; ',
+    '&lsquo;&gt;&rsquo; and &lsquo;&lt;&rsquo; are USGS bounds. &lsquo;Not a major source&rsquo;: USGS does not list Australia among the main U.S. suppliers. ',
+    'World totals for lithium and bauxite exclude U.S. output, which USGS withholds. ',
+    'Some countries&rsquo; output is withheld for antimony; ranks count only published figures. ',
+    '<a href="', csv_uri, '" download="minerals_au_us.csv">Download data (CSV)</a></p>',
+    '</div>',
+    '<script>(function(){',
+    'var t=document.querySelector(".mt-table");if(!t)return;',
+    'var heads=t.querySelectorAll("thead th");',
+    'heads.forEach(function(h,col){h.querySelector("button").addEventListener("click",function(){',
+    'var num=h.dataset.type==="num";',
+    # first click: numbers largest first, names A-Z; then alternate
+    'var dir=h.getAttribute("aria-sort")===(num?"descending":"ascending")?(num?"ascending":"descending"):(num?"descending":"ascending");',
+    'heads.forEach(function(x){x.removeAttribute("aria-sort");});h.setAttribute("aria-sort",dir);',
+    'var body=t.tBodies[0];var rows=[].slice.call(body.rows);',
+    'rows.sort(function(a,b){var x=a.cells[col].dataset.sort,y=b.cells[col].dataset.sort;',
+    'var c=num?(parseFloat(x)-parseFloat(y)):x.localeCompare(y);return dir==="ascending"?c:-c;});',
+    'rows.forEach(function(r){body.appendChild(r);});});});',
+    '})();</script>'
+  ))
+}
+```
 
-![](<Critical minerals/minerals_au_reserves_vs_production.png>){title="Australia's share of world reserves vs production"}
+### Reserves vs Production
 
-# Energy {orientation="columns" scrolling="true"}
+![](<Critical minerals/minerals_au_reserves_vs_production.png>){title="Australia's Share of World Reserves vs Production"}
 
-## Column {width="50%"}
+# Energy {scrolling="true"}
 
-### Row {.tabset height="660px" title="Electricity mix"}
+## Row {height="660px"}
+
+### Column {.tabset width="50%" title="Electricity Mix"}
 
 #### Source
 
-![](Energy/03_primary_vs_electricity.png){title="Electricity generation by fuel, Australia and the United States"}
+![](Energy/03_primary_vs_electricity.png){title="Electricity Generation by Fuel, Australia and the United States"}
 
-#### Source over time
+#### Source over Time
 
-![](Energy/01_fuel_mix_timeseries.png){title="Share of generation by fuel over time, Australia and the US"}
+![](Energy/01_fuel_mix_timeseries.png){title="Share of Generation by Fuel over Time, Australia and the U.S."}
 
-#### Renewables share
+#### Renewables Share
 
-![](Energy/09_renewable_share_au_us.png){title="Renewable share of generation, Australia and the United States"}
+![](Energy/09_renewable_share_au_us.png){title="Renewable Share of Generation, Australia and the United States"}
 
-#### Carbon-free by technology
+#### Carbon-Free by Technology
 
-![](Energy/05_carbon_free_by_technology.png){title="Carbon-free electricity generation by technology, Australia and the United States"}
+![](Energy/05_carbon_free_by_technology.png){title="Carbon-Free Electricity Generation by Technology, Australia and the United States"}
 
 #### Targets
 
-![](Energy/04_renewables_vs_target.png){title="Clean electricity targets, Australia and the United States"}
+![](Energy/04_renewables_vs_target.png){title="Clean Electricity Targets, Australia and the United States"}
 
-#### By state
+#### By State
 
-![](Energy/02_state_fuel_mix.png){title="Electricity generation mix by state"}
+![](Energy/02_state_fuel_mix.png){title="Electricity Generation Mix by State"}
 
-### Row {.tabset height="460px" title="Energy mix"}
+### Column {.tabset .energy-costs width="50%" title="Relative Costs and Prices"}
 
-#### Source
+#### Wholesale Prices, Australia vs U.S.
 
-![](Energy/08_energy_source_au_us.png){title="Energy use by source, Australia and the United States"}
+![](Energy/07_wholesale_prices_au_us.png){title="Wholesale Electricity Prices, Australia and U.S. Markets"}
 
+#### Cost of New Solar and Wind
 
-### Row {.tabset height="560px" title="Energy security"}
+![](Energy/06_lcoe_au_us.png){title="Cost of New Solar and Wind, Australia and the United States"}
 
-#### Net energy trade
+## Row {.tabset height="540px" title="Energy Security"}
 
-![](Energy/08_energy_security.png){title="Energy security: net energy trade, Australia and the United States"}
+### Net Energy Trade
 
-## Column {.tabset .energy-costs width="50%" title="Relative costs and prices"}
-
-### Wholesale prices, Australia vs US
-
-![](Energy/07_wholesale_prices_au_us.png){title="Wholesale electricity prices, Australia and US markets"}
-
-### Cost of new solar and wind
-
-![](Energy/06_lcoe_au_us.png){title="Cost of new solar and wind, Australia vs United States"}
+![](Energy/08_energy_security_oil.png){title="Energy Security: Net Energy Trade, Australia and the United States"}
 
 # Research and AI {orientation="columns"}
 
-## Column {.tabset width="50%" title="Australia's research strengths"}
+## Column {.tabset width="50%" title="Australia's Research Strengths"}
 
-### Share of world research
+### Share of World Research
 
-![](Tech/A_australian_share_by_technology.png){title="Australian share of world publications"}
+![](Tech/A_australian_share_by_technology.png){title="Australian Share of World Publications"}
 
-### Quality vs volume
+### Quality vs Volume
 
-![](Tech/B_quality_vs_volume.png){title="Share of all papers vs top decile by citations"}
+![](Tech/B_quality_vs_volume.png){title="Share of All Papers vs Top Decile by Citations"}
 
 ### Institutions
 
-![](Tech/C_australian_institutions.png){title="Leading Australian institutions by field"}
+![](Tech/C_australian_institutions.png){title="Leading Australian Institutions by Field"}
 
-## Column {.tabset width="50%" title="Collaboration and capability"}
+## Column {.tabset width="50%" title="Collaboration and Capability"}
 
-### Collaboration: US vs China
+### Collaboration: U.S. vs China
 
-![](Tech/D_collaboration_partners.png){title="Research collaboration: US vs China"}
+![](Tech/D_collaboration_partners.png){title="Research Collaboration: U.S. vs China"}
 
-### AI models
+### AI Models
 
-![](Tech/E_ai_models_by_country.png){title="Notable AI models by country of developer"}
+![](Tech/E_ai_models_by_country.png){title="Notable AI Models by Country of Developer"}
 
-### R&D intensity
+### R&D Intensity
 
-![](Tech/F_rd_intensity.png){title="Gross domestic expenditure on R&D, % of GDP"}
+![](Tech/F_rd_intensity.png){title="Gross Domestic Expenditure on R&D, % of GDP"}
 
-# Data centres {orientation="columns"}
+# Data Centers {orientation="columns"}
 
-## Column {.tabset width="50%" title="Data centres' share of electricity use"}
+## Column {.tabset width="50%" title="Data Centers' Share of Electricity Use"}
 
-### Australia and the US
+### Australia and the U.S.
 
-![](<Data centres/12_dc_share_of_grid_au_us.png>){title="Data centres' share of electricity use, Australia and the US"}
+![](<Data centres/12_dc_share_of_grid_au_us.png>){title="Data Centers' Share of Electricity Use, Australia and the U.S."}
 
-## Column {.tabset .dc-au width="50%" title="Australia: investment"}
+## Column {.tabset .dc-au width="50%" title="Australia: Investment"}
 
-### Capex by financial year
+### Capex by Financial Year
 
-![](<Data centres/08_divj_financial_year.png>){title="Information Media & Telecommunications capital expenditure by financial year"}
+![](<Data centres/08_divj_financial_year.png>){title="Information Media & Telecommunications Capital Expenditure by Financial Year"}
 
-### Commercial buildings
+### Commercial Buildings
 
-![](<Data centres/14_commercial_nec_building.png>){title="Commercial buildings n.e.c.: work done and approvals"}
+![](<Data centres/14_commercial_nec_building.png>){title="Commercial Buildings n.e.c.: Work Done and Approvals"}
 
-### Computer imports
+### Computer Imports
 
-![](<Data centres/15_computer_imports.png>){title="Imports of computers and parts"}
+![](<Data centres/15_computer_imports.png>){title="Imports of Computers and Parts"}
 
-# Human capital {orientation="columns"}
+# Human Capital {orientation="columns"}
 
 ## Column {.tabset width="50%" title="Australians in the United States"}
 
-### Skilled visas
+### Skilled Visas
 
-![](Migration/e3_visas_australians.png){title="Skilled professional visas issued to Australians"}
+![](Migration/e3_visas_australians.png){title="Skilled Professional Visas Issued to Australians"}
 
-### Skilled visas over time
+### Skilled Visas over Time
 
-![](Migration/e3_jobs_trend.png){title="Skilled professional jobs certified for Australians, over time"}
+![](Migration/e3_jobs_trend.png){title="Skilled Professional Jobs Certified for Australians, over Time"}
 
-### Skilled visas by employer/city
+### Skilled Visas by Employer/City
 
-![](Migration/e3_employers_cities.png){title="Skilled professional jobs certified for Australians, by employer and city"}
+![](Migration/e3_employers_cities.png){title="Skilled Professional Jobs Certified for Australians, by Employer and City"}
 
-### Students and exchange
+### Students and Exchange
 
-![](Migration/student_exchange_visas_australians.png){title="Student and exchange visas issued to Australians"}
+![](Migration/student_exchange_visas_australians.png){title="Student and Exchange Visas Issued to Australians"}
 
 ## Column {.tabset width="50%" title="Americans in Australia"}
 
-### Net migration
+### Net Migration
 
-![](Migration/nom_usa_national.png){title="Net migration of Americans to Australia"}
+![](Migration/nom_usa_national.png){title="Net Migration of Americans to Australia"}
 
-### Net migration by state
+### Net Migration by State
 
-![](Migration/nom_usa_states.png){title="Net migration of Americans to Australia, by state and territory"}
+![](Migration/nom_usa_states.png){title="Net Migration of Americans to Australia, by State and Territory"}
 
-### Skilled visas by occupation
+### Skilled Visas by Occupation
 
-![](Migration/us_citizens_skilled_visas_occupation.png){title="Skilled visas held by Americans in Australia, by occupation"}
+![](Migration/us_citizens_skilled_visas_occupation.png){title="Skilled Visas Held by Americans in Australia, by Occupation"}
 
-### Temporary visas by type
+### Temporary Visas by Type
 
-![](Migration/us_citizens_temporary_visas.png){title="Temporary visas held by Americans in Australia, by type"}
+![](Migration/us_citizens_temporary_visas.png){title="Temporary Visas Held by Americans in Australia, by Type"}
+
+# Methodology {scrolling="true"}
+
+::: {.card .ov-card}
+```{r}
+#| echo: false
+#| output: asis
+# Methodology, sources and how to cite (plain text, edited here)
+cat(paste0(
+  '<div class="ov ov-method">',
+  '<section class="ov-section"><h2 class="ov-h2">Methodology, Sources and How to Cite</h2>',
+  '<p>The U.S.-Australia Economic Dashboard brings together official U.S. and Australian statistics on the economic ',
+  'relationship. Every chart is drawn from published government or international data, refreshed each quarter, and ',
+  'can be downloaded with its data from the links under the chart.</p>',
+
+  '<h3>Years</h3><ul>',
+  '<li><strong>Australian financial years</strong> run July to June and are labeled by the year they end: 2024-25 is shown as 2025.</li>',
+  '<li><strong>U.S. fiscal years</strong> (visas and job certifications) run October to September: FY2025 ended on 30 September 2025.</li>',
+  '<li>Other U.S. data, and Australian data where published that way, are <strong>calendar years</strong>. Each chart says which it uses.</li>',
+  '<li>The <strong>&ldquo;Data to&rdquo;</strong> line under each chart gives the latest period it covers.</li></ul>',
+
+  '<h3>Currency</h3><ul>',
+  '<li>Use the <strong>A$ / US$</strong> switch in the top bar to show money in either currency. Values are converted with the ',
+  'Reserve Bank of Australia&rsquo;s daily exchange rates: flows (trade, spending) at the average rate for their own period, and ',
+  'stocks (investment positions) at the rate on the date they are measured.</li>',
+  '<li>Money is shown in billions (bn) or trillions (tn) of dollars.</li></ul>',
+
+  '<h3>Definitions</h3><ul>',
+  '<li><strong>Two-way trade</strong> is Australian exports to the U.S. plus Australian imports from the U.S., goods and services.</li>',
+  '<li><strong>Investment</strong> figures are stocks at 31 December (the international investment position), by the immediate partner country.</li>',
+  '<li><strong>Energy use</strong> is primary energy consumption; <strong>net energy trade</strong> is exports less imports, as a share of each country&rsquo;s own energy use.</li>',
+  '<li><strong>Net overseas migration</strong> counts people by country of birth, whatever their citizenship.</li>',
+  '<li>Each page&rsquo;s <em>How to Read This Page</em> link explains its terms in more detail.</li></ul>',
+
+  '<h3>Reading the Charts</h3><ul>',
+  '<li>Hover over a chart to see its values: each line, bar or segment shows its exact figure.</li>',
+  '<li>Keyboard and screen-reader users: every chart has a text description with its main finding, and the full data behind it can be downloaded as a CSV file from the link under the chart.</li></ul>',
+  '<h3>Sources</h3>',
+  '<p>Australian Bureau of Statistics; Department of Foreign Affairs and Trade; Department of Climate Change, Energy, the ',
+  'Environment and Water (Australian Energy Statistics); Department of Home Affairs; Geoscience Australia; IP Australia; ',
+  'Australian Energy Market Operator; Reserve Bank of Australia; U.S. Bureau of Economic Analysis; U.S. Bureau of Labor ',
+  'Statistics; U.S. Census Bureau; U.S. Energy Information Administration; U.S. Geological Survey; U.S. Department of State; ',
+  'U.S. Department of Labor; CAISO; ERCOT; OECD; World Bank; IRENA; OpenAlex; Epoch AI; CIA World Factbook; Natural Earth. ',
+  'Each chart names its own sources in its footnote.</p>',
+
+  '<h3>How to Cite</h3>',
+  '<p class="ov-cite">CSIS Australia Chair, <em>U.S.-Australia Economic Dashboard</em>, ', edition_stamp(edition), ', ',
+  'Center for Strategic and International Studies, https://csis-ilab.github.io/australia-chair-dashboard/ (accessed [date]).</p>',
+
+  '<h3>Contact</h3>',
+  '<p>The dashboard is produced by the <a href="https://www.csis.org/programs/australia-chair" target="_blank" rel="noopener">',
+  'Australia Chair at CSIS</a>. Questions and corrections are welcome through the program&rsquo;s page.</p>',
+  '</section></div>'
+))
+```
+:::

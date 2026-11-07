@@ -1,4 +1,4 @@
-﻿title,"Australian patent applications with a US applicant, by technology sector"
+﻿title,"Australian patent applications with a U.S. applicant, by technology sector"
 subtitle,Standard complete applications; each application split across its sectors
 caption,"Source: IP Australia, IP RAPID. Sectors: WIPO technology concordance.
 Years after 2023 are excluded as filings are still being recorded:
@@ -14,8 +14,8 @@ value_units,Number
 value_axis_min,auto
 value_axis_max,auto
 series_variable,sector
-series_colours,Chemistry=#1f4e79; Electrical engineering=#a33; Instruments=#2a9d8f; Mechanical engineering=#e9a23b; Other fields=#6c757d
-layers,Line (linewidth=0.8) | Point (size=1.2)
+series_colours,Chemistry=#00205B; Electrical engineering=#D2232A; Instruments=#0098A8; Mechanical engineering=#F2A900; Other fields=#565A5C
+layers,Line (linewidth=1) | Point (size=1.6)
 title_style,Bold
 notes,Fractional counts: each application split equally across its sectors.
 
