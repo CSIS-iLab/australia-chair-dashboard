@@ -127,6 +127,46 @@ local function latest_period(text)
   return label()
 end
 
+-- Alt text for screen readers, written automatically for every chart: the
+-- chart's title, its one-line finding (takeaways.tsv, written by the chart
+-- scripts; the US$ version is swapped in by the A$/US$ toggle) and where the
+-- numbers are. Set as aria-label, which screen readers read in place of the
+-- (empty) alt. Charts with no finding get the title and data note only.
+local TAKEAWAYS = nil
+local function takeaways()
+  if TAKEAWAYS then return TAKEAWAYS end
+  TAKEAWAYS = {}
+  local text = read_all("takeaways.tsv")
+  if not text then return TAKEAWAYS end
+  for line in text:gmatch("[^\r\n]+") do
+    local chart, aud, usd = line:match("^([^\t]+)\t([^\t]*)\t?([^\t]*)$")
+    if chart and chart ~= "chart" then TAKEAWAYS[chart] = { aud = aud, usd = usd } end
+  end
+  return TAKEAWAYS
+end
+
+local function alt_text(title, finding, period, has_csv)
+  local parts = { "Chart: " .. (title ~= "" and title or "chart") .. "." }
+  if finding and finding ~= "" then parts[#parts + 1] = finding end
+  local tail = {}
+  if period then tail[#tail + 1] = "Data to " .. period .. "." end
+  if has_csv then tail[#tail + 1] = "Full data in the CSV download below the chart." end
+  if #tail > 0 then parts[#parts + 1] = table.concat(tail, " ") end
+  return table.concat(parts, " ")
+end
+
+function set_alt(img, src, period, has_csv)
+  if img.attributes["aria-label"] then return end      -- written by hand in the .qmd
+  local title = img.attributes["title"] or ""
+  local t = takeaways()[src]
+  img.attributes["aria-label"] = alt_text(title, t and t.aud, period, has_csv)
+  img.attributes["role"] = "img"
+  if t and t.usd and t.usd ~= "" and t.usd ~= t.aud then
+    img.attributes["data-aria-aud"] = img.attributes["aria-label"]
+    img.attributes["data-aria-usd"] = alt_text(title, t.usd, period, has_csv)
+  end
+end
+
 function Image(img)
   local src = img.src:gsub("%%20", " ")
   if not src:match("%.png$") or src:match("_usd%.png$") then return nil end
@@ -139,11 +179,17 @@ function Image(img)
       period = period or latest_period(text)
     end
   end
-  if not csv_text then return nil end
+  -- No date column in the CSV: use the latest period named in the chart's
+  -- title or subtitle, written to <name>_period.txt by '0. Chart data.R'
+  if not period then
+    local p = read_all(stem .. "_period.txt")
+    if p then period = p:gsub("%s+$", "") end
+  end
   if period then img.attributes["data-period"] = period end
-  if #csv_text <= MAX_CSV then
+  if csv_text and #csv_text <= MAX_CSV then
     img.attributes["data-csv"] = "data:text/csv;charset=utf-8," .. url_encode(csv_text)
     img.attributes["data-csv-name"] = csv_path:match("([^/]+)$")
   end
+  set_alt(img, src, period, csv_text ~= nil)
   return img
 end

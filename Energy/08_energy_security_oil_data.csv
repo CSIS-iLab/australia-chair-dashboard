@@ -1,0 +1,12 @@
+"source","net","country","use","unit","share","strip","lab","xmax","xmin","row","xintercept","layer"
+"Coal","2.215293","United States (2025)","96.465716","quadrillion Btu","0.0229645628712277","United States (2025): net exporter of 12% of its own energy use","+2%","0.0229645628712277","0","1",,
+"Natural gas","5.803395","United States (2025)","96.465716","quadrillion Btu","0.0601601816753218","United States (2025): net exporter of 12% of its own energy use","+6%","0.0831247445465496","0.0229645628712278","1",,
+"Oil (crude and refined)","2.721192","United States (2025)","96.465716","quadrillion Btu","0.0282089027359731","United States (2025): net exporter of 12% of its own energy use","+3%","0.111333647282523","0.0831247445465496","1",,
+"Biofuels and biomass","0.401478","United States (2025)","96.465716","quadrillion Btu","0.00416187238997946","United States (2025): net exporter of 12% of its own energy use","","0.115495519672502","0.111333647282523","1",,
+"Electricity","-0.042166","United States (2025)","96.465716","quadrillion Btu","-0.000437108661485496","United States (2025): net exporter of 12% of its own energy use","","-0.000437108661485496","0","1",,
+"Coal","9949.549","Australia (2025, year to June)","5871.725","PJ","1.69448484048555","Australia (2025, year to June): net exporter of 217% of its own energy use","+169%","1.69448484048555","0","1",,
+"Natural gas","4425.152","Australia (2025, year to June)","5871.725","PJ","0.753637474507066","Australia (2025, year to June): net exporter of 217% of its own energy use","+75%","2.44812231499261","1.69448484048555","1",,
+"Oil (crude and refined)","-1618.631","Australia (2025, year to June)","5871.725","PJ","-0.275665328331964","Australia (2025, year to June): net exporter of 217% of its own energy use","-28%","-0.275665328331964","0","1",,
+,,,,,,,,,,,"0","GeomVline"
+,,"United States (2025)",,,"0.115058411011017","United States (2025): net exporter of 12% of its own energy use",,,,"1",,"GeomPoint"
+,,"Australia (2025, year to June)",,,"2.17245698666065","Australia (2025, year to June): net exporter of 217% of its own energy use",,,,"1",,"GeomPoint"

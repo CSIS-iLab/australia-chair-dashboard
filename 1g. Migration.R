@@ -72,7 +72,7 @@ get_cube <- function() {
     message("Using local file: ", LOCAL_FILE)
     return(LOCAL_FILE)
   }
-  message("Downloading cube ", CUBE_ID, " from catalogue '", ABS_CATALOGUE, "'")
+  message("Downloading cube ", CUBE_ID, " from catalog '", ABS_CATALOGUE, "'")
   download_abs_data_cube(
     catalogue_string = ABS_CATALOGUE,
     cube             = CUBE_ID,
@@ -181,7 +181,7 @@ abs_caption <- paste0(
   # people regardless of nationality, citizenship or legal status, and country
   # of birth is usually taken from the traveller's passport or visa.
   "Counts people born in the United States, whatever their citizenship: it includes Australian and dual citizens\n",
-  "born in the US, and leaves out US citizens born elsewhere. People count as migrants when they spend\n",
+  "born in the U.S., and leaves out U.S. citizens born elsewhere. People count as migrants when they spend\n",
   "12 months or more of a 16-month period in (or away from) Australia. Retrieved ", Sys.Date(), "."
 )
 
@@ -189,18 +189,18 @@ p_national <- nom_usa |>
   filter(region == "Australia") |>
   ggplot(aes(x = fy_end, y = value)) +
   geom_hline(yintercept = 0, linewidth = 0.3, colour = "grey60") +
-  geom_line(linewidth = 0.9, colour = "#2c5f8a") +
-  geom_point(aes(shape = preliminary), size = 2, colour = "#2c5f8a") +
+  geom_line(linewidth = 0.9, colour = "#00205B") +
+  geom_point(aes(shape = preliminary), size = 2, colour = "#00205B") +
   scale_shape_manual(values = c(`FALSE` = 16, `TRUE` = 1),
                      labels = c("Final", "Preliminary"), name = NULL) +
   scale_x_continuous(breaks = seq(2005, 2035, 5)) +
   scale_y_continuous(labels = scales::comma) +
   labs(
     title    = "Net migration of Americans to Australia",
-    subtitle = "Net overseas migration of people born in the USA, years ending 30 June",
+    subtitle = "Net overseas migration of people born in the USA, by financial year (year to June)",
     x = NULL, y = NULL, caption = abs_caption
   ) +
-  theme_minimal(base_size = 12) +
+  theme_minimal(base_size = 13) +
   theme(legend.position = "bottom", plot.caption = element_text(hjust = 0))
 
 print(p_national)
@@ -209,24 +209,27 @@ p_states <- nom_usa |>
   filter(region != "Australia") |>
   ggplot(aes(x = fy_end, y = value)) +
   geom_hline(yintercept = 0, linewidth = 0.3, colour = "grey70") +
-  geom_line(linewidth = 0.7, colour = "#2c5f8a") +
-  facet_wrap(~ region, ncol = 4, scales = "free_y") +
+  geom_line(linewidth = 0.7, colour = "#00205B") +
+  # One scale for every state, so the panels can be compared directly
+  facet_wrap(~ region, ncol = 4) +
   scale_x_continuous(breaks = seq(2005, 2035, 10)) +
-  scale_y_continuous(labels = scales::comma) +
+  scale_y_continuous(labels = scales::comma, breaks = seq(-500, 2000, 500),
+                     limits = c(min(-500, nom_usa$value[nom_usa$region != "Australia"], na.rm = TRUE),
+                                max(2000, nom_usa$value[nom_usa$region != "Australia"], na.rm = TRUE))) +
   labs(
     title    = "Net migration of Americans to Australia, by state and territory",
-    subtitle = "Net overseas migration of people born in the USA, years ending 30 June",
+    subtitle = "Net overseas migration of people born in the USA, by financial year (year to June)",
     x = NULL, y = NULL, caption = abs_caption
   ) +
-  theme_minimal(base_size = 11) +
+  theme_minimal(base_size = 13) +
   theme(plot.caption = element_text(hjust = 0))
 
 print(p_states)
 
 ggsave(file.path(OUT_DIR, "nom_usa_national.png"), p_national,
-       width = 9, height = 5, dpi = 300)
+       width = 9, height = 5, dpi = 150)
 ggsave(file.path(OUT_DIR, "nom_usa_states.png"), p_states,
-       width = 11, height = 6, dpi = 300)
+       width = 11, height = 6, dpi = 200)   # many small state labels
 # The dashboard reads the charts from Migration/ itself, so copy them up a level
 file.copy(file.path(OUT_DIR, c("nom_usa_national.png", "nom_usa_states.png",
                              "nom_usa_national_data.csv", "nom_usa_states_data.csv",
@@ -365,7 +368,7 @@ read_niv_australia <- function(path, fy) {
   d <- suppressMessages(as.data.frame(read_excel(path, col_names = FALSE, col_types = "text")))
   hdr <- which(apply(d, 1, function(r) any(trimws(r) %in% c("E3", "E-3"))))[1]
   au  <- which(trimws(d[[1]]) == "Australia")
-  if (is.na(hdr) || !length(au)) { message("NIV FY", fy, ": layout not recognised"); return(NULL) }
+  if (is.na(hdr) || !length(au)) { message("NIV FY", fy, ": layout not recognized"); return(NULL) }
   h <- toupper(gsub("[^A-Za-z0-9]", "", unlist(d[hdr, ])))
   v <- unlist(d[au[1], ])
   tibble(fy = fy, class = NIV_CLASSES,
@@ -387,17 +390,17 @@ niv_last <- max(niv$fy)
 message("State Department visa tables: FY", min(niv$fy), "-FY", niv_last)
 write_csv(niv, "visas_issued_australians_tidy.csv")
 
-NIV_CAPTION <- paste0("Source: US Department of State, Report of the Visa Office, nonimmigrant visas issued ",
+NIV_CAPTION <- paste0("Source: U.S. Department of State, Report of the Visa Office, nonimmigrant visas issued ",
                       "by nationality and visa class (via the adoption.state.gov mirror).\n",
-                      "US fiscal years ending 30 September. Visas issued, not people admitted.")
+                      "U.S. fiscal years ending 30 September. Visas issued, not people admitted.")
 
 # --- Chart 1: E-3 visas against the cap ---
 E3_CAP <- 10500
 e3 <- niv |>
   filter(class %in% c("E3", "E3R", "E3D")) |>
-  mutate(type = recode(class, E3 = "New visas (principal applicants, counted against the cap)",
+  mutate(type = recode(class, E3 = "New visas (count against the cap)",
                               E3R = "Renewals", E3D = "Spouses and children"),
-         type = factor(type, levels = c("New visas (principal applicants, counted against the cap)",
+         type = factor(type, levels = c("New visas (count against the cap)",
                                         "Renewals", "Spouses and children")))
 
 p_e3 <- ggplot(e3, aes(fy, visas, colour = type)) +
@@ -407,11 +410,13 @@ p_e3 <- ggplot(e3, aes(fy, visas, colour = type)) +
   geom_line(linewidth = 1) +
   geom_point(size = 1.6) +
   scale_colour_manual(values = c(csis_colours[["navy"]], csis_colours[["teal"]], csis_colours[["ltgrey"]])) +
-  scale_y_continuous(labels = comma, limits = c(0, NA), expand = expansion(c(0, 0.08))) +
+  # Room above the cap line for its label; legend on one row
+  scale_y_continuous(labels = comma, limits = c(0, max(E3_CAP * 1.15, max(e3$visas, na.rm = TRUE))),
+                     expand = expansion(c(0, 0.02))) +
   scale_x_continuous(breaks = seq(2006, niv_last, 2)) +
-  guides(colour = guide_legend(ncol = 1)) +
+  guides(colour = guide_legend(nrow = 1)) +
   labs(title = "Skilled professional visas issued to Australians",
-       subtitle = sprintf("Visas issued by US fiscal year, FY%d to FY%d. A US work visa reserved for Australian professionals.",
+       subtitle = sprintf("Visas issued by U.S. fiscal year, FY%d to FY%d. A U.S. work visa reserved for Australian professionals.",
                           min(e3$fy), niv_last),
        x = NULL, y = NULL,
        caption = paste0(NIV_CAPTION, " Visa class E-3; renewals and dependants do not count against the cap.")) +
@@ -433,7 +438,7 @@ p_fj <- ggplot(fj, aes(fy, visas, colour = type)) +
   scale_x_continuous(breaks = seq(2006, niv_last, 2)) +
   guides(colour = guide_legend(ncol = 1)) +
   labs(title = "Student and exchange visas issued to Australians",
-       subtitle = sprintf("Visas issued by US fiscal year, FY%d to FY%d", min(fj$fy), niv_last),
+       subtitle = sprintf("Visas issued by U.S. fiscal year, FY%d to FY%d", min(fj$fy), niv_last),
        x = NULL, y = NULL, caption = NIV_CAPTION) +
   theme_csis()
 
@@ -479,7 +484,7 @@ fetch_home_affairs <- function(package, pattern) {
 us_extract <- function(xlsx) {
   out <- sub("\\.xlsx$", "_us.csv", xlsx)
   if (!file.exists(out)) {
-    message("Extracting US-citizen records from ", basename(xlsx), " (one-off, can take a few minutes)")
+    message("Extracting U.S.-citizen records from ", basename(xlsx), " (one-off, can take a few minutes)")
     run_python("extract_pivot_cache.py", c(xlsx, out, paste0("Citizenship Country=", US_CITIZEN)))
   }
   read_csv(out, show_col_types = FALSE)
@@ -510,7 +515,7 @@ p_sk <- ggplot(sk_occ, aes(holders, occupation)) +
             colour = csis_colours[["grey"]]) +
   scale_x_continuous(labels = comma, expand = expansion(c(0, 0.12))) +
   labs(title = "Skilled visas held by Americans in Australia, by occupation",
-       subtitle = sprintf("US citizens holding temporary skilled visas (primary applicants) at %s, top 15 nominated occupations",
+       subtitle = sprintf("U.S. citizens holding temporary skilled visas (primary applicants) at %s, top 15 nominated occupations",
                           trimws(format(sk_last, "%e %B %Y"))),
        x = NULL, y = NULL,
        caption = paste0(HA_CAPTION, ", Temporary Resident (Skilled) visa holders (BP0014). ",
@@ -556,7 +561,7 @@ p_temp <- ggplot(temp_ma, aes(snapshot, holders, fill = group)) +
                date_labels = "%Y", expand = expansion(mult = c(0.01, 0.02))) +
   guides(fill = guide_legend(ncol = 2, reverse = TRUE)) +
   labs(title = "Temporary visas held by Americans in Australia, by type",
-       subtitle = sprintf(paste0("US citizens holding work, study and graduate visas, primary and secondary applicants.\n",
+       subtitle = sprintf(paste0("U.S. citizens holding work, study and graduate visas, primary and secondary applicants.\n",
                                  "Four-quarter moving average, %s to %s"),
                           format(min(temp_ma$snapshot), "%B %Y"), format(max(temp_ma$snapshot), "%B %Y")),
        x = NULL, y = NULL,
@@ -578,6 +583,12 @@ save_csis(p_temp, "us_citizens_temporary_visas.png")
 # Up to FY2019 there is one file per fiscal year; from FY2020 there is one per
 # quarter (not cumulative), so a year counts as complete only when all four
 # quarters are present. The latest complete year is charted.
+
+# Footnote on the job charts, whose dashboard tabs say "Skilled visas": what an
+# LCA is and how it differs from a visa issued
+LCA_NOTE <- paste0("These are skilled jobs certified, not visas: the employer's Labor Condition Application (LCA) ",
+                   "for the job comes before the E-3 skilled visa.\nEmployers file one for each new job, transfer ",
+                   "and extension, so certified jobs run well above visas issued and are not a count of people.")
 # E-3 rows are extracted once per file (extract_e3_lca.py) and cached.
 
 DOL_DIR <- file.path("data-raw", "dol")
@@ -643,10 +654,10 @@ p_lca_occ <- ggplot(lca_occ, aes(lcas, group)) +
             hjust = -0.1, size = 3.3, family = "source_sans", colour = csis_colours[["grey"]]) +
   scale_x_continuous(labels = comma, expand = expansion(c(0, 0.2))) +
   labs(title = "Skilled professional jobs certified for Australians, by occupation",
-       subtitle = sprintf("Certified Labor Condition Applications, US fiscal year %d (%s in total)",
+       subtitle = sprintf("Certified Labor Condition Applications, U.S. fiscal year %d (%s in total)",
                           lca_fy, comma(nrow(e3_lca))),
        x = NULL, y = NULL,
-       caption = paste0("Source: US Department of Labor, Office of Foreign Labor Certification, LCA disclosure data. ",
+       caption = paste0("Source: U.S. Department of Labor, Office of Foreign Labor Certification, LCA disclosure data. ",
                         "Occupation groups are 2018 SOC major groups. Visa class E-3.\n",
                         "Employers file an LCA for each new job, transfer and extension, so LCAs ",
                         "exceed visas issued and are not a count of people.")) +
@@ -680,16 +691,15 @@ p_lca_trend <- ggplot(lca_trend, aes(fy, lcas, fill = group)) +
   scale_x_continuous(breaks = seq(min(lca_trend$fy), max(lca_trend$fy), 2)) +
   guides(fill = guide_legend(ncol = 2)) +
   labs(title = "Skilled professional jobs certified for Australians, over time",
-       subtitle = sprintf("Certified Labor Condition Applications by occupation group and US fiscal year, FY%d to FY%d",
+       subtitle = sprintf("Certified Labor Condition Applications by occupation group and U.S. fiscal year, FY%d to FY%d",
                           min(lca_trend$fy), max(lca_trend$fy)),
        x = NULL, y = NULL,
-       caption = paste0("Source: US Department of Labor, Office of Foreign Labor Certification, LCA disclosure data. ",
+       caption = paste0("Source: U.S. Department of Labor, Office of Foreign Labor Certification, LCA disclosure data. ",
                         "Occupation groups are SOC major groups. Visa class E-3.\n",
-                        "Employers file an LCA for each new job, transfer and extension, so LCAs ",
-                        "exceed visas issued and are not a count of people.")) +
+                        LCA_NOTE)) +
   theme_csis()
 
-save_csis(p_lca_trend, "e3_jobs_trend.png", height = 5.6)
+save_csis(p_lca_trend, "e3_jobs_trend.png", height = 6.6)
 write_csv(lca_trend |> mutate(group = as.character(group)), "e3_jobs_trend_tidy.csv")
 
 # Top employers and worksite cities (two panels)
@@ -719,12 +729,11 @@ p_lca_ec <- ggplot(emp_city, aes(lcas, item)) +
                                "Top worksite cities" = csis_colours[["teal"]])) +
   scale_x_continuous(labels = comma, expand = expansion(c(0, 0.18))) +
   labs(title = "Skilled professional jobs certified for Australians, by employer and city",
-       subtitle = sprintf("Certified Labor Condition Applications, top employers and worksite cities, US fiscal year %d", lca_fy),
+       subtitle = sprintf("Certified Labor Condition Applications, top employers and worksite cities, U.S. fiscal year %d", lca_fy),
        x = NULL, y = NULL,
-       caption = paste0("Source: US Department of Labor, Office of Foreign Labor Certification, LCA disclosure data. ",
-                        "Employer names lightly standardised; first listed worksite. Visa class E-3.\n",
-                        "Employers file an LCA for each new job, transfer and extension, so LCAs ",
-                        "are not a count of people.")) +
+       caption = paste0("Source: U.S. Department of Labor, Office of Foreign Labor Certification, LCA disclosure data. ",
+                        "Employer names lightly standardized; first listed worksite. Visa class E-3.\n",
+                        LCA_NOTE)) +
   theme_csis() +
   theme(panel.grid.major.y = element_blank(),
         panel.grid.major.x = element_line(colour = "#E6E7E8", linewidth = 0.4),
@@ -752,19 +761,19 @@ local({
   v <- rd("visas_issued_australians_tidy.csv")
   e3 <- aggregate(visas ~ fy, v[grepl("^E3", v$class), ], sum); e3 <- e3[order(e3$fy), ]
   takeaway(mg("e3_visas_australians.png"), sprintf(
-    "The US issued %s E-3 skilled professional visas to Australians and their families in fiscal year %d.",
+    "The U.S. issued %s E-3 skilled professional visas to Australians and their families in fiscal year %d.",
     format(e3$visas[nrow(e3)], big.mark = ","), e3$fy[nrow(e3)]))
   se <- aggregate(visas ~ fy, v[grepl("^(F|J|M)", v$class), ], sum); se <- se[order(se$fy), ]
   if (nrow(se)) takeaway(mg("student_exchange_visas_australians.png"), sprintf(
-    "Australians received %s US student and exchange visas in fiscal year %d.",
+    "Australians received %s U.S. student and exchange visas in fiscal year %d.",
     format(se$visas[nrow(se)], big.mark = ","), se$fy[nrow(se)]))
   oc <- rd("e3_jobs_by_occupation_tidy.csv"); oc <- oc[order(-oc$lcas), ]
   takeaway(mg("e3_jobs_by_occupation.png"), sprintf(
-    "%s jobs made up %.0f%% of US jobs certified for Australian skilled professionals.",
+    "%s jobs made up %.0f%% of U.S. jobs certified for Australian skilled professionals.",
     oc$group[1], 100 * oc$share[1]))
   tr <- rd("e3_jobs_trend_tidy.csv"); tt <- aggregate(lcas ~ fy, tr, sum); tt <- tt[order(tt$fy), ]
   takeaway(mg("e3_jobs_trend.png"), sprintf(
-    "US employers had %s jobs certified for Australian skilled professionals in fiscal year %d, against %s in %d.",
+    "U.S. employers had %s jobs certified for Australian skilled professionals in fiscal year %d, against %s in %d.",
     format(tt$lcas[nrow(tt)], big.mark = ","), tt$fy[nrow(tt)], format(tt$lcas[1], big.mark = ","), tt$fy[1]))
   ec <- rd("e3_employers_cities_tidy.csv")
   emp <- ec[ec$panel == ec$panel[1], ]; emp <- emp[order(-emp$lcas), ]
@@ -783,7 +792,7 @@ local({
     format(tl$holders[1], big.mark = ","), tolower(tl$group[1])))
   nm <- rd("abs_nom_usa_born.csv"); nm <- nm[nm$region == "Australia", ]; nm <- nm[order(nm$fy_end), ]
   takeaway(mg("nom_usa_national.png"), sprintf(
-    "Net overseas migration of US-born people to Australia was %s in %s%s.",
+    "Net overseas migration of U.S.-born people to Australia was %s in %s%s.",
     format(nm$value[nrow(nm)], big.mark = ","), nm$period[nrow(nm)],
     if (isTRUE(nm$preliminary[nrow(nm)])) " (preliminary)" else ""))
 })

@@ -271,8 +271,8 @@ MCS_SOURCE <- sprintf(paste0("Source: USGS, Mineral Commodity Summaries %d data 
 # ------------------------------------------------------------------------------
 
 panels <- c(share           = "Australia's share of\nworld production and world ranking",
-            nir             = "US net import reliance\n(share of US use imported)",
-            au_import_share = "Australia's share of\nUS imports, 2021-24")
+            nir             = "U.S. net import reliance\n(share of U.S. use imported)",
+            au_import_share = "Australia's share of\nU.S. imports, 2021-24")
 
 chart1 <- minerals |>
   select(label, rank, nir_raw, share, nir, au_import_share) |>
@@ -302,17 +302,17 @@ p_share <- ggplot(chart1, aes(value, label, fill = panel)) +
   scale_x_continuous(labels = percent_format(accuracy = 1), limits = c(0, 1.45),
                      breaks = seq(0, 1, 0.5), expand = expansion(c(0, 0))) +
   labs(
-    title    = sprintf("Australia's share of world production and US import reliance, critical minerals, %d", DATA_YEAR),
+    title    = sprintf("Australia's share of world production and U.S. import reliance, critical minerals, %d", DATA_YEAR),
     x = NULL, y = NULL,
     caption = paste0(
       MCS_SOURCE,
       "\nAlumina is refinery output; all others are mine output. Titanium import share covers all ",
       "titanium mineral concentrates. Import reliance for lead, zinc and tin is for refined metal, ",
       "for rare earths\ncompounds and metals, and for zirconium ores and concentrates; '>' and '<' are ",
-      "USGS bounds. 'Not a major source': USGS does not list Australia among the main US suppliers.",
+      "USGS bounds. 'Not a major source': USGS does not list Australia among the main U.S. suppliers.",
       if (length(excl_us) > 0)
         paste0("\nWorld totals for ", paste(str_to_lower(excl_us), collapse = " and "),
-               " exclude US output, which USGS withholds.") else "",
+               " exclude U.S. output, which USGS withholds.") else "",
       if (length(w_other) > 0)
         paste0("\nSome countries' output is withheld for ", paste(str_to_lower(w_other), collapse = ", "),
                "; ranks count only published figures.") else ""
@@ -352,9 +352,7 @@ p_headroom <- ggplot(headroom, aes(y = label)) +
   geom_segment(aes(x = Production, xend = Reserves, yend = label),
                colour = csis_colours[["ltgrey"]], linewidth = 1.6) +
   geom_point(data = headroom_long, aes(x = value, colour = measure), size = 3.2) +
-  geom_text(data = headroom_long |> filter(measure == "Reserves"),
-            aes(x = value, label = percent(value, accuracy = 1)),
-            nudge_y = 0.38, size = 3, colour = csis_colours[["teal"]], family = "source_sans") +
+  # values are in the hover pop-ups (printed labels sat on top of the dots)
   scale_colour_manual(values = c(Production = csis_colours[["navy"]],
                                  Reserves   = csis_colours[["teal"]]),
                       labels = c(Production = sprintf("Share of world production, %d", DATA_YEAR),
@@ -363,17 +361,16 @@ p_headroom <- ggplot(headroom, aes(y = label)) +
                      expand = expansion(c(0, 0.05))) +
   labs(
     title    = "Australia's share of world reserves and world production, critical minerals",
-    subtitle = "Australia's share of world reserves and of world mine production, sorted by the gap",
+    subtitle = "Australia's share of world reserves and of world mine production, sorted by the gap. Hover over a dot for its value.",
     x = NULL, y = NULL,
     caption = paste0(
       MCS_SOURCE,
       "\nAustralian reserves are Geoscience Australia's economic demonstrated resources, which are ",
       "larger than JORC-compliant reserves.",
       if (length(lb) > 0)
-        paste0("\n", str_wrap(paste0("USGS gives world reserves only as a lower bound for ",
-                                      paste(str_to_lower(lb), collapse = ", "),
-                                      ", so Australia's share of reserves there is an upper bound."),
-                               width = 150)) else ""
+        paste0("\n", "USGS gives world reserves only as a lower bound for ",
+               paste(str_to_lower(lb), collapse = ", "),
+               ", so Australia's share of reserves there is an upper bound.") else ""   # wrapped when saved
     )
   ) +
   theme_csis() +
@@ -381,7 +378,7 @@ p_headroom <- ggplot(headroom, aes(y = label)) +
         panel.grid.major.x = element_line(colour = "#E6E7E8", linewidth = 0.4),
         axis.text.y = element_text(colour = csis_colours[["navy"]]))
 
-save_csis(p_headroom, "minerals_au_reserves_vs_production.png", width = 9, height = 6.2)
+save_csis(p_headroom, "minerals_au_reserves_vs_production.png", width = 9, height = 7)
 
 
 # ------------------------------------------------------------------------------

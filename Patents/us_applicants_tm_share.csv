@@ -1,4 +1,4 @@
-﻿title,US share of Australian trade mark applications
+﻿title,U.S. share of Australian trade mark applications
 subtitle,Share of applications with a known applicant party
 caption,"Source: IP Australia, IP RAPID"
 chart_type,Line with point markers
@@ -9,9 +9,9 @@ y_axis_label,(none)
 y_units_format,Percent (values are 0-100); axis labels shown as whole-number %
 y_axis_min,0
 y_axis_max,auto
-line_colour,#a33
-line_width_mm,0.8
-point_size,1.4
+line_colour,#D2232A
+line_width_mm,1
+point_size,1.6
 title_style,Bold
 notes,Denominator is applications with a known applicant party
 

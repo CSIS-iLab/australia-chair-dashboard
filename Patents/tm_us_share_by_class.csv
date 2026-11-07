@@ -1,5 +1,5 @@
-﻿title,US share of Australian trade mark applications by Nice class
-subtitle,"Standard trade mark applications, 2021–2025. Dashed line = US share across all classes"
+﻿title,U.S. share of Australian trade mark applications by Nice class
+subtitle,"Standard trade mark applications, 2021–2025. Dashed line = U.S. share across all classes"
 caption,"Source: IP Australia, IP RAPID. Nice classification; class names shortened."
 chart_type,Horizontal bar with reference line
 category_variable,class_label
@@ -13,7 +13,7 @@ value_axis_min,auto
 value_axis_max,auto
 series_variable,(none)
 series_colours,(none)
-layers,"Col (fill=#1f4e79, width=0.7) | Vline (linetype=dashed, colour=grey40, reference_value=11.4)"
+layers,"Col (fill=#00205B, width=0.7) | Vline (linetype=dashed, colour=grey40, reference_value=11.4)"
 title_style,Bold
 notes,Classes with fewer than 100 applications in the window are omitted. Fractional counts: each application split equally across its Nice classes.
 

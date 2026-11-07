@@ -72,12 +72,12 @@ facts <- data.frame(
   land_note      = c("Includes Lord Howe and Macquarie islands", "Contiguous 48 states and DC, as in the map"),
   land_km2       = c(7682300, 9147593 - 1477953 - 16635),
   coastline_km   = c(25760, 19924),
-  coastline_note = c("", "All US states; the Factbook gives no contiguous-only figure"),
+  coastline_note = c("", "All U.S. states; the Factbook gives no contiguous-only figure"),
   population     = c(if (!is.null(au_pop)) au_pop$value else keep_old("Australia", "population"),
                      if (!is.null(us_pop)) us_pop$value else keep_old("United States", "population")),
   population_as_at = c(if (!is.null(au_pop)) au_pop$as_at else keep_old("Australia", "population_as_at"),
                        if (!is.null(us_pop)) us_pop$as_at else keep_old("United States", "population_as_at")),
-  population_note = c("Estimated resident population (ABS)", "Whole country, 50 states and DC (US Census Bureau)")
+  population_note = c("Estimated resident population (ABS)", "Whole country, 50 states and DC (U.S. Census Bureau)")
 )
 facts$land_sqmi       <- round(facts$land_km2 / KM2_PER_SQMI)
 facts$coastline_miles <- round(facts$coastline_km / KM_PER_MILE)
@@ -105,7 +105,7 @@ library(showtext)
 
 font_add_google("Source Sans 3", "source_sans")
 showtext_auto()
-showtext_opts(dpi = 300)                     # must match the dpi in ggsave()
+showtext_opts(dpi = 200)                     # must match the dpi in ggsave()
 
 MAP_NAVY  <- "#00205B"   # Australia
 MAP_RED   <- "#D2232A"   # United States
@@ -123,7 +123,7 @@ map_theme <- function() {
                                    margin = margin(t = 8)),
       plot.title.position   = "plot",
       plot.caption.position = "plot",
-      plot.background = element_rect(fill = "white", colour = NA),
+      plot.background = element_rect(fill = "transparent", colour = NA),   # sits on the dashboard card
       plot.margin     = margin(14, 16, 10, 16)
     )
 }
@@ -186,15 +186,15 @@ map_same_scale <- ggplot() +
   coord_sf(datum = NA, xlim = c(bb[["xmin"]] - 0.27 * bw, bb[["xmax"]] + 0.27 * bw),
            ylim = c(bb[["ymin"]] - 0.03 * bh, bb[["ymax"]] + 0.03 * bh), expand = FALSE) +
   labs(
-    title    = "Australia and the contiguous United States at the same scale",
+    title    = "Australia and the Contiguous United States at the Same Scale",
     subtitle = "Australia (navy) laid over the 48 contiguous states and DC (red outline), each in an equal-area projection",
-    caption  = paste0("Boundaries: Natural Earth (1:50m). Land areas: CIA World Factbook (Australia); US Census Bureau ",
+    caption  = paste0("Boundaries: Natural Earth (1:50m). Land areas: CIA World Factbook (Australia); U.S. Census Bureau ",
                       "(contiguous states and DC).\nEach country is drawn in its own Lambert azimuthal equal-area ",
                       "projection; Australia is moved, not resized. Alaska and Hawaii are not shown.")
   ) +
   map_theme()
 
-ggsave("australia_over_us.png", map_same_scale, width = 10, height = 6.4, dpi = 300, bg = "white")
+ggsave("australia_over_us.png", map_same_scale, width = 10, height = 6.4, dpi = 200, bg = "transparent")
 
 
 # ---- Map 2: distances across the Pacific -------------------------------------
@@ -266,7 +266,7 @@ for (i in seq_len(nrow(routes))) {
 islands <- data.frame(
   name = c("Palau", "Micronesia", "Marshall Is.", "Papua New Guinea", "Solomon Is.", "Vanuatu", "Fiji",
            "Nauru", "Kiribati", "Tuvalu", "Samoa", "Tonga", "New Caledonia (FR)", "French Polynesia (FR)",
-           "Cook Is. (NZ)", "Niue (NZ)", "American Samoa (US)"),
+           "Cook Is. (NZ)", "Niue (NZ)", "American Samoa (U.S.)"),
   lon  = c(134.62, 158.16, 171.38, 147.18, 159.95, 168.32, 178.44, 166.92, 172.98, 179.20, -171.77, -175.20,
            166.46, -149.57, -159.78, -169.92, -170.70),
   lat  = c(7.50, 6.92, 7.09, -9.44, -9.43, -17.73, -18.14, -0.55, 1.33, -8.52, -13.83, -21.14,
@@ -319,15 +319,16 @@ map_pacific <- ggplot() +
   coord_sf(crs = PAC_CRS, xlim = c(view[["xmin"]], view[["xmax"]]), ylim = c(view[["ymin"]], view[["ymax"]]),
            expand = FALSE, datum = NA) +
   labs(
-    title    = "Distances across the Pacific",
-    subtitle = "Great-circle distances from Perth and Canberra to US cities and territories. Australia in navy, the United States in red.",
+    title    = "Tyranny of Distance",
+    subtitle = "Great-circle distances from Perth and Canberra to U.S. cities and territories. Australia in navy, the United States in red.",
     caption  = paste0("Boundaries: Natural Earth (1:50m). Distances are great-circle (shortest path over the earth's surface), ",
-                      "in statute miles and kilometres.\nGrey markers show Pacific island capitals. ",
-                      "Equal Earth projection centred on the Pacific.")
+                      "in statute miles and kilometers.\nGray markers show Pacific island capitals. ",
+                      "Equal Earth projection centered on the Pacific.")
   ) +
   map_theme()
 
 # Image shaped to the map: panel height from its aspect ratio, plus room for the title and caption
 map_h <- 11.4 * (view[["ymax"]] - view[["ymin"]]) / (view[["xmax"]] - view[["xmin"]]) + 1.55
-ggsave("US-Australia distance map.png", map_pacific, width = 12, height = map_h, dpi = 300, bg = "white")
+# File name kept as "US-..." (no full stops): the dashboard reads this name
+ggsave("US-Australia distance map.png", map_pacific, width = 12, height = map_h, dpi = 200, bg = "transparent")
 showtext_auto(FALSE)

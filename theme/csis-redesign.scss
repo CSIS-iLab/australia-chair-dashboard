@@ -3,7 +3,9 @@
 // Layered on top of cosmo, so every page picks up the colours and fonts;
 // the Overview page also uses the .ov-* classes below.
 
-@import url('https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700&family=Source+Serif+4:opsz,wght@8..60,500;8..60,600&display=swap');
+// Fonts (Source Sans 3, Source Serif 4) are loaded from Google Fonts when the
+// page opens, by theme/navigation.html, not @import-ed here: an @import
+// would be embedded by embed-resources (about 7 MB of font files).
 
 $navy:      #00205B;
 $navy-2:    #0B3A7A;
@@ -34,7 +36,8 @@ $border-radius:           6px;
   .navbar-brand, .navbar-title { color: #fff !important; font-family: $headings-font-family; font-weight: 600; }
   // The longer "U.S.-Australia Economic Dashboard" title: a little smaller, so
   // the page names fit on one line each
-  .navbar-title { font-size: 1.15rem; line-height: 1.2; }
+  // two lines ("U.S.-Australia / Economic Dashboard") rather than three
+  .navbar-title { font-size: 1.05rem; line-height: 1.15; display: inline-block; max-width: 14.5rem; white-space: normal; }
   .nav-link { color: rgba(255,255,255,0.78) !important; font-weight: 600; letter-spacing: 0.01em; white-space: nowrap; }
   .nav-link:hover { color: #fff !important; }
   .nav-link.active {
@@ -145,7 +148,9 @@ $border-radius:           6px;
 @media (max-width: 900px) { .ov .ov-glance-grid { grid-template-columns: 1fr; gap: 16px; } }
 
 // Explore grid
-.ov-grid { display: grid; gap: 18px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+// Ten tiles: two rows of five on a wide screen
+.ov-grid { display: grid; gap: 18px; grid-template-columns: repeat(5, minmax(0, 1fr)); }
+@media (max-width: 1300px) { .ov-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 @media (max-width: 1100px) { .ov-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 640px)  { .ov-grid { grid-template-columns: 1fr; } }
 .ov-tile {
@@ -285,15 +290,28 @@ $border-radius:           6px;
 
 .page-guide-link.inline { position: static; display: block; margin: 2px 0 0; font-weight: 400; }
 
-// Trade overview: goods and services stacked in the left column; each chart
-// shrinks to fit its card rather than scrolling inside it
+// Trade overview: each chart shrinks to fit its card rather than scrolling inside it
 #trade-overview .card-body { overflow: hidden !important; }
 #trade-overview .card-body img { max-height: 100%; max-width: 100%; width: auto; height: auto; object-fit: contain; display: block; margin: 0 auto; }
-// The US chart keeps its own height and stays in view while the left column scrolls
+// The U.S. chart keeps its own height and stays in view while the left column scrolls
 #trade-overview .trade-us { align-self: start; height: auto !important; position: sticky; top: 0; }
-// Energy: electricity mix and energy mix stacked on the left; the costs and
-// prices card keeps one card's height and stays in view while the page scrolls
-#energy .energy-costs { align-self: start; height: 660px !important; position: sticky; top: 0; }
+// Energy: electricity mix and costs side by side, energy security full width below
+
+// Two columns on wide screens; below 1200px the columns stack, full width,
+// and the page scrolls, so charts never get too narrow to read
+@media (max-width: 1199.98px) {
+  .quarto-dashboard .dashboard-page > .bslib-grid {
+    grid-template-columns: minmax(0, 1fr) !important; grid-auto-rows: auto !important;
+    height: auto !important; flex: 0 0 auto !important;
+  }
+  .quarto-dashboard .dashboard-page > .bslib-grid > * { min-height: 640px; }
+  .quarto-dashboard .dashboard-page.active { overflow-y: auto !important; }
+  #trade-overview .trade-us { position: static; height: 660px !important; }
+  // Energy's top row (electricity mix | costs) stacks too
+  #energy .bslib-grid:has(> .energy-costs) { grid-template-columns: minmax(0, 1fr) !important; grid-auto-rows: 640px !important; height: auto !important; }
+  #energy .bslib-grid:has(> .energy-costs) > * { min-height: 640px; }
+  #energy > .bslib-grid { grid-template-rows: auto 640px !important; height: auto !important; }
+}
 
 // Every chart on every page shrinks to fit its card rather than scrolling
 // inside it (the expand button shows it full size). Cards holding a map,
@@ -307,10 +325,10 @@ $border-radius:           6px;
 
 // Data centres page: a thin strip on each panel header says whose data it is,
 // navy for Australia and red for the US benchmarks
-#data-centres .dc-au > .card-header, #data-centres .card.dc-au > .card-header { border-top: 4px solid #00205B; }
-#data-centres .dc-us > .card-header, #data-centres .card.dc-us > .card-header { border-top: 4px solid #D2232A; }
-#data-centres .card-body:has(> p > img), #data-centres .card-body:has(img) { overflow: hidden !important; }
-#data-centres .card-body img { max-height: 540px; max-width: 100%; width: auto; height: auto; object-fit: contain; display: block; margin: 0 auto; }
+#data-centers .dc-au > .card-header, #data-centers .card.dc-au > .card-header { border-top: 4px solid #00205B; }
+#data-centers .dc-us > .card-header, #data-centers .card.dc-us > .card-header { border-top: 4px solid #D2232A; }
+#data-centers .card-body:has(> p > img), #data-centers .card-body:has(img) { overflow: hidden !important; }
+#data-centers .card-body img { max-height: 540px; max-width: 100%; width: auto; height: auto; object-fit: contain; display: block; margin: 0 auto; }
 
 // Home page: when the dashboard was last built
 .ov .ov-updated { display: block !important; margin-top: 10px; color: rgba(255, 255, 255, 0.9); font-size: 0.95rem; }
@@ -341,3 +359,62 @@ $border-radius:           6px;
 // "By state" left "Wholesale electricity prices" showing on top). Release the
 // card body that holds the expanded card.
 .quarto-dashboard .card .card-body:has(.bslib-card[data-full-screen="true"]) { z-index: auto; }
+
+// ---- Review clean-ups (6 Nov 2026) ----------------------------------------------
+// One expand button per chart: when a tab's chart card has its own, hide the
+// tabbed card's button stacked beside it
+.quarto-dashboard .card.tabset:has(.tab-pane.active .bslib-card .bslib-full-screen-enter) > bslib-tooltip { display: none; }
+
+// Critical minerals filters: say what an empty box means
+#critical-minerals .selectize-control .selectize-input:not(.has-items):not(.focus)::before {
+  content: "All (click to filter)"; color: $muted; font-size: 0.85rem;
+}
+
+// CSIS link at the right-hand end of the top bar (in place of the GitHub icon)
+.navbar .csis-link {
+  margin-left: auto; padding: 4px 0 4px 14px; color: #fff !important; text-decoration: none;
+  font-weight: 700; letter-spacing: 0.04em; white-space: nowrap; border-left: 1px solid rgba(255, 255, 255, 0.3);
+  span { font-weight: 400; color: rgba(255, 255, 255, 0.8); margin-left: 4px; }
+}
+.navbar .csis-link:hover span { color: #fff; }
+// Only on wide screens: below this the page links fill the bar (the Home
+// banner and footer carry the CSIS Australia Chair name and link instead)
+@media (max-width: 1699.98px) { .navbar .csis-link { display: none; } }
+
+// Footer at the foot of the Home page
+.ov .ov-footer {
+  display: block !important; margin: 18px 0 8px; padding-top: 12px; border-top: 1px solid $rule;
+  color: $muted; font-size: 0.8rem;
+  a { color: $navy; }
+}
+
+// Methodology page
+.ov-method .ov-section { max-width: 900px; }
+.ov-method h3 { font-family: $headings-font-family; color: $navy; font-size: 1.1rem; margin: 22px 0 8px; }
+.ov-method ul { padding-left: 1.2rem; }
+.ov-method li, .ov-method p { line-height: 1.55; margin-bottom: 6px; }
+.ov-method .ov-cite { background: #fff; border-left: 3px solid $gold; padding: 10px 14px; }
+
+// Critical minerals: the sidebar filters only apply to the map, so they are
+// hidden (and the charts take the full width) on the other tabs (the class is
+// set by theme/navigation.html)
+.bslib-sidebar-layout.cm-no-sidebar > .sidebar,
+.bslib-sidebar-layout.cm-no-sidebar > .collapse-toggle { display: none !important; }
+.bslib-sidebar-layout.cm-no-sidebar { grid-template-columns: minmax(0, 1fr) !important; }
+.bslib-sidebar-layout.cm-no-sidebar > .main { grid-column: 1 / -1 !important; }
+
+// Top bar on mid-size screens (about 1000-1300px): tighter menu so it fits
+@media (min-width: 992px) and (max-width: 1349.98px) {
+  .navbar .navbar-nav .nav-link { padding-left: 0.45rem !important; padding-right: 0.45rem !important; font-size: 0.86rem; }
+  .navbar .navbar-title { font-size: 0.95rem; max-width: 12rem; }
+  .navbar .cur-toggle button { padding: 2px 8px; font-size: 0.78rem; }
+}
+@media (min-width: 992px) and (max-width: 1199.98px) {
+  .navbar .navbar-nav .nav-link { padding-left: 0.28rem !important; padding-right: 0.28rem !important; font-size: 0.8rem; }
+  .navbar .navbar-title { font-size: 0.85rem; max-width: 9.5rem; }
+  .navbar .cur-toggle { margin-left: 4px; margin-right: 4px; }
+}
+// Narrowest desktop widths: the dashboard name (shown on the Home banner) makes way for the menu
+@media (min-width: 992px) and (max-width: 1079.98px) { .navbar .navbar-brand-container { display: none !important; } }
+// Energy security: a full-width card, but the chart itself a little smaller and centered
+#energy img[aria-label^="Chart: Energy Security"] { max-width: min(100%, 980px) !important; margin: 0 auto; }

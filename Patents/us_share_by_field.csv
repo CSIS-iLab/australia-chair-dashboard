@@ -1,5 +1,5 @@
-﻿title,US share of Australian patent applications by technology field
-subtitle,"Standard complete applications, 2019–2023. Dashed line = US share across all fields"
+﻿title,U.S. share of Australian patent applications by technology field
+subtitle,"Standard complete applications, 2019–2023. Dashed line = U.S. share across all fields"
 caption,"Source: IP Australia, IP RAPID. Fields: WIPO technology concordance."
 chart_type,Horizontal bar with reference line
 category_variable,field
@@ -13,9 +13,9 @@ value_axis_min,auto
 value_axis_max,auto
 series_variable,(none)
 series_colours,(none)
-layers,"Col (fill=#1f4e79, width=0.7) | Vline (linetype=dashed, colour=grey40, reference_value=45.5)"
+layers,"Col (fill=#00205B, width=0.7) | Vline (linetype=dashed, colour=grey40, reference_value=45.5)"
 title_style,Bold
-notes,Fields with fewer than 30 applications in the window are omitted. Reference line = US share across all fields.
+notes,Fields with fewer than 30 applications in the window are omitted. Reference line = U.S. share across all fields.
 
 field,share_us
 13 medical technology,60.1

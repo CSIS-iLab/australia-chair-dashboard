@@ -1,22 +1,43 @@
 <!-- Added to the end of the dashboard by '2. Australia Chair Tool.qmd'
-     (include-after-body). Three jobs (the third, the Edition menu, is at the end):
+     (include-after-body). It first loads the Google Fonts (section 0), then three
+     jobs (the third, the Edition menu, is at the end):
      1. Groups some pages into drop-down menus in the top bar.
      2. Adds the A$ / US$ toggle at the left of the top bar. Charts with a US$
         version carry it in data-usd (see theme/currency.lua); headline numbers
         carry both versions in data-aud-text / data-usd-text. -->
+<script>
+// ---- 0. Fonts: Source Sans 3 and Source Serif 4 from Google Fonts --------
+// Added to the page head when it opens rather than @import-ed in
+// theme/csis-redesign.scss, so the font files are not embedded in the HTML.
+// Until they arrive (or if offline) the fallbacks in the SCSS are used.
+(function () {
+  var href = "https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700" +
+             "&family=Source+Serif+4:opsz,wght@8..60,500;8..60,600&display=swap";
+  if (document.querySelector('link[href="' + href + '"]')) return;
+  [["https://fonts.googleapis.com", false], ["https://fonts.gstatic.com", true]].forEach(function (o) {
+    var pc = document.createElement("link");
+    pc.rel = "preconnect"; pc.href = o[0];
+    if (o[1]) pc.crossOrigin = "anonymous";
+    document.head.appendChild(pc);
+  });
+  var link = document.createElement("link");
+  link.rel = "stylesheet"; link.href = href;
+  document.head.appendChild(link);
+})();
+</script>
 <script>
 (function () {
   // ---- 1. Drop-down menus ------------------------------------------------
   // Menu label, then the pages in it: [page id, name shown in the menu].
   // Page ids are the page titles in the .qmd, lower case, spaces as hyphens.
   var MENUS = [
-    ["Economies",  [["economic-indicators", "Economic indicators"],
-                    ["intellectual-property", "Intellectual property"]]],
-    ["Trade",      [["trade-overview", "Trade overview"],
-                    ["trade-in-goods", "Trade in goods"],
-                    ["trade-in-services", "Trade in services"]]],
+    ["Economies",  [["economic-indicators", "Economic Indicators"],
+                    ["intellectual-property", "Intellectual Property"]]],
+    ["Trade",      [["trade-overview", "Trade Overview"],
+                    ["trade-in-goods", "Trade in Goods"],
+                    ["trade-in-services", "Trade in Services"]]],
     ["Technology", [["research-and-ai", "Research and AI"],
-                    ["data-centres", "Data centres"]]]
+                    ["data-centers", "Data Centers"]]]
   ];
 
   var navList = document.querySelector(".navbar .navbar-nav");
@@ -83,6 +104,34 @@
     markMenus();
   }
 
+  // ---- 1b. CSIS link at the right-hand end of the top bar ----------------------
+  var collapse = document.querySelector(".navbar .navbar-collapse");
+  if (collapse) {
+    var csis = document.createElement("a");
+    csis.className = "csis-link";
+    csis.href = "https://www.csis.org/programs/australia-chair";
+    csis.target = "_blank";
+    csis.rel = "noopener";
+    csis.innerHTML = "CSIS <span>Australia Chair</span>";
+    collapse.appendChild(csis);
+  }
+
+  // ---- 1c. Critical minerals: the filters are for the map only -------------
+  // The page's sidebar (end-use family, lifecycle stage) filters the map, so
+  // it is hidden, and the charts take the full width, on the other tabs.
+  var cm = document.getElementById("critical-minerals");
+  var cmLayout = cm && cm.querySelector(".bslib-sidebar-layout");
+  if (cmLayout) {
+    var cmSync = function () {
+      var active = cm.querySelector(".nav-tabs .nav-link.active");
+      var onMap = !active || /^\s*Map\s*$/.test(active.textContent);
+      cmLayout.classList.toggle("cm-no-sidebar", !onMap);
+      window.dispatchEvent(new Event("resize"));            // let the map and charts refit
+    };
+    cm.addEventListener("shown.bs.tab", cmSync);
+    cmSync();
+  }
+
   // ---- 2. A$ / US$ toggle ----------------------------------------------------
   var KEY = "csis-au-tool-currency";
   var bar = document.querySelector(".navbar .navbar-brand-container");
@@ -103,6 +152,10 @@
     });
     document.querySelectorAll("[data-usd-text]").forEach(function (el) {
       el.innerHTML = cur === "USD" ? el.dataset.usdText : el.dataset.audText;
+    });
+    // Chart alt text (theme/chart-data.lua) follows the currency too
+    document.querySelectorAll("img[data-aria-usd]").forEach(function (img) {
+      img.setAttribute("aria-label", cur === "USD" ? img.dataset.ariaUsd : img.dataset.ariaAud);
     });
     box.querySelectorAll("button").forEach(function (b) {
       var on = b.dataset.cur === cur;

@@ -60,12 +60,292 @@ write_chart_data <- function(plot, filename) {
   invisible(NULL)
 }
 
+# ---- House style --------------------------------------------------------------
+# Every chart saved through ggsave() is finished in the dashboard's house style:
+# Source Sans 3 throughout (text on the chart too), a navy bold title, grey
+# subtitle and caption, and the caption left-aligned under the whole chart.
+# Only type and colour are set here, so each script's own layout stays.
+HOUSE_NAVY <- "#00205B"
+HOUSE_GREY <- "#565A5C"
+if (!"source_sans" %in% sysfonts::font_families())
+  sysfonts::font_add_google("Source Sans 3", "source_sans")
+for (g in c("text", "label")) ggplot2::update_geom_defaults(g, list(family = "source_sans"))
+if (requireNamespace("ggrepel", quietly = TRUE))                 # repelled labels too
+  for (g in list(ggrepel::GeomTextRepel, ggrepel::GeomLabelRepel))
+    ggplot2::update_geom_defaults(g, list(family = "source_sans"))
+
+# CSIS headline style (Chicago title case) for chart titles and legends:
+# major words capitalised; articles, coordinating conjunctions and
+# prepositions (of any length, as Chicago has it) lower case unless first or
+# last, or after a colon. Acronyms and mixed-case words (U.S., GDP, NSW, kWh)
+# and units (bn, tn) are left alone.
+TITLE_SMALL <- c("a", "an", "the", "and", "but", "or", "nor", "for", "so", "yet",
+                 "about", "above", "across", "after", "against", "along", "among", "around", "as", "at",
+                 "before", "behind", "below", "beneath", "beside", "between", "beyond", "by", "despite",
+                 "during", "except", "from", "in", "into", "of", "on", "onto", "over", "per", "since",
+                 "through", "throughout", "to", "toward", "towards", "under", "until", "upon", "via", "vs",
+                 "with", "within", "without")
+TITLE_KEEP  <- c("bn", "tn", "m", "k", "km", "kt", "mt", "pj", "gwh", "twh", "mwh", "e.g.", "i.e.", "etc.", "n.e.c.", "n.i.e", "n.i.e.")
+title_case <- function(x) {
+  if (!is.character(x)) return(x)
+  vapply(x, function(s) {
+    if (is.na(s) || !nzchar(s)) return(s)
+    lines <- strsplit(s, "\n", fixed = TRUE)[[1]]
+    out <- vapply(lines, function(l) {
+      w <- strsplit(l, " ", fixed = TRUE)[[1]]
+      n <- length(w); real <- which(grepl("[A-Za-z0-9]", w))
+      for (i in seq_len(n)) {
+        wi <- w[i]
+        core <- sub("^[^A-Za-z0-9]*", "", wi); core_l <- tolower(sub("[^A-Za-z.]+$", "", core))
+        first <- length(real) && i == real[1]; last <- length(real) && i == real[length(real)]
+        after_colon <- i > 1 && grepl("[:—]$", w[i - 1])
+        minor <- !first && !last && !after_colon && core_l %in% TITLE_SMALL
+        if (minor && grepl("^[A-Z][a-z]+[^A-Za-z]*$", core)) {  # "From", "Over" mid-title: lower case
+          w[i] <- sub("([A-Z])", "\\L\\1", wi, perl = TRUE); next
+        }
+        if (grepl("^[A-Z]", core)) {                           # capitalised already: just the parts after a hyphen
+          w[i] <- gsub("-([a-z])(?=[a-z]{2})", "-\\U\\1", wi, perl = TRUE); next
+        }
+        if (!grepl("^[a-z]", core)) next                       # a number or a symbol
+        if (core_l %in% TITLE_KEEP) next
+        if (minor) next
+        # capitalise each part of a hyphenated word (small-scale -> Small-Scale)
+        w[i] <- gsub("(^|[-/(\"'‘“])([a-z])", "\\1\\U\\2", wi, perl = TRUE)
+      }
+      paste(w, collapse = " ")
+    }, character(1))
+    paste(out, collapse = "\n")
+  }, character(1), USE.NAMES = FALSE)
+}
+# Applies title case to one ggplot's title, legend titles and legend entries
+title_case_plot <- function(p) {
+  if (!inherits(p, "ggplot")) return(p)
+  labs_now <- tryCatch(ggplot2::get_labs(p), error = function(e) p$labels)
+  leg_aes <- c("fill", "colour", "color", "linetype", "shape", "size", "alpha")
+  new <- list()
+  for (a in intersect(c("title", leg_aes), names(labs_now))) {
+    v <- labs_now[[a]]
+    if (is.character(v) && length(v) == 1) new[[a]] <- title_case(v)
+  }
+  if (length(new)) p <- p + do.call(ggplot2::labs, new)
+  # legends drawn from ggplot's default scales: add that scale so its entries can be relabelled
+  built <- tryCatch(ggplot2::ggplot_build(p), error = function(e) NULL)
+  if (!is.null(built)) for (a in c("fill", "colour", "linetype", "shape")) {
+    if (!is.null(p$scales$get_scales(a))) next
+    sc <- built$plot$scales$get_scales(a)
+    if (!is.null(sc) && inherits(sc, "ScaleDiscrete")) p <- p + sc$clone()
+  }
+  for (i in seq_along(p$scales$scales)) {
+    sc <- p$scales$scales[[i]]
+    if (!inherits(sc, "ScaleDiscrete") || !length(intersect(sc$aesthetics, leg_aes))) next
+    sc <- sc$clone(); lab <- sc$labels
+    sc$labels <- if (inherits(lab, "waiver")) function(x) title_case(as.character(x))
+                 else if (is.function(lab)) { f <- lab; function(x) title_case(f(x)) }
+                 else if (is.character(lab)) stats::setNames(title_case(lab), names(lab))
+                 else lab
+    if (is.character(sc$name) && length(sc$name) == 1) sc$name <- title_case(sc$name)
+    p$scales$scales[[i]] <- sc
+  }
+  p
+}
+
+# Chart text 20% larger than each script sets it: the chart is drawn on a
+# canvas 1/1.2 the size, at 1.2 times the dpi, so the PNG keeps its pixel size
+# and only the text (and points and lines) grow. Applied to every chart saved
+# through ggsave() below, and to its hover map in the same way.
+TEXT_SCALE <- 1.2
+scale_dims <- function(dots) {
+  if (is.null(dots$dpi)) dots$dpi <- 300
+  if (!is.null(dots$width))  dots$width  <- dots$width  / TEXT_SCALE
+  if (!is.null(dots$height)) dots$height <- dots$height / TEXT_SCALE
+  dots$dpi <- dots$dpi * TEXT_SCALE
+  dots
+}
+
+# Long titles, subtitles and source lines are wrapped to the chart's width so
+# that nothing runs off the edge (existing line breaks are kept)
+wrap_text_to <- function(x, width_in, pt) {
+  if (!is.character(x) || length(x) != 1 || is.na(x)) return(x)
+  n <- max(30, floor(0.95 * width_in * 72 / (0.45 * pt)))     # characters that fit on a line
+  lines <- strsplit(x, "\n", fixed = TRUE)[[1]]
+  paste(unlist(lapply(lines, function(l) if (nchar(l) <= n) l else strwrap(l, width = n))), collapse = "\n")
+}
+wrap_labels <- function(p, width_in) {
+  if (is.null(width_in) || !inherits(p, "ggplot")) return(p)
+  th <- tryCatch(ggplot2:::plot_theme(p), error = function(e) ggplot2::theme_get())
+  pt <- function(el, d) {
+    v <- tryCatch(ggplot2::calc_element(el, th)$size, error = function(e) NULL)
+    if (is.numeric(v) && length(v) == 1) v else d
+  }
+  labs_now <- tryCatch(ggplot2::get_labs(p), error = function(e) p$labels)
+  new <- list()
+  for (el in c("title", "subtitle", "caption")) {
+    v <- labs_now[[el]]
+    if (is.character(v) && length(v) == 1) {
+      size <- c(title = HOUSE_SIZES[["title"]] * 1.15, subtitle = HOUSE_SIZES[["subtitle"]], caption = HOUSE_SIZES[["caption"]] * 1.05)[[el]]
+      w <- wrap_text_to(v, width_in, size)
+      if (!identical(w, v)) new[[el]] <- w
+    }
+  }
+  if (length(new)) p <- p + do.call(ggplot2::labs, new)
+  p
+}
+
+# ---- One look for every chart (dashboard consistency pass, Nov 2026) ----------
+# Fixed text sizes (in points, before the 20% TEXT_SCALE): every chart's title,
+# subtitle, axis, legend and footnote text is the same size whatever base size
+# its script uses.
+HOUSE_SIZES <- c(title = 15, subtitle = 11.5, axis = 10.5, legend = 10.5, strip = 11, caption = 9)
+HOUSE_LINE  <- 1.0    # line width for data lines
+HOUSE_POINT <- 1.6    # point size on lines (dot-plot points, 2.4 and up, are left alone)
+HOUSE_GRID  <- "#E3E6EB"
+
+# Footnote wording: "Source:" for one source, "Sources:" for several (sources
+# separated by ";"), and every line ends with a full stop
+tidy_caption <- function(x) {
+  if (!is.character(x) || length(x) != 1 || is.na(x) || !nzchar(x)) return(x)
+  lines <- strsplit(x, "\n", fixed = TRUE)[[1]]
+  lines <- vapply(lines, function(l) {
+    l <- sub("\\s+$", "", l)
+    if (!nzchar(l)) return(l)
+    first <- sub("^(Sources?):\\s*", "", l)
+    if (grepl("^Sources?:", l)) {
+      several <- grepl(";", first) || grepl("^Sources:", l)   # never turn "Sources:" into "Source:"
+      l <- paste0(if (several) "Sources: " else "Source: ", first)
+    }
+    if (!grepl("[].!?)]$", l) && !grepl("[;,:]$", l)) l <- paste0(l, ".")
+    l
+  }, "", USE.NAMES = FALSE)
+  paste(lines, collapse = "\n")
+}
+
+# Lines and points the same weight in every chart: data lines at HOUSE_LINE and
+# their points at HOUSE_POINT, where a script set a fixed size (sizes mapped to
+# data, e.g. thin gray comparator lines, are left as they are)
+house_marks <- function(p) {
+  if (!inherits(p, "ggplot")) return(p)
+  for (i in seq_along(p$layers)) {
+    l <- p$layers[[i]]
+    g <- class(l$geom)[1]
+    if (g %in% c("GeomLine", "GeomPath", "GeomStep") && is.numeric(l$aes_params$linewidth) &&
+        l$aes_params$linewidth >= 0.5 && l$aes_params$linewidth <= 1.3) {
+      l$aes_params$linewidth <- HOUSE_LINE
+    }
+    if (g == "GeomPoint" && is.numeric(l$aes_params$size) && l$aes_params$size < 2.4) {
+      l$aes_params$size <- HOUSE_POINT
+    }
+  }
+  p
+}
+
+# Gridlines only along the value axis: vertical lines for horizontal bar and
+# dot charts (categories down the side), horizontal lines for charts over time;
+# never minor gridlines. Charts that are neither keep their own gridlines.
+house_grid <- function(p) {
+  if (!inherits(p, "ggplot")) return(NULL)
+  b <- tryCatch(ggplot2::ggplot_build(p), error = function(e) NULL)
+  if (is.null(b) || !inherits(b$layout$coord, "CoordCartesian") || inherits(b$layout$coord, "CoordFlip")) return(NULL)
+  line <- ggplot2::element_line(colour = HOUSE_GRID, linewidth = 0.4)
+  none <- ggplot2::element_blank()
+  sy <- b$layout$panel_scales_y[[1]]; sx <- b$layout$panel_scales_x[[1]]
+  if (sy$is_discrete() && !sx$is_discrete())
+    return(ggplot2::theme(panel.grid.major.x = line, panel.grid.major.y = none, panel.grid.minor = none))
+  layers <- lapply(b$data, function(d) d)
+  if (!sy$is_discrete() && (sx$is_discrete() || !is.na(tryCatch(hover_time_axis(b, layers), error = function(e) NA))))
+    return(ggplot2::theme(panel.grid.major.y = line, panel.grid.major.x = none, panel.grid.minor = none))
+  ggplot2::theme(panel.grid.minor = none)
+}
+
+house_style <- function(p, width_in = NULL) {
+  if (inherits(p, "patchwork") && !is.null(width_in)) {
+    for (k in seq_along(p$patches$plots)) p$patches$plots[[k]] <- wrap_labels(p$patches$plots[[k]], width_in)
+    for (el in c("subtitle", "caption"))
+      if (is.character(p$patches$annotation[[el]]))
+        p$patches$annotation[[el]] <- wrap_text_to(p$patches$annotation[[el]], width_in, c(subtitle = 11, caption = 9)[[el]])
+  }
+  if (inherits(p, "patchwork")) {
+    for (k in seq_along(p$patches$plots)) p$patches$plots[[k]] <- title_case_plot(p$patches$plots[[k]])
+    if (is.character(p$patches$annotation$title)) p$patches$annotation$title <- title_case(p$patches$annotation$title)
+  }
+  one_plot <- function(q) {
+    if (!inherits(q, "ggplot")) return(q)
+    cap <- tryCatch(ggplot2::get_labs(q)$caption, error = function(e) NULL)
+    if (is.character(cap) && length(cap) == 1) q <- q + ggplot2::labs(caption = tidy_caption(cap))
+    q <- house_marks(q)
+    g <- house_grid(q)
+    if (!is.null(g)) q <- q + g
+    # Legend at the top left, above the chart (charts that hide their legend,
+    # or place it inside the panel, keep that)
+    lp <- tryCatch(ggplot2:::plot_theme(q)$legend.position, error = function(e) "right")
+    if (is.character(lp) && lp %in% c("right", "left", "top", "bottom"))
+      q <- q + ggplot2::theme(legend.position = "top", legend.justification = "left", legend.location = "plot")
+    q
+  }
+  if (inherits(p, "patchwork")) {
+    for (k in seq_along(p$patches$plots)) p$patches$plots[[k]] <- one_plot(p$patches$plots[[k]])
+    if (is.character(p$patches$annotation$caption))
+      p$patches$annotation$caption <- tidy_caption(p$patches$annotation$caption)
+  }
+  p <- one_plot(p)
+  p <- wrap_labels(title_case_plot(p), width_in)
+  th <- ggplot2::theme(
+    text          = ggplot2::element_text(family = "source_sans"),
+    plot.title    = ggplot2::element_text(family = "source_sans", face = "bold", colour = HOUSE_NAVY,
+                                          size = HOUSE_SIZES[["title"]]),
+    plot.subtitle = ggplot2::element_text(family = "source_sans", colour = HOUSE_GREY,
+                                          size = HOUSE_SIZES[["subtitle"]]),
+    plot.caption  = ggplot2::element_text(family = "source_sans", colour = HOUSE_GREY, hjust = 0,
+                                          size = HOUSE_SIZES[["caption"]], lineheight = 1.1),
+    axis.text     = ggplot2::element_text(family = "source_sans", size = HOUSE_SIZES[["axis"]]),
+    axis.title    = ggplot2::element_text(family = "source_sans", size = HOUSE_SIZES[["axis"]]),
+    legend.text   = ggplot2::element_text(family = "source_sans", size = HOUSE_SIZES[["legend"]]),
+    strip.text    = ggplot2::element_text(family = "source_sans", face = "bold", size = HOUSE_SIZES[["strip"]]),
+    legend.title  = ggplot2::element_blank(),
+    plot.title.position = "plot", plot.caption.position = "plot",
+    # Transparent background, so charts sit on the dashboard's cards (and on
+    # any page they are pasted into) without a white box
+    plot.background   = ggplot2::element_rect(fill = "transparent", colour = NA),
+    panel.background  = ggplot2::element_rect(fill = "transparent", colour = NA),
+    legend.background = ggplot2::element_rect(fill = "transparent", colour = NA),
+    legend.box.background = ggplot2::element_rect(fill = "transparent", colour = NA),
+    legend.key        = ggplot2::element_rect(fill = "transparent", colour = NA))
+  if (inherits(p, "patchwork")) p & th else if (inherits(p, "ggplot")) p + th else p
+}
+
+# ---- Latest period named in a chart's title or subtitle -------------------------
+# Written to <chart>_period.txt; the dashboard uses it for the "Data to" line
+# only when the chart's CSV has no date column it recognises. Financial years
+# ("2024-25") and years ("2025") count; years after this one (targets) do not.
+chart_period <- function(p) {
+  plots <- if (inherits(p, "patchwork")) hover_leaves(p) else list(p)
+  txt <- unlist(lapply(plots, function(q) tryCatch(c(q$labels$title, q$labels$subtitle), error = function(e) NULL)))
+  txt <- paste(txt[vapply(txt, is.character, logical(1))], collapse = " ")
+  this_year <- as.integer(format(Sys.Date(), "%Y"))
+  fy <- regmatches(txt, gregexpr("\\b(19|20)\\d{2}[-–]\\d{2}\\b", txt))[[1]]
+  fy_end <- as.integer(substr(fy, 1, 4)) + 1L
+  yr <- as.integer(regmatches(txt, gregexpr("\\b(19|20)\\d{2}\\b", txt))[[1]])
+  cand <- data.frame(end = c(fy_end, yr), label = c(fy, as.character(yr)), stringsAsFactors = FALSE)
+  cand <- cand[cand$end <= this_year + (cand$label %in% fy), ]   # a financial year may end next year
+  if (!nrow(cand)) return(NULL)
+  cand <- cand[order(-cand$end, -nchar(cand$label)), ]          # prefer "2024-25" over "2025" at a tie
+  cand$label[1]
+}
+
 ggsave <- function(filename, plot = ggplot2::last_plot(), ...) {
-  res <- ggplot2::ggsave(filename, plot, ...)
+  dots <- list(...)
+  showtext::showtext_auto(TRUE)
+  dots_s <- scale_dims(dots)                                 # text 20% larger (see TEXT_SCALE)
+  showtext::showtext_opts(dpi = dots_s$dpi)                  # must match the saved dpi
+  plot <- house_style(plot, dots_s$width)
+  dots_s$bg <- "transparent"                                 # whatever the script asked for
+  res <- do.call(ggplot2::ggsave, c(list(filename, plot), dots_s))
+  per <- tryCatch(chart_period(plot), error = function(e) NULL)
+  if (!is.null(per) && grepl("\\.png$", filename) && !grepl("_usd\\.png$", filename))
+    writeLines(per, sub("\\.png$", "_period.txt", filename))
   if (isTRUE(CHART_DATA_CSV))
     tryCatch(write_chart_data(plot, filename),
              error = function(e) message("Chart data not written for ", filename, ": ", conditionMessage(e)))
-  tryCatch(write_hover(plot, filename, spots = time_series_spots, ...),
+  tryCatch(write_hover(plot, filename, spots = chart_spots, ...),
            error = function(e) message("Hover tooltips not written for ", filename, ": ", conditionMessage(e)))
   invisible(res)
 }
@@ -154,6 +434,10 @@ hover_boxes <- function(plot, leaves, ...) {
 write_hover <- function(plot, file, spots, ...) {
   file <- as.character(file)
   if (!grepl("\\.png$", file) || !requireNamespace("png", quietly = TRUE)) return(invisible(NULL))
+  # Drawn exactly as the saved chart: same house style, same 20% larger text
+  dots <- scale_dims(list(...))
+  showtext::showtext_auto(TRUE); showtext::showtext_opts(dpi = dots$dpi)
+  plot <- house_style(plot, dots$width)
   # Every plot is kept (spacers too) so that plot k matches marker colour k
   leaves <- hover_leaves(plot)
   builts <- lapply(leaves, function(p) tryCatch(ggplot2::ggplot_build(p), error = function(e) NULL))
@@ -163,7 +447,7 @@ write_hover <- function(plot, file, spots, ...) {
     unlink(out_json)                       # no longer a time series: drop an old map
     return(invisible(NULL))
   }
-  boxes <- hover_boxes(plot, leaves, ...)
+  boxes <- do.call(hover_boxes, c(list(plot, leaves), dots))
   frac <- function(v, r) pmin(pmax((v - r[1]) / diff(r), 0), 1)
   out <- do.call(rbind, lapply(seq_along(leaves), function(k) {
     s <- found[[k]]
@@ -190,6 +474,95 @@ write_hover <- function(plot, file, spots, ...) {
 }
 
 # ---- Spots for any chart with time along the x axis ---------------------------
+
+# Hover pop-ups for horizontal bar charts (categories down the y axis), used
+# where a chart's printed value labels are replaced by tooltips. text_fun gets
+# the category, the series (fill legend entry, or NA) and the bar's value, and
+# returns the tooltip's HTML. Pass the result as write_hover(spots = ...).
+hbar_spots <- function(text_fun) function(built) {
+  sy <- built$layout$panel_scales_y[[1]]
+  if (!sy$is_discrete()) return(NULL)
+  cats <- as.character(sy$get_limits())
+  fs <- built$plot$scales$get_scales("fill")
+  fill_lab <- if (!is.null(fs)) {
+    br <- fs$get_breaks(); setNames(as.character(fs$get_labels(br)), fs$map(br))
+  } else character()
+  geoms <- vapply(built$plot$layers, function(l) class(l$geom)[1], "")
+  out <- lapply(which(geoms %in% c("GeomCol", "GeomBar", "GeomRect")), function(li) {
+    d <- built$data[[li]]
+    if (!all(c("xmin", "xmax", "ymin", "ymax") %in% names(d))) return(NULL)
+    cat_i  <- cats[pmin(pmax(round((d$ymin + d$ymax) / 2), 1), length(cats))]
+    series <- if ("fill" %in% names(d)) unname(fill_lab[d$fill]) else rep(NA_character_, nrow(d))
+    value  <- ifelse(d$xmin == 0, d$xmax, d$xmax - d$xmin)
+    data.frame(PANEL = d$PANEL, xmin = d$xmin, xmax = d$xmax, ymin = d$ymin, ymax = d$ymax,
+               text = mapply(text_fun, cat_i, series, value, USE.NAMES = FALSE))
+  })
+  do.call(rbind, out)
+}
+
+# Hover pop-ups for charts with categories on one axis (bar charts, dot plots),
+# used automatically for every chart that is not a time series. Heading: the
+# category (and panel); then "Series: value", the value formatted as its axis.
+cat_spots <- function(built) {
+  coord <- built$layout$coord
+  if (!inherits(coord, "CoordCartesian") || inherits(coord, "CoordFlip")) return(NULL)
+  lay <- built$layout$layout
+  sy1 <- built$layout$panel_scales_y[[1]]; sx1 <- built$layout$panel_scales_x[[1]]
+  horiz <- sy1$is_discrete() && !sx1$is_discrete()
+  vert  <- sx1$is_discrete() && !sy1$is_discrete()
+  if (!horiz && !vert) return(NULL)
+  geoms <- vapply(built$plot$layers, function(l) class(l$geom)[1], "")
+  fcols <- setdiff(names(lay), c("PANEL", "ROW", "COL", "SCALE_X", "SCALE_Y", "AXIS_X", "AXIS_Y", "COORD"))
+  facet_of <- function(panel) {
+    if (nrow(lay) < 2 || !length(fcols)) return(NA_character_)
+    sub(" \\(.*$", "", paste(vapply(fcols, function(f) as.character(lay[[f]][lay$PANEL == panel]), ""), collapse = ", "))
+  }
+  fmt <- function(v, panel, whole) {
+    out <- tryCatch(hover_value(built, v, whole, if (horiz) "x" else "y"), error = function(e) NULL)
+    if (is.null(out) || length(out) != 1 || is.na(out) || !nzchar(out)) format(signif(v, 3), big.mark = ",") else out
+  }
+  cat_of <- function(pos, panel) {
+    k <- if (horiz) lay$SCALE_Y[lay$PANEL == panel][1] else lay$SCALE_X[lay$PANEL == panel][1]
+    sc <- if (horiz) built$layout$panel_scales_y[[k]] else built$layout$panel_scales_x[[k]]
+    lim <- tryCatch(as.character(sc$get_labels()), error = function(e) NULL)   # as the axis shows them
+    if (is.null(lim) || !length(lim)) lim <- as.character(sc$get_limits())
+    lim[pmin(pmax(round(pos), 1), length(lim))]
+  }
+  out <- lapply(seq_along(geoms), function(li) {
+    g <- geoms[li]; d <- built$data[[li]]
+    if (!nrow(d)) return(NULL)
+    if (g %in% c("GeomCol", "GeomBar", "GeomRect") && all(c("xmin", "xmax", "ymin", "ymax") %in% names(d))) {
+      lo <- if (horiz) d$xmin else d$ymin; hi <- if (horiz) d$xmax else d$ymax
+      val <- ifelse(abs(lo) < 1e-12, hi, ifelse(abs(hi) < 1e-12, lo, hi - lo))
+      pos <- if (horiz) (d$ymin + d$ymax) / 2 else (d$xmin + d$xmax) / 2
+      box <- data.frame(xmin = d$xmin, xmax = d$xmax, ymin = d$ymin, ymax = d$ymax)
+    } else if (g == "GeomPoint" && all(c("x", "y") %in% names(d))) {
+      val <- if (horiz) d$x else d$y
+      pos <- if (horiz) d$y else d$x
+      box <- data.frame(xmin = d$x, xmax = d$x, ymin = d$y, ymax = d$y)
+    } else return(NULL)
+    ok <- is.finite(val) & is.finite(pos)
+    if (!any(ok)) return(NULL)
+    d <- d[ok, , drop = FALSE]; val <- val[ok]; pos <- pos[ok]; box <- box[ok, , drop = FALSE]
+    series <- hover_series(built, d)
+    panel <- as.character(d$PANEL)
+    head <- mapply(function(p, ps) { f <- facet_of(p); c0 <- cat_of(ps, p); if (is.na(f)) c0 else paste0(c0, " (", f, ")") },
+                   panel, pos, USE.NAMES = FALSE)
+    whole <- all(abs(val - round(val)) < 1e-9)
+    vals <- mapply(fmt, val, panel, MoreArgs = list(whole = whole), USE.NAMES = FALSE)
+    text <- ifelse(is.na(series), paste0("<b>", htmltools::htmlEscape(head), "</b><br>", vals),
+                   paste0("<b>", htmltools::htmlEscape(head), "</b><br>", htmltools::htmlEscape(series), ": ", vals))
+    cbind(PANEL = d$PANEL, box, text = text, stringsAsFactors = FALSE)
+  })
+  out <- do.call(rbind, out)
+  if (is.null(out) || !nrow(out)) NULL else out
+}
+# The hover map written for every chart: over time, or by category
+chart_spots <- function(built) {
+  s <- tryCatch(time_series_spots(built), error = function(e) NULL)
+  if (!is.null(s) && nrow(s)) return(s)
+  cat_spots(built)
+}
 
 HOVER_POINT_GEOMS <- c("GeomLine", "GeomPath", "GeomPoint", "GeomStep")
 HOVER_BAR_GEOMS   <- c("GeomCol", "GeomBar")
@@ -222,8 +595,8 @@ hover_time_axis <- function(built, layers) {
 }
 
 # Value as the y axis shows it, with one more significant figure or so
-hover_value <- function(built, v, whole) {
-  sy <- built$layout$panel_scales_y[[1]]
+hover_value <- function(built, v, whole, axis = "y") {
+  sy <- if (axis == "x") built$layout$panel_scales_x[[1]] else built$layout$panel_scales_y[[1]]
   digits <- if (whole) 0 else max(1, min(3, 1 - floor(log10(max(abs(v), 1e-9)))))
   plain <- function(v) formatC(round(v, digits), format = "f", digits = digits, big.mark = ",")
   f <- sy$labels
@@ -248,9 +621,11 @@ hover_series <- function(built, d) {
   for (aes in c("colour", "fill")) {
     sc <- built$plot$scales$get_scales(aes)
     if (is.null(sc) || !aes %in% names(d) || !sc$is_discrete()) next
-    lim <- sc$get_limits()
+    lim <- sc$get_breaks()
+    if (is.null(lim) || !length(lim) || all(is.na(lim))) lim <- sc$get_limits()
+    lim <- lim[!is.na(lim)]
     pal <- sc$map(lim)
-    lab <- sc$get_labels()
+    lab <- tryCatch(sc$get_labels(lim), error = function(e) NULL)
     if (is.null(lab) || length(lab) != length(lim)) lab <- lim
     hit <- match(toupper(d[[aes]]), toupper(pal))
     if (any(!is.na(hit))) return(ifelse(is.na(hit), NA_character_, as.character(lab[hit])))
@@ -277,7 +652,11 @@ time_series_spots <- function(built) {
     d <- as.Date(if (inherits(sx, "ScaleContinuousDatetime")) as.POSIXct(x, origin = "1970-01-01") else x,
                  origin = "1970-01-01")
     all_d <- as.Date(unlist(lapply(layers, function(l) l$x)), origin = "1970-01-01")
-    if (length(unique(format(all_d, "%d"))) > 1) format(d, "%d %b %Y")
+    m <- as.integer(format(all_d, "%m"))
+    steps <- diff(sort(unique(as.numeric(all_d))))
+    quarterly <- length(unique(m %% 3)) == 1 && length(steps) && stats::median(steps) > 80 && stats::median(steps) < 100
+    if (quarterly) paste0(format(d, "%Y"), " Q", (as.integer(format(d, "%m")) - 1) %/% 3 + 1)
+    else if (length(unique(format(all_d, "%d"))) > 1) format(d, "%d %b %Y")
     else if (length(unique(format(all_d, "%m"))) > 1) format(d, "%b %Y")
     else format(d, "%Y")
   }
@@ -323,8 +702,9 @@ time_series_spots <- function(built) {
                    ifelse(is.na(facet) | facet == series, series, paste0(series, " (", facet, ")")))
     when <- period(d$x)
     vals <- vapply(val, function(v) hover_value(built, v, whole), "")
+    # Heading: the period; then "Series: value" (the value as the axis shows it)
     text <- ifelse(is.na(name), paste0("<b>", when, "</b><br>", vals),
-                   paste0("<b>", htmltools::htmlEscape(name), "</b>, ", when, "<br>", vals))
+                   paste0("<b>", when, "</b><br>", htmltools::htmlEscape(name), ": ", vals))
     cbind(PANEL = d$PANEL, box, text = text, stringsAsFactors = FALSE)
   })
   do.call(rbind, spots)
