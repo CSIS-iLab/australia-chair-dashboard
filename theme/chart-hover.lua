@@ -3,6 +3,11 @@
 -- contents in the image's data-hover attribute, and the US$ twin's
 -- (<name>_usd_hover.json) in data-hover-usd. The script in
 -- theme/chart-footer.html shows the text when the pointer is over a hover area.
+--
+-- Zoomable charts: a chart with a zoomed-in twin <name>_zoom.png (e.g. the GDP
+-- growth chart, Economy/gdp_au_us_zoom.png) gets the twin in data-zoom and its
+-- hover map in data-hover-zoom; theme/chart-footer.html switches between the
+-- two when the chart (or its "Zoom in" button) is clicked.
 
 local function read_all(path)
   local f = io.open(path, "rb")
@@ -21,5 +26,11 @@ function Image(img)
   img.attributes["data-hover"] = aud
   local usd = read_all(stem .. "_usd_hover.json")
   if usd then img.attributes["data-hover-usd"] = usd end
+  local zoom = read_all(stem .. "_zoom.png")
+  if zoom then
+    img.attributes["data-zoom"] = "data:image/png;base64," .. quarto.base64.encode(zoom)
+    local zh = read_all(stem .. "_zoom_hover.json")
+    if zh then img.attributes["data-hover-zoom"] = zh end
+  end
   return img
 end

@@ -48,6 +48,9 @@
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
 }
 img[data-hover] { cursor: crosshair; }
+img[data-zoom] { cursor: zoom-in; }
+img[data-zoom][data-zoomed="true"] { cursor: zoom-out; }
+.chart-zoom-btn { font-weight: 700; }
 </style>
 <script>
 (function () {
@@ -63,14 +66,48 @@ img[data-hover] { cursor: crosshair; }
   });
 
   function spots(img) {
-    var usd = img.dataset.hoverUsd && img.getAttribute("src") === img.dataset.usd;
-    var key = usd ? "_spotsUsd" : "_spots";
+    var zoomed = img.dataset.zoomed === "true" && img.dataset.hoverZoom;
+    var usd = !zoomed && img.dataset.hoverUsd && img.getAttribute("src") === img.dataset.usd;
+    var key = zoomed ? "_spotsZoom" : usd ? "_spotsUsd" : "_spots";
     if (!img[key]) {
-      try { img[key] = JSON.parse(usd ? img.dataset.hoverUsd : img.dataset.hover); }
+      try { img[key] = JSON.parse(zoomed ? img.dataset.hoverZoom : usd ? img.dataset.hoverUsd : img.dataset.hover); }
       catch (e) { img[key] = []; }
     }
     return img[key];
   }
+
+  // Zoomable charts (data-zoom, from theme/chart-hover.lua): the full range is
+  // shown first; clicking the chart, or the button under it, switches to the
+  // zoomed-in version and back. The hover map follows the picture shown.
+  document.querySelectorAll("img[data-zoom]").forEach(function (img) {
+    var full = img.getAttribute("src");
+    var label = img.getAttribute("aria-label") || "";
+    var btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "chart-zoom-btn";
+    function set(zoomed) {
+      img.dataset.zoomed = zoomed ? "true" : "false";
+      img.setAttribute("src", zoomed ? img.dataset.zoom : full);
+      img.setAttribute("aria-label", label + (zoomed
+        ? " Zoomed in on growth between -4% and +6%; the largest COVID-19 swings run off the scale (values in the subtitle)."
+        : " Showing the full range of growth rates, including the COVID-19 swings."));
+      btn.textContent = zoomed ? "Show full range" : "Zoom in on growth";
+      btn.setAttribute("aria-pressed", zoomed ? "true" : "false");
+      img.title = "";
+      hide();
+    }
+    function toggle() { set(img.dataset.zoomed !== "true"); }
+    img.addEventListener("click", toggle);
+    btn.addEventListener("click", toggle);
+    var card = img.closest(".card");
+    var bar = card && card.querySelector(":scope > .chart-quote");
+    if (bar) {
+      var sep = document.createElement("span");
+      sep.className = "sep"; sep.setAttribute("aria-hidden", "true"); sep.innerHTML = "&middot;";
+      bar.insertBefore(sep, bar.firstChild); bar.insertBefore(btn, bar.firstChild);
+    } else img.after(btn);
+    set(false);
+  });
 
   // Position of the pointer on the picture itself, as fractions; images are
   // drawn with object-fit: contain, so allow for any letterboxing.
