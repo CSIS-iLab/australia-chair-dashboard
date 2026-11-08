@@ -189,7 +189,10 @@ GROWTH_YLIM <- c(-4.5, 6.5)
 # zoom_twin = TRUE marks the zoomed-in half of a click-to-zoom pair (its
 # subtitle says "Zoomed in"); charts without a full-range twin keep the
 # plain off-the-scale note.
-growth_and_level <- function(df, title, measure, caption, base_year = 2019, zoom = TRUE, zoom_twin = FALSE) {
+# ylim sets the zoomed axis; a chart whose swings are smaller (Productivity)
+# gets a tighter one so that zooming in is clearly a closer view.
+growth_and_level <- function(df, title, measure, caption, base_year = 2019, zoom = TRUE, zoom_twin = FALSE,
+                             ylim = GROWTH_YLIM) {
   d <- df |>
     mutate(date = floor_date(date, "quarter")) |>
     arrange(country, date) |>
@@ -202,8 +205,8 @@ growth_and_level <- function(df, title, measure, caption, base_year = 2019, zoom
   off <- d |>
     filter(!is.na(yoy)) |>
     group_by(country) |>
-    summarise(lo = if (any(yoy < GROWTH_YLIM[1])) sprintf("%+.1f%%", min(yoy)) else NA_character_,
-              hi = if (any(yoy > GROWTH_YLIM[2])) sprintf("%+.1f%%", max(yoy)) else NA_character_,
+    summarise(lo = if (any(yoy < ylim[1])) sprintf("%+.1f%%", min(yoy)) else NA_character_,
+              hi = if (any(yoy > ylim[2])) sprintf("%+.1f%%", max(yoy)) else NA_character_,
               .groups = "drop") |>
     filter(!is.na(lo) | !is.na(hi)) |>
     mutate(txt = paste(sub("United States", "U.S.", country),
@@ -218,9 +221,9 @@ growth_and_level <- function(df, title, measure, caption, base_year = 2019, zoom
     geom_line(linewidth = 0.7) +
     scale_colour_manual(values = au_us_colours) +
     scale_y_continuous(labels = label_percent(scale = 1, accuracy = 1),
-                       breaks = if (zoom) seq(-4, 6, 2) else scales::breaks_width(5)) +
+                       breaks = if (zoom) seq(2 * ceiling(ylim[1] / 2), 2 * floor(ylim[2] / 2), 2) else scales::breaks_width(5)) +
     x_dates +
-    coord_cartesian(ylim = if (zoom) GROWTH_YLIM else NULL) +
+    coord_cartesian(ylim = if (zoom) ylim else NULL) +
     labs(title = paste(measure, "growth, Australia and the United States"),
          subtitle = paste0("Quarterly data: % change on the same quarter a year earlier.", note),
          x = NULL, y = NULL) +
@@ -452,7 +455,7 @@ prod_caption <- paste("Sources: ABS, Australian System of National Accounts; U.S
                       "\nOutput per hour worked, seasonally adjusted. Australia: market sector; United States: business sector.")
 p_prod_both <- growth_and_level(
   prod |> select(date, value, country), "Labor productivity, Australia and the United States",
-  "Labor productivity", prod_caption, zoom_twin = TRUE)
+  "Labor productivity", prod_caption, zoom_twin = TRUE, ylim = c(-2.5, 4.5))
 save_plot(p_prod_both, "productivity_both_au_us_zoom.png", width = 8, height = 8)
 p_prod_full <- growth_and_level(
   prod |> select(date, value, country), "Labor productivity, Australia and the United States",

@@ -89,7 +89,7 @@ img[data-zoom][data-zoomed="true"] { cursor: zoom-out; }
       img.dataset.zoomed = zoomed ? "true" : "false";
       img.setAttribute("src", zoomed ? img.dataset.zoom : full);
       img.setAttribute("aria-label", label + (zoomed
-        ? " Zoomed in on growth between -4% and +6%; the largest COVID-19 swings run off the scale (values in the subtitle)."
+        ? " Zoomed in on growth in ordinary years; the largest swings run off the scale (values in the subtitle)."
         : " Showing the full range of growth rates, including the COVID-19 swings."));
       btn.textContent = zoomed ? "Show full range" : "Zoom in on growth";
       btn.setAttribute("aria-pressed", zoomed ? "true" : "false");
