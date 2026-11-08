@@ -48,6 +48,9 @@
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
 }
 img[data-hover] { cursor: crosshair; }
+img[data-zoom] { cursor: zoom-in; }
+img[data-zoom][data-zoomed="true"] { cursor: zoom-out; }
+.chart-zoom-btn { font-weight: 700; }
 </style>
 <script>
 (function () {
@@ -63,14 +66,73 @@ img[data-hover] { cursor: crosshair; }
   });
 
   function spots(img) {
-    var usd = img.dataset.hoverUsd && img.getAttribute("src") === img.dataset.usd;
-    var key = usd ? "_spotsUsd" : "_spots";
+    var ver = img._ver || "";                       // zoomable charts: version shown
+    var usd = !ver && img.dataset.hoverUsd && img.getAttribute("src") === img.dataset.usd;
+    var key = ver ? "_spots_" + ver : usd ? "_spotsUsd" : "_spots";
     if (!img[key]) {
-      try { img[key] = JSON.parse(usd ? img.dataset.hoverUsd : img.dataset.hover); }
+      try { img[key] = JSON.parse(ver ? img.getAttribute("data-h-" + ver) : usd ? img.dataset.hoverUsd : img.dataset.hover); }
       catch (e) { img[key] = []; }
     }
     return img[key];
   }
+
+  // Zoomable charts (data-zoom, from theme/chart-hover.lua): two panels,
+  // growth on top and level below, each zoomed on its own. Clicking a panel,
+  // or its button under the chart, zooms that panel in and back out; the
+  // picture shown is the version for the two panels' states, and the hover
+  // map follows it.
+  function panelSplit(img) {
+    // The gap between the two panels: the largest vertical gap between data points
+    var ys = spots(img).filter(function (q) { return q.y0 === q.y1; }).map(function (q) { return q.y0; })
+      .sort(function (a, b) { return a - b; });
+    var best = 0, at = 0.5;
+    for (var i = 1; i < ys.length; i++) if (ys[i] - ys[i - 1] > best) { best = ys[i] - ys[i - 1]; at = (ys[i] + ys[i - 1]) / 2; }
+    return at;
+  }
+  document.querySelectorAll("img[data-zoom]").forEach(function (img) {
+    var full = img.getAttribute("src");
+    var label = img.getAttribute("aria-label") || "";
+    var state = { g: false, i: false };
+    function mk(text) {
+      var b = document.createElement("button");
+      b.type = "button"; b.className = "chart-zoom-btn"; return b;
+    }
+    var bg = mk(), bi = mk();
+    function show() {
+      var ver = (state.g ? "zoom" : "") + (state.i ? (state.g ? "_izoom" : "izoom") : "");
+      img._ver = ver;
+      img.setAttribute("src", ver ? img.getAttribute("data-v-" + ver) : full);
+      img.dataset.zoomed = (state.g || state.i) ? "true" : "false";
+      img.setAttribute("aria-label", label +
+        (state.g ? " Growth panel zoomed in on ordinary years; the largest swings run off the scale (values in its subtitle)."
+                 : " Growth panel shows the full range, including the COVID-19 swings.") +
+        (state.i ? " Level panel zoomed in on the years since 2019." : " Level panel shows 2000 onwards."));
+      bg.textContent = state.g ? "Growth: show full range" : "Zoom in on growth";
+      bi.textContent = state.i ? "Level: show from 2000" : "Zoom in on level (2019 on)";
+      bg.setAttribute("aria-pressed", state.g ? "true" : "false");
+      bi.setAttribute("aria-pressed", state.i ? "true" : "false");
+      img.title = "";
+      hide();
+    }
+    bg.addEventListener("click", function () { state.g = !state.g; show(); });
+    bi.addEventListener("click", function () { state.i = !state.i; show(); });
+    img.addEventListener("click", function (e) {
+      var p = where(img, e);
+      if (!p) return;
+      if (p.y < panelSplit(img)) state.g = !state.g; else state.i = !state.i;
+      show();
+    });
+    var card = img.closest(".card");
+    var bar = card && card.querySelector(":scope > .chart-quote");
+    [bi, bg].forEach(function (b) {
+      if (bar) {
+        var sep = document.createElement("span");
+        sep.className = "sep"; sep.setAttribute("aria-hidden", "true"); sep.innerHTML = "&middot;";
+        bar.insertBefore(sep, bar.firstChild); bar.insertBefore(b, bar.firstChild);
+      } else img.after(b);
+    });
+    show();
+  });
 
   // Position of the pointer on the picture itself, as fractions; images are
   // drawn with object-fit: contain, so allow for any letterboxing.

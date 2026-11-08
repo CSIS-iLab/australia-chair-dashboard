@@ -2335,7 +2335,7 @@ make_top10 <- function(cur) {
   ggplot(d, aes(v, key, fill = flow)) +
     geom_col(width = 0.7, show.legend = FALSE) +
   # values are in the hover pop-ups, not printed on the bars
-    facet_wrap(~flow, scales = "free", ncol = 2) +
+    facet_wrap(~flow, scales = "free", ncol = 2, labeller = label_wrap_gen(26)) +   # panel titles wrap, not clip
     scale_y_discrete(labels = function(x) sub("^.*\\|\\|", "", x)) +
     scale_fill_manual(values = c("Australian exports to the U.S." = csis_colours[["navy"]],
                                  "Australian imports from the U.S." = csis_colours[["red"]])) +

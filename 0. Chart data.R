@@ -164,9 +164,9 @@ scale_dims <- function(dots) {
 
 # Long titles, subtitles and source lines are wrapped to the chart's width so
 # that nothing runs off the edge (existing line breaks are kept)
-wrap_text_to <- function(x, width_in, pt) {
+wrap_text_to <- function(x, width_in, pt, char_em = 0.45) {
   if (!is.character(x) || length(x) != 1 || is.na(x)) return(x)
-  n <- max(30, floor(0.95 * width_in * 72 / (0.45 * pt)))     # characters that fit on a line
+  n <- max(30, floor(0.95 * width_in * 72 / (char_em * pt)))   # characters that fit on a line
   lines <- strsplit(x, "\n", fixed = TRUE)[[1]]
   paste(unlist(lapply(lines, function(l) if (nchar(l) <= n) l else strwrap(l, width = n))), collapse = "\n")
 }
@@ -183,7 +183,7 @@ wrap_labels <- function(p, width_in) {
     v <- labs_now[[el]]
     if (is.character(v) && length(v) == 1) {
       size <- c(title = HOUSE_SIZES[["title"]] * 1.15, subtitle = HOUSE_SIZES[["subtitle"]], caption = HOUSE_SIZES[["caption"]] * 1.05)[[el]]
-      w <- wrap_text_to(v, width_in, size)
+      w <- wrap_text_to(v, width_in, size, char_em = if (el == "caption") CAPTION_EM else 0.45)
       if (!identical(w, v)) new[[el]] <- w
     }
   }
@@ -201,10 +201,41 @@ HOUSE_POINT <- 1.6    # point size on lines (dot-plot points, 2.4 and up, are le
 HOUSE_GRID  <- "#E3E6EB"
 
 # Footnote wording: "Source:" for one source, "Sources:" for several (sources
-# separated by ";"), and every line ends with a full stop
+# separated by ";"), and every sentence ends with a full stop.
+# Footnotes are kept compact: the sources form one paragraph and all notes run
+# together as a second paragraph (forced line breaks in a chart script are
+# dropped), and both are then wrapped to the chart's full width.
+CAPTION_EM <- 0.41   # average character width of the footnote font, in ems (for wrapping)
 tidy_caption <- function(x) {
   if (!is.character(x) || length(x) != 1 || is.na(x) || !nzchar(x)) return(x)
-  lines <- strsplit(x, "\n", fixed = TRUE)[[1]]
+  lines <- trimws(strsplit(x, "\n", fixed = TRUE)[[1]])
+  lines <- lines[nzchar(lines)]
+  if (!length(lines)) return(x)
+  # 1. Rejoin sentences split across lines (line ends in , ; : or the next starts in lower case)
+  joined <- lines[1]
+  for (l in lines[-1]) {
+    k <- length(joined)
+    if (grepl("[,;:(]$", joined[k]) || (grepl("^[a-z(]", l) && !grepl("[.!?]$", joined[k]))) joined[k] <- paste(joined[k], l) else joined <- c(joined, l)
+  }
+  # 2. Group: the source line plus any country-by-country source lines after it
+  #    ("U.S.: EIA ..."), then every other note run together
+  is_src  <- grepl("^Sources?:", joined)
+  country <- grepl("^(Australia|U\\.S\\.|United States|US|OECD|World)[A-Za-z .]{0,25}:\\s", joined)
+  grp <- integer(length(joined)); g <- 0L; prev_src <- FALSE
+  for (i in seq_along(joined)) {
+    if (is_src[i] || (country[i] && prev_src)) {
+      if (!prev_src) g <- g + 1L
+      prev_src <- TRUE
+    } else {
+      if (prev_src || i == 1) g <- g + 1L
+      prev_src <- FALSE
+    }
+    grp[i] <- g
+  }
+  lines <- vapply(split(joined, grp), function(v) {
+    v <- ifelse(grepl("[].!?)]$|[;,:]$", v), v, paste0(v, "."))     # end each piece cleanly before joining
+    paste(v, collapse = " ")
+  }, "", USE.NAMES = FALSE)
   lines <- vapply(lines, function(l) {
     l <- sub("\\s+$", "", l)
     if (!nzchar(l)) return(l)
@@ -261,7 +292,8 @@ house_style <- function(p, width_in = NULL) {
     for (k in seq_along(p$patches$plots)) p$patches$plots[[k]] <- wrap_labels(p$patches$plots[[k]], width_in)
     for (el in c("subtitle", "caption"))
       if (is.character(p$patches$annotation[[el]]))
-        p$patches$annotation[[el]] <- wrap_text_to(p$patches$annotation[[el]], width_in, c(subtitle = 11, caption = 9)[[el]])
+        p$patches$annotation[[el]] <- wrap_text_to(p$patches$annotation[[el]], width_in, c(subtitle = 11, caption = 9)[[el]],
+                                                   char_em = if (el == "caption") CAPTION_EM else 0.45)
   }
   if (inherits(p, "patchwork")) {
     for (k in seq_along(p$patches$plots)) p$patches$plots[[k]] <- title_case_plot(p$patches$plots[[k]])

@@ -521,7 +521,7 @@ make_iip_industry <- function(cur) {
   ggplot(d, aes(value_bn, sector, fill = shade)) +
     geom_col(width = 0.7) +
   # values are in the hover pop-ups, not printed on the bars
-    facet_wrap(~direction, ncol = 2) +
+    facet_wrap(~direction, ncol = 2, labeller = label_wrap_gen(26)) +   # panel titles wrap, not clip
     scale_fill_manual(values = c(`FALSE` = csis_navy, `TRUE` = "#B1B3B3"), guide = "none") +
     scale_x_continuous(labels = dollar_format(prefix = cur_sym[[cur]], suffix = "bn", big.mark = ","),
                        breaks = scales::breaks_pretty(n = 3),

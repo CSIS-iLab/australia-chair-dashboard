@@ -629,13 +629,14 @@ p4 <- ggplot() +
              shape = 21, fill = "white", colour = "#00205B", size = 3) +
   geom_point(data = tibble(year = 2035, share = 1), aes(year, share),
              shape = 21, fill = "white", colour = "#D2232A", size = 3) +
-  annotate("text", x = 2029.6, y = 0.82, label = "Australia: 82% renewable\nby 2030 (current target)",
-           hjust = 1, vjust = 0.4, size = 3, colour = "#00205B", lineheight = 0.95) +
-  annotate("text", x = 2034.6, y = 1, label = "U.S.: 100% carbon-free by 2035\n(former target, revoked 2025)",
-           hjust = 1, vjust = 0.4, size = 3, colour = "#D2232A", lineheight = 0.95) +
+  # Target labels above their markers, clear of the dotted paths
+  annotate("text", x = 2029.4, y = 0.9, label = "Australia: 82% renewable\nby 2030 (current target)",
+           hjust = 1, vjust = 0, size = 3, colour = "#00205B", lineheight = 0.95) +
+  annotate("text", x = 2035, y = 1.07, label = "U.S.: 100% carbon-free by 2035\n(former target, revoked 2025)",
+           hjust = 1, vjust = 0, size = 3, colour = "#D2232A", lineheight = 0.95) +
   scale_colour_manual(values = tgt_cols, name = NULL) +
   guides(colour = guide_legend(override.aes = list(linetype = c("solid", "22")))) +
-  scale_y_continuous(labels = percent_format(accuracy = 1), limits = c(0, 1.05)) +
+  scale_y_continuous(labels = percent_format(accuracy = 1), limits = c(0, 1.24), breaks = seq(0, 1, 0.25)) +
   scale_x_continuous(breaks = seq(2000, 2035, 5)) +
   labs(
     title    = "Clean electricity targets, Australia and the United States",
@@ -645,7 +646,7 @@ p4 <- ggplot() +
     caption = paste0(SRC, "
 ", US_SRC,
                      "\nAustralia's 82% target applies to the main grids (NEM and WA's SWIS); this all-Australia share is a close proxy. ",
-                     "The U.S. has no current national target;\nthe 2035 target (2021) was reversed in January 2025. ",
+                     "The U.S. has no current national target; the 2035 target (2021) was reversed in January 2025. ",
                      "Several states have their own, e.g. California 60% renewable by 2030 and 100% clean by 2045.")
   ) +
   theme_csis() +
@@ -858,8 +859,8 @@ umar_total   <- purchases_after("Total")
 umar_ok      <- which(!is.na(umar_foreign) & !is.na(umar_total) & grepl("^\\d{4}$", unlist(umar[umar_yrow, ])))
 uranium_note <- if (length(umar_ok)) {
   k <- max(umar_ok)
-  sprintf("Uranium is not counted as energy trade by either country. In %s, %.0f%% of the uranium bought by U.S. reactor operators was of foreign origin (EIA);\nAustralia, which has no nuclear power, exports almost all the uranium it mines.",
-          unlist(umar[umar_yrow, ])[k], 100 * umar_foreign[k] / umar_total[k])
+  sprintf("Uranium is not counted as energy trade: %.0f%% of uranium bought by U.S. reactors in %s was imported (EIA), and Australia exports almost all it mines.",
+          100 * umar_foreign[k] / umar_total[k], unlist(umar[umar_yrow, ])[k])
 } else "Uranium is not counted as energy trade by either country."
 
 # Drawn twice: crude oil and refined fuels shown separately, and combined
@@ -903,17 +904,18 @@ draw_sec <- function(au_t, us_t, levels, cols, file, oil_note) {
     scale_y_continuous(breaks = NULL, limits = c(0.6, 1.4)) +
     labs(
       title    = "Energy security: net energy trade, Australia and the United States",
-      subtitle = paste0("Net exports (right of zero) and net imports (left) by source, as a share of each country's primary ",
-                        "energy use.\nDiamond = overall net position. Each country is drawn on its own scale."),
+      subtitle = paste0("Net exports (right of zero) and net imports (left), % of each country's primary energy use. ",
+                        "Diamond = net position; each country on its own scale."),
       x = NULL, y = NULL,
-      caption  = paste0("Sources: Australia: DCCEEW, Australian Energy Statistics, Table J (year to June ", tj_end, "). ",
-                        "U.S.: EIA, Monthly Energy Review, Tables 1.3 and 1.4c (", us_sec_year, ").\n",
-                        oil_note, " Hover over a segment for its value.\n",
-                        uranium_note)
+      caption  = paste0("Sources: DCCEEW, Australian Energy Statistics, Table J (year to June ", tj_end, "); ",
+                        "EIA, Monthly Energy Review, Tables 1.3 and 1.4c (", us_sec_year, ").\n",
+                        oil_note, " ", uranium_note, " Hover over a segment for its value.")
     ) +
     theme_csis() +
     theme(panel.grid.major.y = element_blank(), panel.grid.major.x = element_line(colour = "grey92"),
-          strip.text = element_text(face = "bold", hjust = 0, size = 10.5), panel.spacing.y = unit(1.2, "lines"),
+          strip.text = element_text(face = "bold", hjust = 0, size = 10.5), panel.spacing.y = unit(0.6, "lines"),
+          plot.caption = element_text(lineheight = 1.0, margin = margin(t = 4)),
+          plot.subtitle = element_text(margin = margin(b = 4)),
           plot.margin = margin(5.5, 18, 5.5, 5.5))                    # room for the last axis label
 
   ggsave(file, pe5, width = 9.5, height = 5.9, dpi = 150, bg = "white")   # full-width card; room for the bars
@@ -950,7 +952,7 @@ sec_cols_oil   <- c(sec_cols[c("Coal", "Natural gas", "Biofuels and biomass", "E
                     `Oil (crude and refined)` = fuel_cols[["Oil"]])
 draw_sec(oil_combine(au_trade), oil_combine(us_trade), SEC_LEVELS_OIL, sec_cols_oil,
          "08_energy_security_oil.png",
-         "Oil: crude oil and refined fuels (LPG, petrol, diesel, jet fuel and other petroleum products) combined.")
+         "Oil = crude oil plus refined fuels.")
 
 
 # ------------------------------------------------------------------------------
