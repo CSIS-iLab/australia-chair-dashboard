@@ -191,8 +191,9 @@ GROWTH_YLIM <- c(-4.5, 6.5)
 # plain off-the-scale note.
 # ylim sets the zoomed axis; a chart whose swings are smaller (Productivity)
 # gets a tighter one so that zooming in is clearly a closer view.
+# zoom_level = TRUE zooms the level panel in on the years since base_year.
 growth_and_level <- function(df, title, measure, caption, base_year = 2019, zoom = TRUE, zoom_twin = FALSE,
-                             ylim = GROWTH_YLIM) {
+                             ylim = GROWTH_YLIM, zoom_level = FALSE) {
   d <- df |>
     mutate(date = floor_date(date, "quarter")) |>
     arrange(country, date) |>
@@ -230,14 +231,17 @@ growth_and_level <- function(df, title, measure, caption, base_year = 2019, zoom
     theme_csis()
   # Shown as % gain or loss since the base year (an index with base = 0%),
   # which reads more directly than index points
-  level <- ggplot(d, aes(date, index - 100, colour = country)) +
+  dl <- if (zoom_level) filter(d, date >= as.Date(paste0(base_year, "-01-01"))) else d
+  level <- ggplot(dl, aes(date, index - 100, colour = country)) +
     geom_hline(yintercept = 0, colour = csis_colours[["grey"]], linewidth = 0.4) +
     geom_line(linewidth = 0.7) +
     scale_colour_manual(values = au_us_colours) +
     scale_y_continuous(labels = function(x) ifelse(x > 0, paste0("+", x, "%"), paste0(x, "%"))) +
-    x_dates +
+    (if (zoom_level) scale_x_date(breaks = seq(as.Date(paste0(base_year, "-01-01")), Sys.Date(), by = "1 year"),
+                                  date_labels = "%Y", limits = range(dl$date)) else x_dates) +
     labs(title = paste(measure, "level"),
-         subtitle = paste0("% change since ", base_year, " (", base_year, " average = 0%). Quarterly data."),
+         subtitle = paste0("% change since ", base_year, " (", base_year, " average = 0%). Quarterly data.",
+                           if (zoom_level) paste0(" Zoomed in: ", base_year, " onwards.") else ""),
          x = NULL, y = NULL, caption = caption) +
     theme_csis() +
     theme(legend.position = "none")
@@ -345,6 +349,17 @@ save_plot(p_gdp_idx, "gdp_index_au_us.png")
 # Growth and level together, for the dashboard's single "GDP" tab
 # The level panels (GDP, GDP per person, Productivity) all show % change
 # since 2019, the last full year before COVID; the charts start in 2000
+# Each panel of the GDP, GDP per person and Productivity charts zooms on its
+# own when clicked on the dashboard, so each chart is saved in four versions:
+# <stem>.png (both full range), <stem>_zoom.png (growth zoomed),
+# <stem>_izoom.png (level zoomed to the years since 2019) and
+# <stem>_zoom_izoom.png (both). See theme/chart-hover.lua.
+save_zoom_set <- function(df, title, measure, caption, stem, ylim) {
+  for (g in c(FALSE, TRUE)) for (i in c(FALSE, TRUE)) {
+    p <- growth_and_level(df, title, measure, caption, zoom = g, zoom_twin = g, ylim = ylim, zoom_level = i)
+    save_plot(p, paste0(stem, if (g) "_zoom" else "", if (i) "_izoom" else "", ".png"), width = 8, height = 8)
+  }
+}
 p_gdp_both <- growth_and_level(
   bind_rows(gdp_au, gdp_us), "Real GDP, Australia and the United States", "Real GDP",
   paste0("Sources: ABS, Australian National Accounts (cat. no. 5206.0); ",
@@ -358,6 +373,9 @@ p_gdp_full <- growth_and_level(
          "U.S. BEA, NIPA Table 1.1.6.", GDP_MEASURE_NOTE),
   zoom = FALSE)
 save_plot(p_gdp_full, "gdp_au_us.png", width = 8, height = 8)
+save_zoom_set(bind_rows(gdp_au, gdp_us), "Real GDP, Australia and the United States", "Real GDP",
+              paste0("Sources: ABS, Australian National Accounts (cat. no. 5206.0); ",
+                     "U.S. BEA, NIPA Table 1.1.6.", GDP_MEASURE_NOTE), "gdp_au_us", c(-1.5, 5.5))
 
 # A closer look at recent growth: the same year-on-year line from 2022, on its
 # own scale, so the quarter-to-quarter volatility since COVID is visible
@@ -461,6 +479,8 @@ p_prod_full <- growth_and_level(
   prod |> select(date, value, country), "Labor productivity, Australia and the United States",
   "Labor productivity", prod_caption, zoom = FALSE)
 save_plot(p_prod_full, "productivity_both_au_us.png", width = 8, height = 8)
+save_zoom_set(prod |> select(date, value, country), "Labor productivity, Australia and the United States",
+              "Labor productivity", prod_caption, "productivity_both_au_us", c(-2.5, 4.5))
 
 # Real GDP per person. Australia: ABS GDP per capita, chain volume measures,
 # seasonally adjusted (5206.0 Table 1). US: BEA real GDP (A191RX) over
@@ -506,6 +526,8 @@ p_gdp_pc_full <- growth_and_level(
   bind_rows(pc_au, pc_us), "Real GDP per person, Australia and the United States", "Real GDP per person",
   pc_caption, zoom = FALSE)
 save_plot(p_gdp_pc_full, "gdp_per_capita_au_us.png", width = 8, height = 8)
+save_zoom_set(bind_rows(pc_au, pc_us), "Real GDP per person, Australia and the United States", "Real GDP per person",
+              pc_caption, "gdp_per_capita_au_us", c(-2.5, 4.5))
 
 
 # 3. GVA by industry ------------------------------------------------------
