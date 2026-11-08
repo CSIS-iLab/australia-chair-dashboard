@@ -348,7 +348,7 @@ save_plot(p_gdp_idx, "gdp_index_au_us.png")
 p_gdp_both <- growth_and_level(
   bind_rows(gdp_au, gdp_us), "Real GDP, Australia and the United States", "Real GDP",
   paste0("Sources: ABS, Australian National Accounts (cat. no. 5206.0); ",
-         "U.S. BEA, NIPA Table 1.1.6.", GDP_MEASURE_NOTE), zoom_twin = TRUE)
+         "U.S. BEA, NIPA Table 1.1.6.", GDP_MEASURE_NOTE), zoom_twin = TRUE, ylim = c(-1.5, 5.5))
 save_plot(p_gdp_both, "gdp_au_us_zoom.png", width = 8, height = 8)
 # Full range (every quarter on the scale), shown first on the dashboard;
 # clicking the chart switches to the zoomed-in version above
@@ -500,7 +500,7 @@ pc_caption <- paste0("Sources: ABS, Australian National Accounts (cat. no. 5206.
                      "U.S. BEA, NIPA Tables 1.1.6 and 2.1 (real GDP over population).", GDP_MEASURE_NOTE)
 p_gdp_pc_both <- growth_and_level(
   bind_rows(pc_au, pc_us), "Real GDP per person, Australia and the United States", "Real GDP per person",
-  pc_caption, zoom_twin = TRUE)
+  pc_caption, zoom_twin = TRUE, ylim = c(-2.5, 4.5))
 save_plot(p_gdp_pc_both, "gdp_per_capita_au_us_zoom.png", width = 8, height = 8)
 p_gdp_pc_full <- growth_and_level(
   bind_rows(pc_au, pc_us), "Real GDP per person, Australia and the United States", "Real GDP per person",
