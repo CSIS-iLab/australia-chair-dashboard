@@ -1399,7 +1399,7 @@ p_tm_group_trend <- ggplot(tm_group_trend, aes(filing_year, n_us, colour = class
        caption  = "Source: IP Australia, IP RAPID. Multi-class applications split across sectors.") +
   theme_chart() +
   theme(legend.position = "top") +
-  guides(colour = guide_legend(nrow = 2))
+  guides(colour = guide_legend(ncol = 3))   # three columns: every sector name fits
 
 # ------------------------------------------------------------------------------
 # 10.4 US–Australian co-applicants
