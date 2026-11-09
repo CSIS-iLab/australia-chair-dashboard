@@ -1661,8 +1661,18 @@ service_title <- function(fm, svc) {
 }
 
 src_caption <- function(tab) {
-  sprintf("Source: ABS, International Trade: Supplementary Information, Calendar Year (Table %s). Gaps = not published (np).", tab)
+  sprintf("Source: ABS, International Trade: Supplementary Information, Calendar Year (Table %s).", tab)
 }
+
+# "2019–2025" for a run of years, "2008, 2011–2013" otherwise
+year_ranges <- function(y) {
+  y <- sort(unique(y)); grp <- cumsum(c(1, diff(y) != 1))
+  paste(vapply(split(y, grp), function(r) if (length(r) == 1) as.character(r) else paste0(r[1], "\u2013", r[length(r)]), ""),
+        collapse = ", ")
+}
+# Only charts with missing U.S. values get a note, naming the years
+np_note <- function(np_years) if (length(np_years))
+  sprintf("\nNote: U.S. value not published (np) by the ABS for %s.", year_ranges(np_years)) else ""
 
 # ---- One chart per flow x service -------------------------------------------
 for (fl in names(flow_meta)) {
@@ -1699,7 +1709,7 @@ for (fl in names(flow_meta)) {
       scale_x_continuous(breaks = pretty_breaks(n = 8)) +
       labs(title    = service_title(fm, svc),
            subtitle = sprintf("United States as a share of total Australian services %s, calendar years", fm$short),
-           caption  = src_caption(tab),
+           caption  = paste0(src_caption(tab), np_note(np_years)),
            x = NULL, y = "Share of total (%)") +
       theme_dash
     
@@ -1732,7 +1742,8 @@ p_ov <- ggplot(ov, aes(x = year, y = share, colour = flow)) +
   scale_y_continuous(labels = pct_axis, limits = c(0, NA)) +
   labs(title    = "U.S. share of Australia's services trade, by service",
        subtitle = "United States as a share of total services flows in each direction",
-       caption  = "Source: ABS, International Trade: Supplementary Information, Calendar Year (Tables 5.x and 6.x). Gaps = not published (np).",
+       caption  = paste0("Source: ABS, International Trade: Supplementary Information, Calendar Year (Tables 5.x and 6.x).",
+                         if (anyNA(ov$share)) "\nNote: Gaps are years the ABS did not publish the U.S. value (np)." else ""),
        x = NULL, y = NULL, colour = NULL) +
   theme_dash +
   theme(legend.position = "top", strip.text = element_text(face = "bold", size = 8))
