@@ -640,14 +640,15 @@ p4 <- ggplot() +
   scale_x_continuous(breaks = seq(2000, 2035, 5)) +
   labs(
     title    = "Clean electricity targets, Australia and the United States",
-    subtitle = paste("Share of generation against each country's target. Australia: renewables, financial years by the",
-                     "\nyear they end. U.S.: renewables plus nuclear (carbon-free), calendar years. Dotted lines: straight paths to target."),
+    subtitle = paste("Share of generation against each country's target. Australia: renewables. U.S.: renewables plus",
+                     "nuclear (carbon-free). Dotted lines: straight paths to target."),
     x = NULL, y = NULL,
     caption = paste0(SRC, "
 ", US_SRC,
-                     "\nAustralia's 82% target applies to the main grids (NEM and WA's SWIS); this all-Australia share is a close proxy. ",
+                     "\nAustralian years are financial years (to June), labeled by the year they end. ",
+                     "Australia's 82% target applies to the main grids (NEM and WA's SWIS); this all-Australia share is a close proxy. ",
                      "The U.S. has no current national target; the 2035 target (2021) was reversed in January 2025. ",
-                     "Several states have their own, e.g. California 60% renewable by 2030 and 100% clean by 2045.")
+                     "Several states have their own (e.g. California: 100% clean by 2045).")
   ) +
   theme_csis() +
   theme(legend.key.width = unit(1.2, "cm"))
@@ -1049,15 +1050,16 @@ ggplot(lcoe_plot, aes(year, lcoe, colour = country)) +
   ggrepel::geom_text_repel(data = lcoe_latest,
                            aes(label = paste0(if_else(country == "United States", "U.S.", as.character(country)),
                                               " ", cur_sym[[cur]], round(lcoe))),
-                           nudge_x = 0.6, direction = "y", hjust = 0, size = 3.3, fontface = "bold", family = "source_sans",
+                           nudge_x = 0.3, direction = "y", hjust = 0, size = 3.3, xlim = c(lcoe_yr + 0.3, NA),   # labels stay right of the line ends
+                            fontface = "bold", family = "source_sans",
                            segment.colour = NA, min.segment.length = Inf, show.legend = FALSE) +
   facet_wrap(~ technology) +
   scale_colour_manual(values = au_us_cols, guide = "none") +
   scale_y_continuous(labels = label_dollar(prefix = cur_sym[[cur]]), limits = c(0, NA),
                      expand = expansion(c(0, 0.05))) +
-  scale_x_continuous(breaks = seq(2015, 2025, 2), expand = expansion(mult = c(0.02, 0.32))) +
+  scale_x_continuous(breaks = seq(2015, 2025, 2), expand = expansion(mult = c(0.02, 0.45))) +   # room for the end labels
   labs(
-    title    = "Levelized cost of new solar and wind, Australia and the United States",
+    title    = "Cost of new solar and wind, Australia and the United States",
     subtitle = sprintf(paste0("Weighted-average levelized cost of electricity for new projects, ",
                               "%d %s per MWh, 2015-%d"), lcoe_yr, cur_sym[[cur]], lcoe_yr),
     x = NULL, y = NULL,

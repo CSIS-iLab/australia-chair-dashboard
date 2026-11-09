@@ -1657,7 +1657,7 @@ theme_dash <- theme_minimal(base_size = 11) +
 # Long service names push the title off the edge of the chart, so wrap it
 service_title <- function(fm, svc) {
   svc <- str_remove(svc, regex("\\s*n\\.i\\.e\\.?$", ignore_case = TRUE))
-  str_wrap(paste0(fm$title, ": ", svc), width = 75)
+  paste0(fm$title, ": ", svc)   # wrapped to the chart width by house_style (a forced break here left an orphan line)
 }
 
 src_caption <- function(tab) {
@@ -2220,10 +2220,7 @@ ggplot() +
             hjust = -0.25, size = 3.6, family = "source_sans", show.legend = FALSE) +
   geom_text(data = bal_latest, aes(year, surplus, label = bn_label(round(surplus, 1))),
             hjust = -0.3, size = 3.2, family = "source_sans", colour = "#8A6D00") +
-  annotate("text", x = bal_latest$year - 0.5, y = bal_latest$au_exports,
-           label = paste0("incl. ", bn_label(round(bal_latest$gold_au_exports, 1)), " of gold"),
-           hjust = 1, vjust = -0.6, size = 3, family = "source_sans",
-           colour = csis_colours[["navy"]]) +
+  # (No gold label on the chart: the dashed line and the footnote cover gold)
   scale_colour_manual(values = setNames(unname(csis_colours[c("navy", "red")]), flow_levels)) +
   scale_fill_manual(values = c("U.S. trade surplus" = "#F7D98B")) +
   scale_linetype_manual(values = c("U.S. surplus excluding gold" = "22")) +
@@ -2240,9 +2237,8 @@ ggplot() +
     caption  = paste0(
       "Sources: DFAT country and commodity pivot table (ABS cat. 5368.0)",
       if (INCLUDE_SERVICES) "; ABS, International Trade: Supplementary Information, Calendar Year" else "",
-      ".\nU.S. surplus = Australian imports from the U.S. less Australian exports to the U.S.",
-      "
-Excluding gold removes SITC 971 (non-monetary gold) from both exports and imports.",
+      ".\nU.S. surplus = Australian imports from the U.S. less Australian exports to the U.S.",   # notes (run on after the sources)
+      " The dashed line leaves out non-monetary gold (SITC 971) from both exports and imports.",
       if (cur == "USD") fx_note[["USD"]] else ""
     )
   ) +

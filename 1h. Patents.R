@@ -151,7 +151,7 @@ sub_types <- "standard_complete"
 #                           for PCT cases this is the national-phase entry date
 #   "earliest_filed_date" — first filing anywhere in the world
 #   "priority_date"       — earliest priority claimed
-date_basis <- "earliest_filed_date"
+date_basis <- "application_date"   # filing date in Australia, as in IP Australia's published counts (Nov 2026)
 
 join_type  <- "left"        # "left" or "inner"
 links_mode <- "aggregate"   # "aggregate" or "expand"
@@ -406,17 +406,23 @@ library(ggplot2)
 # applications table also carries a column of the same name).
 stopifnot(all(c("party_role_category", "country_code") %in% names(patents_full)))
 
-# Drop the most recent year(s): with date_basis = "earliest_filed_date" an AU
-# filing can enter the data up to 12 months (Paris) or 30+ months (PCT national
-# phase) after its earliest filing, so the tail is heavily truncated.
+# With date_basis = "application_date" (filing date in Australia; for PCT
+# cases, the national-phase entry date) only the current, incomplete year is
+# dropped. (With "earliest_filed_date" the last three years were incomplete,
+# because Australian filings arrive up to 30+ months after the first filing.)
 year_min <- 1990L
-year_max <- year(Sys.Date()) - 3L          # last filing year treated as complete
+year_max <- year(Sys.Date()) - if (date_basis == "application_date") 1L else 3L   # last complete year
 # The time-series charts end at year_max: the incomplete years after it are
 # left out rather than shown, so the lag cannot be mistaken for a fall.
 ts_year_max <- year_max
 
-LAG_NOTE <- paste0("Years after ", year_max, " are excluded as filings are still being recorded:\n",
-                   "Australian filings can enter the data 30 months or more after the earliest filing (PCT national phase).")
+LAG_NOTE <- if (date_basis == "application_date") {
+  paste0("Counted by filing date in Australia (for international PCT applications, the date they entered ",
+         "Australia). ", year_max + 1L, " is excluded as the year is incomplete.")
+} else {
+  paste0("Years after ", year_max, " are excluded as filings are still being recorded: ",
+         "Australian filings can enter the data 30 months or more after the earliest filing (PCT national phase).")
+}
 
 # One row per patent: was any applicant/patentee party recorded in the US?
 # Dictionary Table 3/11: party_role_category "applicant" covers party_role
@@ -438,7 +444,7 @@ annual_us <- patent_flags[
   by = filing_year
 ][order(filing_year)]
 
-annual_us[, share_us := n_us / n_known]   # denominator excludes patents with
+annual_us[, share_us := n_us / n_total]   # share of all standard applications, as IP Australia publishes   # denominator excludes patents with
 # no applicant party record at all
 
 cat("\n--- U.S.-applicant patents ---\n")
@@ -451,7 +457,7 @@ p_count <- ggplot(annual_us, aes(filing_year, n_us)) +
   scale_y_continuous(labels = scales::comma) +
   labs(
     title    = "Australian patent applications with a U.S. applicant",
-    subtitle = paste0("Standard complete applications, by earliest filing date"),
+    subtitle = paste0("Standard complete applications, by filing date in Australia"),
     x = NULL, y = "Applications",
     caption  = paste0("Source: IP Australia, IP RAPID.
 ", LAG_NOTE)
@@ -467,7 +473,7 @@ p_share <- ggplot(annual_us, aes(filing_year, share_us)) +
   scale_y_continuous(labels = scales::percent_format(accuracy = 1),
                      limits = c(0.3, NA)) +
   labs(title = "U.S. share of Australian patent applications",
-       subtitle = "Share of applications with a known applicant party",
+       subtitle = "Share of all standard complete applications",
        x = NULL, y = NULL,
        caption = paste0("Source: IP Australia, IP RAPID.
 ", LAG_NOTE)) +
@@ -481,7 +487,7 @@ ggsave("us_applicants_count.png", p_count, width = 9, height = 5, dpi = 150)
 ggsave("us_applicants_share.png", p_share, width = 9, height = 5, dpi = 150)
 export_chart_csv(p_count, "us_applicants_count.csv", y_format = "number")
 export_chart_csv(p_share, "us_applicants_share.csv", y_format = "percent",
-                 notes = "Denominator is applications with a known applicant party")
+                 notes = "Denominator is all standard complete applications; years are filing dates in Australia")
 
 # ==============================================================================
 # 8. TRADE MARKS — applications joined to party activity and application links
@@ -1008,12 +1014,20 @@ print(ft[, .(field, n_all = round(n_all), share_us = round(share_us, 3),
              rta_us = round(rta_us, 2), change_share_pp, n_us_au = round(n_us_au, 1))])
 fwrite(ft, file.path(out_dir, "tech_fields_us_share_full.csv"))
 
+# Field and class codes (WIPO field numbers, Nice class numbers) are left off
+# the axis labels, which show the names only; the codes stay in the data, the
+# CSV download and the hover pop-ups.
+field_name_only <- function(x) { x <- sub("^[0-9]+ ", "", x); paste0(toupper(substr(x, 1, 1)), substring(x, 2)) }
+field_hover     <- function(x) sub("^([0-9]+) (.*)$", "Field \\1: \\2", x)
+class_name_only <- function(x) sub("^Class [0-9]+: ", "", x)
+
 # Chart 1: US share by field (recent window)
 plot_fs <- ft[n_all >= min_field_n][order(share_us)]
 plot_fs[, field := factor(field, levels = field)]
 
 p_field_share <- ggplot(plot_fs, aes(share_us, field)) +
   geom_col(fill = "#00205B", width = 0.7) +
+  scale_y_discrete(labels = field_name_only) +
   geom_vline(xintercept = tot_share_us, linetype = "dashed", colour = "grey40") +
   scale_x_continuous(labels = scales::percent_format(accuracy = 1),
                      expand = expansion(mult = c(0, 0.05))) +
@@ -1076,6 +1090,7 @@ plot_cf[, `:=`(field = factor(field, levels = field), n_us_au = round(n_us_au, 1
 
 p_collab_fields <- ggplot(plot_cf, aes(n_us_au, field)) +
   geom_col(fill = "#0098A8", width = 0.7) +
+  scale_y_discrete(labels = field_name_only) +
   scale_x_continuous(labels = scales::comma, expand = expansion(mult = c(0, 0.05))) +
   labs(title    = "Where U.S. and Australian applicants file together",
        subtitle = paste0("Co-applied patent applications by technology field, ", window_lab),
@@ -1162,6 +1177,13 @@ ggsave("us_share_by_field.png",       p_field_share,   width = 9, height = 8, dp
 ggsave("us_by_sector_trend.png",      p_sector_trend,  width = 9, height = 5, dpi = 150)
 ggsave("us_au_coapplied_trend.png",   p_collab_trend,  width = 9, height = 5, dpi = 150)
 ggsave("us_au_coapplied_fields.png",  p_collab_fields, width = 9, height = 6, dpi = 150)
+# Pop-ups name the WIPO field number, which the axis labels leave out
+write_hover(p_field_share, "us_share_by_field.png", width = 9, height = 8, dpi = 200,
+            spots = hbar_spots(function(cat, series, v)
+              sprintf("<b>%s</b><br>U.S. share: %.0f%%", field_hover(cat), 100 * v)))
+write_hover(p_collab_fields, "us_au_coapplied_fields.png", width = 9, height = 6, dpi = 150,
+            spots = hbar_spots(function(cat, series, v)
+              sprintf("<b>%s</b><br>Co-applied applications: %s", field_hover(cat), format(round(v, 1), big.mark = ","))))
 ggsave("us_au_coapplied_states.png",  p_collab_states, width = 9, height = 5, dpi = 150)
 
 export_chart_csv(p_field_share, "us_share_by_field.csv", y_format = "percent",
@@ -1367,6 +1389,7 @@ plot_tc[, class_label := factor(class_label, levels = class_label)]
 
 p_tm_class_share <- ggplot(plot_tc, aes(share_us, class_label)) +
   geom_col(fill = "#00205B", width = 0.7) +
+  scale_y_discrete(labels = class_name_only) +
   geom_vline(xintercept = tm_tot_share_us, linetype = "dashed", colour = "grey40") +
   scale_x_continuous(labels = scales::percent_format(accuracy = 1),
                      expand = expansion(mult = c(0, 0.05))) +
@@ -1430,6 +1453,7 @@ plot_tcf[, `:=`(class_label = factor(class_label, levels = class_label),
 
 p_tm_collab_classes <- ggplot(plot_tcf, aes(n_us_au, class_label)) +
   geom_col(fill = "#0098A8", width = 0.7) +
+  scale_y_discrete(labels = class_name_only) +
   scale_x_continuous(labels = scales::comma, expand = expansion(mult = c(0, 0.05))) +
   labs(title    = "Where U.S. and Australian applicants register brands together",
        subtitle = paste0("Co-applied trade mark applications by Nice class, ", tm_window_lab),
@@ -1516,6 +1540,13 @@ ggsave("tm_us_share_by_class.png",       p_tm_class_share,    width = 9, height 
 ggsave("tm_us_by_sector_trend.png",      p_tm_group_trend,    width = 9, height = 5.5, dpi = 150)
 ggsave("tm_us_au_coapplied_trend.png",   p_tm_collab_trend,   width = 9, height = 5, dpi = 150)
 ggsave("tm_us_au_coapplied_classes.png", p_tm_collab_classes, width = 9, height = 6, dpi = 150)
+# Pop-ups name the Nice class number, which the axis labels leave out
+write_hover(p_tm_class_share, "tm_us_share_by_class.png", width = 9, height = 11, dpi = 200,
+            spots = hbar_spots(function(cat, series, v)
+              sprintf("<b>%s</b><br>U.S. share: %.0f%%", cat, 100 * v)))
+write_hover(p_tm_collab_classes, "tm_us_au_coapplied_classes.png", width = 9, height = 6, dpi = 150,
+            spots = hbar_spots(function(cat, series, v)
+              sprintf("<b>%s</b><br>Co-applied applications: %s", cat, format(round(v, 1), big.mark = ","))))
 ggsave("tm_us_au_coapplied_states.png",  p_tm_collab_states,  width = 9, height = 5, dpi = 150)
 
 class_note <- if (tm_class_method == "fractional") {

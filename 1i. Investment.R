@@ -283,14 +283,19 @@ plot_dat <- iip |>
     # second level is drawn on top within each pair
     direction = factor(direction, levels = c("Foreign investment in Australia",
                                              "Australian investment abroad")),
-    label     = dollar(value_bn, accuracy = 1, prefix = cur_sym[[cur]], suffix = "bn", big.mark = ",")
+    # bar labels: billions, or trillions (two decimals) from 1,000bn
+    label     = ifelse(value_bn >= 1000,
+                       sprintf("%s%.2ftn", cur_sym[[cur]], value_bn / 1000),
+                       sprintf("%s%sbn", cur_sym[[cur]], trimws(format(round(value_bn), big.mark = ","))))
   )
 
-x_max <- max(plot_dat$value_bn, na.rm = TRUE) * 1.12   # headroom for value labels
+x_max <- max(plot_dat$value_bn, na.rm = TRUE) * 1.2    # headroom for value labels
 
 ggplot(plot_dat, aes(x = value_bn, y = partner, fill = direction)) +
   geom_col(position = position_dodge(width = 0.8), width = 0.75, na.rm = TRUE) +
-  # values are in the hover pop-ups, not printed on the bars
+  # value at the end of each bar (also in the hover pop-ups)
+  geom_text(aes(label = label), position = position_dodge(width = 0.8), hjust = -0.12,
+            size = 3.1, colour = csis_grey, family = font_family, na.rm = TRUE) +
   scale_fill_manual(values = c("Australian investment abroad"    = csis_teal,
                                "Foreign investment in Australia" = csis_navy),
                     breaks = c("Australian investment abroad",
