@@ -414,4 +414,81 @@ local({
     r$au_share_world_reserves_pct, tolower(r$mineral), r$au_share_world_production_pct))
 })
 
-message("Done - two charts and one tidy CSV written to ", getwd())
+# ---- The minerals table as a picture (minerals_au_us_table.png) ------------------
+# The dashboard shows this table as a sortable HTML table (built in
+# '2. Australia Chair Tool.qmd'). This draws the same table, sorted by
+# Australia's share of world production, as a standalone page and photographs
+# it with headless Chrome (2x resolution), for slides and reports. Skipped with
+# a note if Chrome isn't found.
+local({
+  chrome <- c(Sys.getenv("CHROME_PATH"), "C:/Program Files/Google/Chrome/Application/chrome.exe",
+              "C:/Program Files (x86)/Google/Chrome/Application/chrome.exe",
+              "C:/Program Files/Microsoft/Edge/Application/msedge.exe")
+  chrome <- chrome[nzchar(chrome) & file.exists(chrome)]
+  if (!length(chrome) || !requireNamespace("png", quietly = TRUE)) {
+    message("Minerals table PNG skipped: Chrome (or the png package) not found.")
+    return(invisible(NULL))
+  }
+  m <- read.csv("minerals_au_us_tidy.csv", stringsAsFactors = FALSE, check.names = FALSE)
+  m <- m[order(-m$au_share_world_production_pct), ]
+  esc <- function(x) htmltools::htmlEscape(as.character(x))
+  nir <- suppressWarnings(as.numeric(gsub("[<>]", "", m$us_net_import_reliance)))
+  bar <- function(v, txt, col) {
+    if (is.na(v)) return(sprintf('<td class="na">%s</td>', txt))
+    sprintf('<td><div class="cell"><span class="bar" style="width:%.1f%%;background:%s"></span><span>%s</span></div></td>',
+            max(0.8, 0.7 * v), col, txt)
+  }
+  rows <- paste(vapply(seq_len(nrow(m)), function(i) paste0(
+    '<tr><th>', esc(m$mineral[i]), '</th>',
+    bar(m$au_share_world_production_pct[i], sprintf("%.1f%%", m$au_share_world_production_pct[i]), "#00205B"),
+    '<td class="rank">#', m$au_world_rank[i], '</td>',
+    bar(nir[i], paste0(esc(m$us_net_import_reliance[i]), "%"), "#D2232A"),
+    bar(m$au_share_us_imports_2021_24_pct[i],
+        if (is.na(m$au_share_us_imports_2021_24_pct[i])) "Not a major source" else sprintf("%.0f%%", m$au_share_us_imports_2021_24_pct[i]),
+        "#0098A8"),
+    '</tr>'), ""), collapse = "")
+  page <- paste0(
+    '<!doctype html><html><head><meta charset="utf-8">',
+    '<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">',
+    '<style>body{margin:0;background:#fff;font-family:"Source Sans 3","Source Sans Pro",Arial,sans-serif;color:#1F2A3A;}',
+    '.wrap{width:1040px;padding:18px 22px 16px;box-sizing:border-box;}',
+    'h1{font-size:24px;color:#00205B;margin:0 0 4px;font-weight:700;}',
+    '.sub{font-size:17px;color:#5E6B78;margin:0 0 12px;}',
+    'table{width:100%;border-collapse:collapse;font-size:15px;}',
+    'thead th{text-align:left;color:#00205B;font-weight:700;border-bottom:2px solid #00205B;padding:6px 9px;vertical-align:bottom;line-height:1.25;}',
+    'tbody th,td{padding:5px 9px;border-bottom:1px solid #E3E6EB;text-align:left;}',
+    'tbody tr:nth-child(even){background:#F3F5F8;}',
+    'tbody th{font-weight:600;white-space:nowrap;}td{width:27%;}td.rank,th.rank{width:7%;text-align:center;}',
+    '.cell{display:flex;align-items:center;gap:6px;}.bar{display:inline-block;height:12px;border-radius:2px;}',
+    '.na{color:#8A94A6;font-style:italic;}',
+    '.note{font-size:13px;color:#5E6B78;margin:10px 0 0;line-height:1.4;}</style></head><body><div class="wrap">',
+    '<h1>Australia&rsquo;s Share of World Production and U.S. Import Reliance</h1>',
+    '<div class="sub">Critical minerals, 2025. Bars show each value out of 100%.</div>',
+    '<table><thead><tr><th>Mineral</th><th>Australia&rsquo;s share of world production</th><th class="rank">World rank</th>',
+    '<th>U.S. net import reliance (share of U.S. use imported)</th><th>Australia&rsquo;s share of U.S. imports, 2021&ndash;24</th></tr></thead>',
+    '<tbody>', rows, '</tbody></table>',
+    '<p class="note">Source: USGS, Mineral Commodity Summaries 2026 data release (doi:10.5066/P1WKQ63T). ',
+    'Notes: 2025 values are USGS estimates. Alumina is refinery output; all others are mine output. ',
+    'Titanium import share covers all titanium mineral concentrates. Import reliance for lead, zinc and tin is for refined metal, ',
+    'for rare earths compounds and metals, and for zirconium ores and concentrates; &lsquo;&gt;&rsquo; and &lsquo;&lt;&rsquo; are USGS bounds. ',
+    '&lsquo;Not a major source&rsquo;: USGS does not list Australia among the main U.S. suppliers. ',
+    'World totals for lithium and bauxite exclude U.S. output, which USGS withholds. ',
+    'Some countries&rsquo; output is withheld for antimony; ranks count only published figures.</p>',
+    '</div></body></html>')
+  html <- normalizePath(file.path(tempdir(), "minerals_au_us_table.html"), winslash = "/", mustWork = FALSE)
+  writeLines(page, html, useBytes = TRUE)
+  out <- normalizePath("minerals_au_us_table.png", winslash = "/", mustWork = FALSE)
+  system2(chrome[1], c("--headless=new", "--disable-gpu", "--hide-scrollbars", "--force-device-scale-factor=2",
+                       "--window-size=1040,1400", "--virtual-time-budget=4000",
+                       paste0("--screenshot=", shQuote(out)), shQuote(paste0("file:///", html))),
+          stdout = FALSE, stderr = FALSE)
+  if (!file.exists(out)) { message("Minerals table PNG: Chrome did not write the file."); return(invisible(NULL)) }
+  # Trim the empty space below the table
+  im <- png::readPNG(out)
+  ink <- which(apply(im[, , 1:3, drop = FALSE] < 0.98, 1, any))
+  im <- im[1:min(dim(im)[1], max(ink) + 30), , , drop = FALSE]
+  png::writePNG(im, out)
+  message("Saved ", out)
+})
+
+message("Done - two charts, the table picture and one tidy CSV written to ", getwd())

@@ -202,9 +202,10 @@ HOUSE_GRID  <- "#E3E6EB"
 
 # Footnote wording: "Source:" for one source, "Sources:" for several (sources
 # separated by ";"), and every sentence ends with a full stop.
-# Footnotes are kept compact: the sources form one paragraph and all notes run
-# together as a second paragraph (forced line breaks in a chart script are
-# dropped), and both are then wrapped to the chart's full width.
+# Footnotes are kept compact: sources first, then the notes, all run together
+# as one paragraph (forced line breaks in a chart script are dropped; no line
+# break between sources and notes, which start with "Note:" or "Notes:"),
+# wrapped to the chart's full width.
 CAPTION_EM <- 0.41   # average character width of the footnote font, in ems (for wrapping)
 tidy_caption <- function(x) {
   if (!is.character(x) || length(x) != 1 || is.na(x) || !nzchar(x)) return(x)
@@ -247,7 +248,17 @@ tidy_caption <- function(x) {
     if (!grepl("[].!?)]$", l) && !grepl("[;,:]$", l)) l <- paste0(l, ".")
     l
   }, "", USE.NAMES = FALSE)
-  paste(lines, collapse = "\n")
+  # The notes after the sources start with "Note:" (one sentence) or "Notes:"
+  # (several), so readers can see where the sources end. Footnotes without a
+  # source line, or whose notes already start with "Note", are left as they are.
+  if (length(lines) > 1 && grepl("^Sources?:", lines[1])) {
+    k <- which(!grepl("^(Sources?|Notes?):", lines))[1]
+    if (!is.na(k)) {
+      n_sent <- 1 + lengths(regmatches(lines[k], gregexpr("[a-z0-9%)][.!?] +[A-Z(]", lines[k])))
+      lines[k] <- paste0(if (n_sent > 1) "Notes: " else "Note: ", lines[k])
+    }
+  }
+  paste(lines, collapse = " ")
 }
 
 # Lines and points the same weight in every chart: data lines at HOUSE_LINE and
@@ -288,13 +299,6 @@ house_grid <- function(p) {
 }
 
 house_style <- function(p, width_in = NULL) {
-  if (inherits(p, "patchwork") && !is.null(width_in)) {
-    for (k in seq_along(p$patches$plots)) p$patches$plots[[k]] <- wrap_labels(p$patches$plots[[k]], width_in)
-    for (el in c("subtitle", "caption"))
-      if (is.character(p$patches$annotation[[el]]))
-        p$patches$annotation[[el]] <- wrap_text_to(p$patches$annotation[[el]], width_in, c(subtitle = 11, caption = 9)[[el]],
-                                                   char_em = if (el == "caption") CAPTION_EM else 0.45)
-  }
   if (inherits(p, "patchwork")) {
     for (k in seq_along(p$patches$plots)) p$patches$plots[[k]] <- title_case_plot(p$patches$plots[[k]])
     if (is.character(p$patches$annotation$title)) p$patches$annotation$title <- title_case(p$patches$annotation$title)
@@ -317,6 +321,14 @@ house_style <- function(p, width_in = NULL) {
     for (k in seq_along(p$patches$plots)) p$patches$plots[[k]] <- one_plot(p$patches$plots[[k]])
     if (is.character(p$patches$annotation$caption))
       p$patches$annotation$caption <- tidy_caption(p$patches$annotation$caption)
+  }
+  # Wrap after tidying (tidy_caption joins lines, so wrapping first would be undone)
+  if (inherits(p, "patchwork") && !is.null(width_in)) {
+    for (k in seq_along(p$patches$plots)) p$patches$plots[[k]] <- wrap_labels(p$patches$plots[[k]], width_in)
+    for (el in c("subtitle", "caption"))
+      if (is.character(p$patches$annotation[[el]]))
+        p$patches$annotation[[el]] <- wrap_text_to(p$patches$annotation[[el]], width_in, c(subtitle = 11, caption = 9)[[el]],
+                                                   char_em = if (el == "caption") CAPTION_EM else 0.45)
   }
   p <- one_plot(p)
   p <- wrap_labels(title_case_plot(p), width_in)
