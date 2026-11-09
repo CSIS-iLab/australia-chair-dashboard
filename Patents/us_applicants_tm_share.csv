@@ -1,5 +1,5 @@
 ﻿title,U.S. share of Australian trade mark applications
-subtitle,Share of applications with a known applicant party
+subtitle,Share of all standard trade mark applications
 caption,"Source: IP Australia, IP RAPID"
 chart_type,Line with point markers
 x_variable,filing_year
@@ -13,7 +13,7 @@ line_colour,#D2232A
 line_width_mm,1
 point_size,1.6
 title_style,Bold
-notes,Denominator is applications with a known applicant party
+notes,Denominator is all standard trade mark applications; years are application dates in Australia
 
 filing_year,share_us
 1990,16.1

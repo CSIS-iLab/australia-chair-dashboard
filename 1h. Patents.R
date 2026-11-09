@@ -699,7 +699,7 @@ tm_annual_us <- tm_flags[
   by = filing_year
 ][order(filing_year)]
 
-tm_annual_us[, share_us := n_us / n_known]            # excludes marks with no applicant record
+tm_annual_us[, share_us := n_us / n_total]            # excludes marks with no applicant record
 tm_annual_us[, share_us_via_madrid := n_us_madrid / n_us]
 
 cat("\n--- U.S.-applicant trade marks ---\n")
@@ -730,7 +730,7 @@ p_tm_share <- ggplot(tm_annual_us, aes(filing_year, share_us)) +
   scale_y_continuous(labels = scales::percent_format(accuracy = 1),
                      limits = c(0, NA)) +
   labs(title = "U.S. share of Australian trade mark applications",
-       subtitle = "Share of applications with a known applicant party",
+       subtitle = "Share of all standard trade mark applications",
        x = NULL, y = NULL,
        caption = "Source: IP Australia, IP RAPID") +
   theme_minimal(base_size = 12) +
@@ -744,7 +744,7 @@ ggsave("us_applicants_tm_count.png", p_tm_count, width = 9, height = 5, dpi = 15
 ggsave("us_applicants_tm_share.png", p_tm_share, width = 9, height = 5, dpi = 150)
 export_chart_csv(p_tm_count, "us_applicants_tm_count.csv", y_format = "number")
 export_chart_csv(p_tm_share, "us_applicants_tm_share.csv", y_format = "percent",
-                 notes = "Denominator is applications with a known applicant party")
+                 notes = "Denominator is all standard trade mark applications; years are application dates in Australia")
 
 
 # ==============================================================================

@@ -466,8 +466,8 @@ p2 <- ggplot(state_mix, aes(share, label, fill = fuel)) +
     x = NULL, y = NULL,
     caption  = paste0("Sources: DCCEEW, Australian Energy Statistics, Table O (calendar 2025); EIA, Electric Power ",
                       "Annual, net generation by state and Table 3.21\n(small-scale solar), calendar ", st_year,
-                      ". Generation is where power is made, not where it is used. New South Wales and Victoria have ",
-                      "about 96% of\nAustralia's data center demand (AEMO, 2025-26).")
+                      ".\nGeneration is where power is made, not where it is used. New South Wales and Victoria have ",
+                      "about 96% of Australia's data center demand (AEMO, 2025-26).")
   ) +
   theme_csis() +
   theme(strip.text.y = element_text(angle = 0, hjust = 0, face = "bold", size = 8.5),
@@ -546,8 +546,8 @@ renew_ts <- bind_rows(
     group_by(country, year) |>
     summarise(share = sum(share[fuel %in% CMP_RENEW]), .groups = "drop") |>
     mutate(series = if_else(country == "Australia",
-                            "Australia: renewables (financial years, by the year they end)",
-                            "United States: renewables (calendar years)")),
+                            "Australia: renewables",
+                            "United States: renewables")),
   # US renewables plus nuclear: low-carbon generation (Australia has no nuclear)
   mix_ts |>
     filter(country == "United States") |>
@@ -556,8 +556,8 @@ renew_ts <- bind_rows(
     mutate(series = "United States: renewables plus nuclear")
 ) |>
   filter(year >= 2000) |>
-  mutate(series = factor(series, levels = c("Australia: renewables (financial years, by the year they end)",
-                                            "United States: renewables (calendar years)",
+  mutate(series = factor(series, levels = c("Australia: renewables",
+                                            "United States: renewables",
                                             "United States: renewables plus nuclear")))
 renew_last <- renew_ts |> group_by(series) |> slice_max(year, n = 1) |> ungroup()
 
@@ -577,7 +577,8 @@ p9 <- ggplot(renew_ts, aes(year, share, colour = series, linetype = series)) +
     subtitle = "Hydro, wind, solar (including rooftop), bioenergy and geothermal, share of total generation",
     x = NULL, y = NULL,
     caption  = paste0("Sources: Australia: DCCEEW, Australian Energy Statistics, Table O.\n", US_SRC,
-                      "\nNuclear is low-carbon but not renewable; Australia has no nuclear generation.")
+                      "\nAustralian years are financial years (to June), labeled by the year they end. ",
+                      "Nuclear is low-carbon but not renewable; Australia has no nuclear generation.")
   ) +
   theme_csis() +
   theme(legend.key.width = unit(1.2, "cm"))
@@ -1064,8 +1065,7 @@ ggplot(lcoe_plot, aes(year, lcoe, colour = country)) +
                               "%d %s per MWh, 2015-%d"), lcoe_yr, cur_sym[[cur]], lcoe_yr),
     x = NULL, y = NULL,
     caption  = paste0("Source: IRENA (2026), Renewable Power Generation Costs in 2025, data file ",
-                      "(Fig. 2.11 and Fig. 3.7).\nLCOE excludes subsidies and tax credits, ",
-                      "so U.S. figures are before federal tax credits.",
+                      "(Fig. 2.11 and Fig. 3.7).\nLCOE excludes subsidies and other support.",
                       if (cur == "AUD") sprintf("
 Converted to A$ at the RBA's %d average exchange rate.", lcoe_yr) else "")
   ) +
@@ -1323,20 +1323,21 @@ qtr_label    <- function(d) paste0(format(d, "%Y"), " Q", (as.integer(format(d, 
 price_latest <- price_qtr |> filter(quarter == max(quarter))
 price_q      <- max(price_latest$quarter)
 
-# Australia in navy shades, the US in red shades. The chart shows the two
-# largest NEM regions and the two US markets; QLD and SA go in the caption.
+# Two panels on the same scale: the four NEM regions (blues) on the left,
+# the two US markets (reds) on the right.
 price_cols <- c("Texas (ERCOT)" = "#D2232A", "California (SP15)" = "#F08A8E",
-                NSW = "#00205B", VIC = "#5B8BD0")
+                NSW = "#00205B", VIC = "#5B8BD0", QLD = "#0098A8", SA = "#9DB9E3")
 CHART_REGIONS <- names(price_cols)
-note_regions  <- price_latest |> filter(!region %in% CHART_REGIONS)
+price_panel <- function(region) factor(if_else(region %in% names(NEM_REGIONS), "Australian NEM regions", "United States"),
+                                       levels = c("Australian NEM regions", "United States"))
 
 # Drawn twice: US$ (NEM converted) and A$ (US markets converted).
 make_p7 <- function(cur) {
 price_qtr    <- price_qtr    |> filter(region %in% CHART_REGIONS) |>
-  mutate(price = if (cur == "USD") price_usd else price_aud, region = droplevels(region))
+  mutate(price = if (cur == "USD") price_usd else price_aud, region = droplevels(region),
+         panel = price_panel(region))
 price_latest <- price_latest |> filter(region %in% CHART_REGIONS) |>
-  mutate(price = if (cur == "USD") price_usd else price_aud)
-others <- note_regions |> mutate(price = if (cur == "USD") price_usd else price_aud)
+  mutate(price = if (cur == "USD") price_usd else price_aud, panel = price_panel(region))
 ggplot(price_qtr, aes(quarter, price, colour = region)) +
   geom_line(linewidth = LINE_W) +
   geom_point(size = 1.4) +
@@ -1344,12 +1345,14 @@ ggplot(price_qtr, aes(quarter, price, colour = region)) +
   ggrepel::geom_text_repel(data = price_latest,
                            aes(label = paste0(sub(" \\(.*", "", region), " ", cur_sym[[cur]], round(price))),
                            nudge_x = 25, direction = "y", hjust = 0, size = 3.3, fontface = "bold", family = "source_sans",
+                           xlim = c(as.numeric(price_q) + 45, NA),   # labels stay right of the line ends, stacked
                            segment.colour = NA, min.segment.length = Inf, show.legend = FALSE) +
+  facet_wrap(~ panel, nrow = 1) +                                  # same y scale in both panels
   scale_colour_manual(values = price_cols, guide = "none") +
   scale_y_continuous(labels = label_dollar(prefix = cur_sym[[cur]]), limits = c(0, NA),
                      expand = expansion(c(0, 0.05))) +
-  scale_x_date(breaks = seq(min(price_qtr$quarter), price_q, by = "6 months"),
-               labels = qtr_label, expand = expansion(mult = c(0.02, 0.2))) +
+  scale_x_date(breaks = seq(price_q, min(price_qtr$quarter), by = "-1 year"),
+               labels = qtr_label, expand = expansion(mult = c(0.02, 0.32))) +
   labs(
     title    = if (has_ercot) "Wholesale electricity prices, Australian NEM regions, California and Texas (ERCOT)"
                else "Wholesale electricity prices, Australian NEM regions and California",
@@ -1362,13 +1365,11 @@ ggplot(price_qtr, aes(quarter, price, colour = region)) +
                       "CAISO OASIS (hourly day-ahead price, SP15 hub);\n",
                       if (has_ercot) "ERCOT (15-minute real-time price, hub average HB_HUBAVG); " else "",
                       "RBA daily A$/US$ exchange rates, averaged for each month to convert that month.\n",
-                      "Simple time-weighted averages of all intervals. ",
-                      if (nrow(others)) paste0("Not shown, ", qtr_label(price_q), ": ",
-                                               paste(sprintf("%s %s%.0f", others$region, cur_sym[[cur]], others$price),
-                                                     collapse = ", "), ".") else "",
+                      "Simple time-weighted averages of all intervals.",
                       if (has_ercot) "" else " Texas (ERCOT) not shown: no ERCOT data available on this run.")
   ) +
-  theme_csis()
+  theme_csis() +
+  theme(strip.text = element_text(face = "bold", hjust = 0))
 }
 
 save_both(make_p7, "07_wholesale_prices_au_us.png",
@@ -1379,8 +1380,8 @@ export_chart_csv(p7, "07_wholesale_prices_au_us.csv",
                  y_format = "number", chart_type = "Line with point markers",
                  extra = "region",
                  notes = paste0("Values are US$ per MWh (not counts). quarter = first day of the quarter. ",
-                                "Colors: Texas (ERCOT) #D2232A, California (SP15) #F08A8E, NSW #00205B, VIC #5B8BD0 ",
-                                "(QLD and SA in the caption). Each line labeled at its end with its latest value."))
+                                "Two panels on one scale: NEM regions (NSW #00205B, VIC #5B8BD0, QLD #0098A8, SA #9DB9E3) ",
+                                "and U.S. markets (Texas #D2232A, California #F08A8E). Each line labeled at its end with its latest value."))
 
 write_csv(lcoe |> arrange(technology, country, year), "lcoe_au_us_tidy.csv")
 write_csv(price_qtr |> arrange(region, quarter), "wholesale_prices_au_us_tidy.csv")
