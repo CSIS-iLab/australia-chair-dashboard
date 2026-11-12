@@ -867,17 +867,31 @@ if (!file.exists(mtab_file)) {
 
 # Energy {scrolling="true"}
 
+## Row {height="540px"}
+
+![](Energy/08_energy_security_oil.png){title="Energy Security"}
+
 ## Row {height="660px"}
+
+### Column {.tabset .energy-costs width="50%" title="Relative Costs and Prices"}
+
+#### Wholesale Prices, Australia vs U.S.
+
+![](Energy/07_wholesale_prices_au_us.png){title="Wholesale Electricity Prices, Australia and U.S. Markets"}
+
+#### Cost of New Solar and Wind
+
+![](Energy/06_lcoe_au_us.png){title="Cost of New Solar and Wind, Australia and the United States"}
 
 ### Column {.tabset width="50%" title="Electricity Mix"}
 
 #### Source
 
-![](Energy/03_primary_vs_electricity.png){title="Electricity Generation by Fuel, Australia and the United States"}
+![](Energy/03_primary_vs_electricity.png){title="Electricity Generation by Source, Australia and the United States"}
 
 #### Source over Time
 
-![](Energy/01_fuel_mix_timeseries.png){title="Share of Generation by Fuel over Time, Australia and the U.S."}
+![](Energy/01_fuel_mix_timeseries.png){title="Share of Generation by Source over Time, Australia and the U.S."}
 
 #### Renewables Share
 
@@ -895,29 +909,17 @@ if (!file.exists(mtab_file)) {
 
 ![](Energy/02_state_fuel_mix.png){title="Electricity Generation Mix by State"}
 
-### Column {.tabset .energy-costs width="50%" title="Relative Costs and Prices"}
-
-#### Wholesale Prices, Australia vs U.S.
-
-![](Energy/07_wholesale_prices_au_us.png){title="Wholesale Electricity Prices, Australia and U.S. Markets"}
-
-#### Cost of New Solar and Wind
-
-![](Energy/06_lcoe_au_us.png){title="Cost of New Solar and Wind, Australia and the United States"}
-
-## Row {.tabset height="540px" title="Energy Security"}
-
-### Net Energy Trade
-
-![](Energy/08_energy_security_oil.png){title="Energy Security: Net Energy Trade, Australia and the United States"}
-
 # Research and AI {orientation="columns"}
 
 ## Column {.tabset width="50%" title="Australia's Research Strengths"}
 
 ### Share of World Research
 
-![](Tech/A_australian_share_by_technology.png){title="Australian Share of World Publications"}
+![](Tech/A_australian_share_by_technology.png){title="Share of World Publications by Critical Technology"}
+
+### Share over Time
+
+![](Tech/G_share_over_time.png){title="Share of World Publications over Time, by Critical Technology"}
 
 ### Quality vs Volume
 
@@ -939,7 +941,7 @@ if (!file.exists(mtab_file)) {
 
 ### R&D Intensity
 
-![](Tech/F_rd_intensity.png){title="Gross Domestic Expenditure on R&D, % of GDP"}
+![](Tech/F_rd_intensity.png){title="R&D Intensity"}
 
 # Data Centers {orientation="columns"}
 
@@ -949,11 +951,11 @@ if (!file.exists(mtab_file)) {
 
 ![](<Data centres/12_dc_share_of_grid_au_us.png>){title="Data Centers' Share of Electricity Use, Australia and the U.S."}
 
-## Column {.tabset .dc-au width="50%" title="Australia: Investment"}
+## Column {.tabset .dc-au width="50%" title="Australian Investment in Data Centers"}
 
-### Capex by Financial Year
+### Capital Investment
 
-![](<Data centres/08_divj_financial_year.png>){title="Information Media & Telecommunications Capital Expenditure by Financial Year"}
+![](<Data centres/08_divj_financial_year.png>){title="Information Media & Telecommunications Capital Expenditure"}
 
 ### Commercial Buildings
 
@@ -1016,23 +1018,14 @@ cat(paste0(
   'can be downloaded with its data from the links under the chart.</p>',
 
   '<h3>Years</h3><ul>',
-  '<li><strong>Australian financial years</strong> run July to June and are labeled by the year they end: 2024-25 is shown as 2025.</li>',
-  '<li><strong>U.S. fiscal years</strong> (visas and job certifications) run October to September: FY2025 ended on 30 September 2025.</li>',
-  '<li>Other U.S. data, and Australian data where published that way, are <strong>calendar years</strong>. Each chart says which it uses.</li>',
+  '<li>Australia&rsquo;s <strong>financial year</strong> runs July to June; the U.S. federal <strong>fiscal year</strong> (used for visa and job certification data) runs October to September. Both are labeled by the year they end, so 2024-25 is shown as 2025. Other data are calendar years.</li>',
   '<li>The <strong>&ldquo;Data to&rdquo;</strong> line under each chart gives the latest period it covers.</li></ul>',
 
   '<h3>Currency</h3><ul>',
-  '<li>Use the <strong>A$ / US$</strong> switch in the top bar to show money in either currency. Values are converted with the ',
+  '<li>Use the <strong>$AUD / $USD</strong> switch in the top bar to show money in either currency. Values are converted with the ',
   'Reserve Bank of Australia&rsquo;s daily exchange rates: flows (trade, spending) at the average rate for their own period, and ',
   'stocks (investment positions) at the rate on the date they are measured.</li>',
   '<li>Money is shown in billions (bn) or trillions (tn) of dollars.</li></ul>',
-
-  '<h3>Definitions</h3><ul>',
-  '<li><strong>Two-way trade</strong> is Australian exports to the U.S. plus Australian imports from the U.S., goods and services.</li>',
-  '<li><strong>Investment</strong> figures are stocks at 31 December (the international investment position), by the immediate partner country.</li>',
-  '<li><strong>Energy use</strong> is primary energy consumption; <strong>net energy trade</strong> is exports less imports, as a share of each country&rsquo;s own energy use.</li>',
-  '<li><strong>Net overseas migration</strong> counts people by country of birth, whatever their citizenship.</li>',
-  '<li>Each page&rsquo;s <em>How to Read This Page</em> link explains its terms in more detail.</li></ul>',
 
   '<h3>Reading the Charts</h3><ul>',
   '<li>Hover over a chart to see its values: each line, bar or segment shows its exact figure.</li>',

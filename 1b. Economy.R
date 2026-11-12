@@ -836,8 +836,7 @@ make_states <- function(cur) {
   scale_x_continuous(labels = label_number(prefix = sym, suffix = "tn", accuracy = 1),
                      expand = expansion(mult = c(0, 0.04))) +
   labs(title = "GDP of Australia and U.S. states",
-       subtitle = paste0("GDP, current ", sym, ", ", states_yr, ". Australia in navy, the 15 largest U.S. states in red. ",
-                         "Hover over a bar for its value."),
+       subtitle = paste0("GDP, current ", sym, ", ", states_yr, ". Australia in navy, the 15 largest U.S. states in red."),
        x = NULL, y = NULL,
        caption = paste0("Sources: U.S. BEA, GDP by state (SAGDP2).
 Australia, ", GDP_SRC_AU, ".",

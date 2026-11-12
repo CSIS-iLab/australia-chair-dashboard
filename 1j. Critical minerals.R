@@ -361,7 +361,7 @@ p_headroom <- ggplot(headroom, aes(y = label)) +
                      expand = expansion(c(0, 0.05))) +
   labs(
     title    = "Australia's share of world reserves and world production, critical minerals",
-    subtitle = "Australia's share of world reserves and of world mine production, sorted by the gap. Hover over a dot for its value.",
+    subtitle = "Australia's share of world reserves and of world mine production, sorted by the gap.",
     x = NULL, y = NULL,
     caption = paste0(
       MCS_SOURCE,
