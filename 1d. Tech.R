@@ -181,6 +181,7 @@ write_csv(tibble(technology = names(TECHNOLOGIES), openalex_query = unname(TECHN
                  searched_in = "title and abstract", years = paste0(min(YEARS), "-", max(YEARS))),
           "technology_keywords.csv")
 KW_NOTE <- "Fields are defined by keyword searches of paper titles and abstracts."
+OA_NOTE <- "Publication counts are from OpenAlex, an open bibliographic database."
 
 # OpenAlex group_by returns `key` in different shapes depending on the field:
 # a bare code ("AU"), a lowercase code ("au"), or a full URI
@@ -235,30 +236,42 @@ au_share <- country_counts |>
 stopifnot("Module A returned no Australian rows - inspect peek() output above" =
             nrow(au_share) > 0)
 
-# Australia, the United States and China in each field
-world_n <- country_counts |> group_by(technology) |> summarise(world = sum(n), .groups = "drop")
+# Benchmark: the same counts across all articles in OpenAlex (every field, same
+# years and filters, no keyword search), shown as "All publications"
+ALL_PUBS <- "All publications"
+all_counts <- cached(
+  "A_all_country_counts",
+  oa_group(base_filters(), group_by = "authorships.countries") |> mutate(technology = ALL_PUBS)
+)
+counts_ab <- bind_rows(country_counts, all_counts)
+
+# Australia, the United States and China in each field, plus all publications
+world_n <- counts_ab |> group_by(technology) |> summarise(world = sum(n), .groups = "drop")
 three_share <- bind_rows(
-  country_is(country_counts, "AU", "Australia") |> mutate(country = "Australia"),
-  country_is(country_counts, "US", "United States") |> mutate(country = "United States"),
-  country_is(country_counts, "CN", "China") |> mutate(country = "China")) |>
+  country_is(counts_ab, "AU", "Australia") |> mutate(country = "Australia"),
+  country_is(counts_ab, "US", "United States") |> mutate(country = "United States"),
+  country_is(counts_ab, "CN", "China") |> mutate(country = "China")) |>
   left_join(world_n, by = "technology") |>
   transmute(technology, country, papers = n, share = n / world)
 tech_order <- au_share |> arrange(share) |> pull(technology)
 three_share <- three_share |>
-  mutate(technology = factor(technology, levels = tech_order),
+  mutate(technology = factor(technology, levels = c(ALL_PUBS, tech_order)),        # benchmark at the bottom
          country = factor(country, levels = c("China", "United States", "Australia")))   # Australia drawn on top in each group
 p_a <- three_share |>
   ggplot(aes(share, technology, fill = country)) +
   geom_col(position = position_dodge(width = 0.8), width = 0.75) +
+  geom_hline(yintercept = 1.5, colour = "grey60", linewidth = 0.4) +   # sets the benchmark apart
   scale_fill_manual(values = c(Australia = AU_COL, `United States` = US_COL, China = CN_COL),
                     breaks = c("Australia", "United States", "China")) +
+  scale_y_discrete(labels = function(x) ifelse(x == ALL_PUBS, "All publications\n(all fields)", x)) +
   scale_x_continuous(labels = percent_format(accuracy = 1),
                      expand = expansion(c(0, 0.05))) +
   labs(
     title    = "Share of world publications by critical technology",
     subtitle = paste0("Share of world publications, ", min(YEARS), "-", max(YEARS)),
     x = NULL, y = NULL, fill = NULL,
-    caption = paste0("Source: OpenAlex. ", KW_NOTE, " Papers with authors in several countries count for each.")
+    caption = paste0("Source: OpenAlex.
+", OA_NOTE, " ", KW_NOTE, " All publications: the same measure across every field. Papers with authors in several countries count for each.")
   ) +
   theme_minimal(base_size = 13) +
   theme(plot.title = element_text(face = "bold"),
@@ -315,7 +328,8 @@ p_g <- share_time |>
     title    = "Share of world publications over time, by critical technology",
     subtitle = paste0("Share of world publications, ", min(YEARS), "-", last_year),
     x = NULL, y = NULL, colour = NULL,
-    caption = paste0("Source: OpenAlex. ", KW_NOTE, " Papers with authors in several countries count for each. ",
+    caption = paste0("Source: OpenAlex.
+", OA_NOTE, " ", KW_NOTE, " Papers with authors in several countries count for each. ",
                      last_year, " may be incomplete while recent papers are still being indexed. All panels on the same scale.")
   ) +
   theme_minimal(base_size = 13) +
@@ -369,7 +383,8 @@ p_b <- quality_gap |>
     title    = "Australian share of world publications: all papers and top 10% cited",
     subtitle = "Share of world output, all papers vs top decile by citations",
     x = NULL, y = NULL, colour = NULL,
-    caption = paste("Source: OpenAlex.", KW_NOTE)
+    caption = paste0("Source: OpenAlex.
+", OA_NOTE, " ", KW_NOTE)
   ) +
   theme_minimal(base_size = 13) +
   theme(plot.title = element_text(face = "bold"),
@@ -424,7 +439,8 @@ p_c <- au_institutions |>
   labs(
     title    = "Leading Australian institutions by publications in each field",
     subtitle = paste0("Publications ", min(YEARS), "-", max(YEARS), ", top six institutions per field"),
-    x = NULL, y = NULL, caption = "Source: OpenAlex."
+    x = NULL, y = NULL, caption = paste0("Source: OpenAlex.
+", OA_NOTE)
   ) +
   theme_minimal(base_size = 12) +
   theme(plot.title = element_text(face = "bold", size = 15),
@@ -463,21 +479,34 @@ partners <- cached(
     })
 )
 
-au_totals <- country_counts |>
+# Benchmark: the same shares across all Australian articles, every field
+partners_all <- cached(
+  "D_collaboration_all",
+  map_dfr(c("us", "cn"), function(partner)
+    oa_group(base_filters(c("institutions.country_code:au", paste0("institutions.country_code:", partner))),
+             group_by = "publication_year") |>
+      mutate(technology = ALL_PUBS, partner = partner))
+)
+
+au_totals <- counts_ab |>
   country_is("AU", "Australia") |>
   select(technology, au_total = n)
 
-collab <- partners |>
+collab <- bind_rows(partners, partners_all) |>
   group_by(technology, partner) |>
   summarise(n = sum(n), .groups = "drop") |>
   left_join(au_totals, by = "technology") |>
   mutate(share = n / au_total,
          partner = recode(partner, us = "with United States", cn = "with China"))
 
+d_order <- collab |> filter(technology != ALL_PUBS) |> group_by(technology) |>
+  summarise(m = max(share), .groups = "drop") |> arrange(m) |> pull(technology)
 p_d <- collab |>
-  mutate(technology = fct_reorder(technology, share, .fun = max)) |>
+  mutate(technology = factor(technology, levels = c(ALL_PUBS, d_order))) |>     # benchmark at the bottom
   ggplot(aes(share, technology, fill = partner)) +
   geom_col(position = position_dodge(width = 0.7), width = 0.65) +
+  geom_hline(yintercept = 1.5, colour = "grey60", linewidth = 0.4) +   # sets the benchmark apart
+  scale_y_discrete(labels = function(x) ifelse(x == ALL_PUBS, "All publications\n(all fields)", x)) +
   scale_fill_manual(values = c("with United States" = US_COL,
                                "with China" = CN_COL)) +
   scale_x_continuous(labels = percent_format(accuracy = 1),
@@ -487,7 +516,9 @@ p_d <- collab |>
     subtitle = paste0("Share of all Australian publications in each field, ", min(YEARS), "-", max(YEARS),
                       ", co-authored with a U.S. or Chinese institution"),
     x = NULL, y = NULL, fill = NULL,
-    caption = paste0("Source: OpenAlex. Shares overlap: a paper can have both U.S. and Chinese co-authors. ", KW_NOTE)
+    caption = paste0("Source: OpenAlex.
+", OA_NOTE, " Shares overlap: a paper can have both U.S. and Chinese co-authors. ", KW_NOTE,
+                     " All publications: the same measure across every field.")
   ) +
   theme_minimal(base_size = 13) +
   theme(plot.title = element_text(face = "bold"),

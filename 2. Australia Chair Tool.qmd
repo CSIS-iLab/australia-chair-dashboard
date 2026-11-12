@@ -186,6 +186,7 @@ cat(paste0(
   '<div class="ov-kicker">CSIS Australia Chair</div>',
   '<h1 class="ov-title">U.S.-Australia Economic Dashboard</h1>',
   '<p class="ov-lede">An interactive guide to the full breadth of the U.S.-Australia economic and strategic relationship: trade, investment, critical minerals, energy, technology, human capital and innovation.</p>',
+  '<p class="ov-tip">Hover over any chart for exact values, and download the data behind it as a CSV file from the link underneath.</p>',
   '<div class="ov-meta">Updated quarterly &middot; ', edition_stamp(edition), '</div>',
   # Time this page was built, Canberra time
   '<div class="ov-updated">Last updated: <b>', trimws(format(Sys.time(), "%e %B %Y, %l:%M %p", tz = "Australia/Sydney")),
@@ -1018,13 +1019,17 @@ cat(paste0(
   'can be downloaded with its data from the links under the chart.</p>',
 
   '<h3>Years</h3><ul>',
-  '<li>Australia&rsquo;s <strong>financial year</strong> runs July to June; the U.S. federal <strong>fiscal year</strong> (used for visa and job certification data) runs October to September. Both are labeled by the year they end, so 2024-25 is shown as 2025. Other data are calendar years.</li>',
+  '<li>Australia&rsquo;s <strong>financial year</strong> runs July to June; the U.S. federal <strong>fiscal year</strong> runs October to September. Both are labeled by the year they end, so 2024-25 is shown as 2025. Other data are calendar years.</li>',
   '<li>The <strong>&ldquo;Data to&rdquo;</strong> line under each chart gives the latest period it covers.</li></ul>',
 
   '<h3>Currency</h3><ul>',
-  '<li>Use the <strong>$AUD / $USD</strong> switch in the top bar to show money in either currency. Values are converted with the ',
-  'Reserve Bank of Australia&rsquo;s daily exchange rates: flows (trade, spending) at the average rate for their own period, and ',
-  'stocks (investment positions) at the rate on the date they are measured.</li>',
+  '<li>Every dollar chart is drawn twice, once in Australian dollars and once in U.S. dollars, and the <strong>$AUD / $USD</strong> ',
+  'button switches which version you see.</li>',
+  '<li>Each figure is converted at the Reserve Bank of Australia&rsquo;s exchange rate for its own period: the average rate for ',
+  'that year, quarter or month, or the rate on the day for values measured at a point in time, such as the stock of investment at 31 December.</li>',
+  '<li>Rates are refreshed from the RBA each time the dashboard is updated (currently quarterly). A finished period&rsquo;s average ',
+  'rate is fixed, so updates do not change the U.S. dollar figures for 2024-25 or any earlier period; only figures for a period still ',
+  'in progress, or forward-looking figures such as expected capital expenditure, can shift.</li>',
   '<li>Money is shown in billions (bn) or trillions (tn) of dollars.</li></ul>',
 
   '<h3>Reading the Charts</h3><ul>',
