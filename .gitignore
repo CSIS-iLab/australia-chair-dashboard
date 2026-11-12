@@ -114,7 +114,7 @@ Critical minerals/**
 !Migration/*.py
 !Patents/us_*.png
 !Patents/tm_*.png
-!Tech/[A-F]_*.png
+!Tech/[A-G]_*.png
 !Tech/technology_keywords.csv
 
 # US$ versions of the money charts (the A$/US$ toggle; see "0. Exchange rates.R")
@@ -139,3 +139,7 @@ Critical minerals/**
 # ("Data centre archive.html" is already covered by *.html above)
 /Data centre archive (local)/
 /Data centre archive.html
+
+# Local-only: charts copied out for reviewers ("6. For feedback.R")
+/For feedback/
+/6. For feedback.R

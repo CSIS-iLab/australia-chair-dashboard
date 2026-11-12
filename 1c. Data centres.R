@@ -523,10 +523,9 @@ ggplot(fy_divj, aes(fy, actual, fill = asset)) +
   scale_fill_manual(values = c(csis_colours[["navy"]], csis_colours[["teal"]])) +
   scale_y_continuous(labels = label_comma(), expand = expansion(c(0, 0.05))) +
   labs(
-    title    = "Information Media & Telecommunications capital expenditure by financial year",
-    subtitle = "Complete financial years only",
+    title    = "Information Media & Telecommunications capital expenditure",
     y = y_lab(cur), x = NULL,
-    caption  = src_cp(cur)
+    caption  = src_cp(cur, "Financial years (July to June), complete years only.")
   ) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 }

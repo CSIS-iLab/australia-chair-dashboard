@@ -235,24 +235,30 @@ au_share <- country_counts |>
 stopifnot("Module A returned no Australian rows - inspect peek() output above" =
             nrow(au_share) > 0)
 
-p_a <- au_share |>
-  mutate(technology = fct_reorder(technology, share)) |>
-  ggplot(aes(share, technology)) +
-  geom_col(fill = AU_COL, width = 0.65) +
-  geom_vline(xintercept = mean(au_share$share), linetype = "22", colour = "grey45") +
-  annotate("label", x = mean(au_share$share), y = Inf, vjust = 1.1, hjust = 0.5, size = 3.6,
-           label = sprintf("Average: %.1f%%", 100 * mean(au_share$share)),
-           colour = "grey25", fill = "white", label.size = 0) +
-  # Paper counts and shares are in the hover pop-ups (below), not printed on the bars
+# Australia, the United States and China in each field
+world_n <- country_counts |> group_by(technology) |> summarise(world = sum(n), .groups = "drop")
+three_share <- bind_rows(
+  country_is(country_counts, "AU", "Australia") |> mutate(country = "Australia"),
+  country_is(country_counts, "US", "United States") |> mutate(country = "United States"),
+  country_is(country_counts, "CN", "China") |> mutate(country = "China")) |>
+  left_join(world_n, by = "technology") |>
+  transmute(technology, country, papers = n, share = n / world)
+tech_order <- au_share |> arrange(share) |> pull(technology)
+three_share <- three_share |>
+  mutate(technology = factor(technology, levels = tech_order),
+         country = factor(country, levels = c("China", "United States", "Australia")))   # Australia drawn on top in each group
+p_a <- three_share |>
+  ggplot(aes(share, technology, fill = country)) +
+  geom_col(position = position_dodge(width = 0.8), width = 0.75) +
+  scale_fill_manual(values = c(Australia = AU_COL, `United States` = US_COL, China = CN_COL),
+                    breaks = c("Australia", "United States", "China")) +
   scale_x_continuous(labels = percent_format(accuracy = 1),
                      expand = expansion(c(0, 0.05))) +
-  scale_y_discrete(expand = expansion(add = c(0.6, 1.1))) +           # room for the average label
   labs(
-    title    = "Australian share of world publications by critical technology",
-    subtitle = paste0("Australian share of world publications, ", min(YEARS), "-", max(YEARS),
-                      ". Dashed line: Australia's average across these fields."),
-    x = NULL, y = NULL,
-    caption = paste0("Source: OpenAlex. Hover over a bar for the number of Australian papers and the share of the world total.\n", KW_NOTE)
+    title    = "Share of world publications by critical technology",
+    subtitle = paste0("Share of world publications, ", min(YEARS), "-", max(YEARS)),
+    x = NULL, y = NULL, fill = NULL,
+    caption = paste0("Source: OpenAlex. ", KW_NOTE, " Papers with authors in several countries count for each.")
   ) +
   theme_minimal(base_size = 13) +
   theme(plot.title = element_text(face = "bold"),
@@ -264,10 +270,60 @@ ggsave("A_australian_share_by_technology.png", p_a, width = 9, height = 5.5,
        dpi = 150, bg = "white")
 write_hover(p_a, "A_australian_share_by_technology.png", width = 9, height = 5.5, dpi = 150,
             spots = hbar_spots(function(cat, series, v) {
-              row <- au_share[au_share$technology == cat, ]
-              sprintf("<b>%s</b><br>%s Australian papers<br>%.1f%% of the world total", cat,
-                      comma(row$au_papers[1]), 100 * v)
+              row <- three_share[three_share$technology == cat & three_share$country == series, ]
+              sprintf("<b>%s</b><br>%s: %s papers, %.1f%% of the world total", cat, series,
+                      comma(row$papers[1]), 100 * v)
             }))
+
+
+# ------------------------------------------------------------------------------
+# 2b. MODULE G - shares over time
+#
+# The same measure as chart A (a country's papers in a field as a share of all
+# countries' papers in that field), year by year, for Australia, the United
+# States and China. One OpenAlex query per field and year, cached.
+# ------------------------------------------------------------------------------
+fetch_country_year <- function(tech, yr) {
+  message("Fetching: ", tech, " ", yr)
+  oa_group(c(paste0("publication_year:", yr), "type:article", "is_retracted:false", kw_filter(tech)),
+           group_by = "authorships.countries") |>
+    mutate(technology = tech, year = yr)
+}
+country_year <- cached(
+  "G_country_year_counts",
+  expand_grid(tech = names(TECHNOLOGIES), yr = YEARS) |>
+    pmap_dfr(function(tech, yr) fetch_country_year(tech, yr))
+)
+share_time <- country_year |>
+  group_by(technology, year) |> mutate(world = sum(n)) |> ungroup()
+share_time <- bind_rows(
+  country_is(share_time, "AU", "Australia") |> mutate(country = "Australia"),
+  country_is(share_time, "US", "United States") |> mutate(country = "United States"),
+  country_is(share_time, "CN", "China") |> mutate(country = "China")) |>
+  transmute(technology, year, country, papers = n, share = n / world) |>
+  mutate(country = factor(country, levels = c("Australia", "United States", "China")),
+         technology = factor(technology, levels = rev(tech_order)))
+last_year <- max(YEARS)
+p_g <- share_time |>
+  ggplot(aes(year, share, colour = country)) +
+  geom_line(linewidth = 1) +
+  facet_wrap(~ technology, ncol = 4, labeller = label_wrap_gen(22)) +
+  scale_colour_manual(values = c(Australia = AU_COL, `United States` = US_COL, China = CN_COL)) +
+  scale_y_continuous(labels = percent_format(accuracy = 1), limits = c(0, NA)) +
+  scale_x_continuous(breaks = c(2016, 2020, 2024)) +                    # inner years, so neighbouring panels' labels don't touch
+  labs(
+    title    = "Share of world publications over time, by critical technology",
+    subtitle = paste0("Share of world publications, ", min(YEARS), "-", last_year),
+    x = NULL, y = NULL, colour = NULL,
+    caption = paste0("Source: OpenAlex. ", KW_NOTE, " Papers with authors in several countries count for each. ",
+                     last_year, " may be incomplete while recent papers are still being indexed. All panels on the same scale.")
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(plot.title = element_text(face = "bold"), plot.title.position = "plot",
+        strip.text = element_text(face = "bold", hjust = 0.5), panel.grid.minor = element_blank(),
+        panel.spacing.x = unit(1.2, "lines"),
+        legend.position = "top")
+ggsave("G_share_over_time.png", p_g, width = 10, height = 6.2, dpi = 150, bg = "white")
 
 
 # ------------------------------------------------------------------------------
@@ -428,11 +484,10 @@ p_d <- collab |>
                      expand = expansion(c(0, 0.05))) +
   labs(
     title    = "Australian publications with U.S. and Chinese co-authors",
-    subtitle = paste0("Share of Australian publications ", min(YEARS), "-", max(YEARS),
-                      " with at least one co-author institution in each country"),
+    subtitle = paste0("Share of all Australian publications in each field, ", min(YEARS), "-", max(YEARS),
+                      ", co-authored with a U.S. or Chinese institution"),
     x = NULL, y = NULL, fill = NULL,
-    caption = paste0("Source: OpenAlex. Shares overlap: a paper can have both U.S. and Chinese co-authors.
-", KW_NOTE)
+    caption = paste0("Source: OpenAlex. Shares overlap: a paper can have both U.S. and Chinese co-authors. ", KW_NOTE)
   ) +
   theme_minimal(base_size = 13) +
   theme(plot.title = element_text(face = "bold"),
@@ -502,9 +557,11 @@ p_e <- model_countries |>
   scale_x_continuous(labels = comma, expand = expansion(c(0, 0.04))) +
   labs(
     title    = "Notable AI models by country",
-    subtitle = "Notable AI models by country of developing organization, 2015 onward. Hover over a bar for the count.",
+    subtitle = "Notable AI models by country of developing organization, 2015 onward",
     x = NULL, y = NULL,
-    caption = "Source: Epoch AI, 'Data on AI Models' (CC-BY)."
+    caption = paste("Source: Epoch AI, 'Data on AI Models' (CC-BY).",
+                    "Note: Notable models are those Epoch AI judges to have advanced the state of the art,",
+                    "been highly cited, been historically significant or been widely used.")
   ) +
   theme_minimal(base_size = 13) +
   theme(plot.title = element_text(face = "bold"),
@@ -551,7 +608,9 @@ if (is.null(rd) || nrow(rd) == 0) {
   rd_plot <- rd |>
     filter(!is.na(gerd)) |>
     mutate(who = case_when(iso3c == "AUS" ~ "au", iso3c == "USA" ~ "us", iso3c == "CHN" ~ "cn", TRUE ~ "other"),
-           iso2c = iso2[iso3c]) |>
+           iso2c = iso2[iso3c],
+           country_name = c(AUS = "Australia", USA = "United States", CHN = "China", GBR = "United Kingdom", JPN = "Japan",
+                            KOR = "South Korea", CAN = "Canada", DEU = "Germany", ISR = "Israel")[iso3c]) |>
     arrange(iso3c, year)
 
   # One label per country, at its most recent year
@@ -562,19 +621,21 @@ if (is.null(rd) || nrow(rd) == 0) {
 
   p_f <- ggplot(rd_plot, aes(year, gerd, group = iso3c)) +
     geom_line(aes(colour = who, linewidth = who)) +
-    geom_text(
+    # Country names at the line ends, spaced so they don't overlap
+    ggrepel::geom_text_repel(
       data = rd_labels,
-      aes(label = iso2c, colour = who),
-      hjust = -0.3, size = 3.6, show.legend = FALSE
+      aes(label = country_name, colour = who),
+      hjust = 0, direction = "y", nudge_x = 0.4, xlim = c(max(rd_plot$year) + 0.3, NA),
+      size = 3.6, segment.colour = NA, min.segment.length = Inf, show.legend = FALSE
     ) +
     scale_colour_manual(values = c(au = AU_COL, us = US_COL, cn = CN_COL, other = OTHER_COL),
                         guide = "none") +
     scale_linewidth_manual(values = c(au = 1.2, us = 1.2, cn = 0.9, other = 0.6),
                            guide = "none") +
-    scale_x_continuous(expand = expansion(c(0.02, 0.06))) +
+    scale_x_continuous(expand = expansion(c(0.02, 0.22))) +                # room for country names
     labs(
-      title    = "R&D intensity, Australia and comparators",
-      subtitle = "Gross domestic expenditure on R&D, percent of GDP. Australia in navy, the United States in red, China in gold",
+      title    = "R&D intensity",
+      subtitle = "Gross domestic expenditure on R&D, percent of GDP",
       x = NULL, y = NULL,
       caption = paste("Source: OECD, Main Science and Technology Indicators (from the ABS R&D surveys for Australia,",
                       "\nwhich are run every second year).")

@@ -194,11 +194,12 @@
 "TOT","2026-01-01","2062.551","1559.9555","All countries","Imports of computers and parts, per month (12-month moving average)",
 "TOT","2026-02-01","1062.869","1581.64691666667","All countries","Imports of computers and parts, per month (12-month moving average)",
 "TOT","2026-03-01","3974.725","1824.76916666667","All countries","Imports of computers and parts, per month (12-month moving average)",
-"TOT","2026-04-01","2378.559","1899.56583333333","All countries","Imports of computers and parts, per month (12-month moving average)",
-"TOT","2026-05-01","1899.24","1935.54566666667","All countries","Imports of computers and parts, per month (12-month moving average)",
-"TOT","2026-06-01","1794.397","1933.63983333333","All countries","Imports of computers and parts, per month (12-month moving average)",
-"TOT","2026-07-01","2350.346","2003.31075","All countries","Imports of computers and parts, per month (12-month moving average)",
-"TOT","2026-08-01","4319.571","2213.8335","All countries","Imports of computers and parts, per month (12-month moving average)",
+"TOT","2026-04-01","2378.557","1899.56566666667","All countries","Imports of computers and parts, per month (12-month moving average)",
+"TOT","2026-05-01","1899.24","1935.5455","All countries","Imports of computers and parts, per month (12-month moving average)",
+"TOT","2026-06-01","1789.395","1933.22283333333","All countries","Imports of computers and parts, per month (12-month moving average)",
+"TOT","2026-07-01","2349.282","2002.80508333333","All countries","Imports of computers and parts, per month (12-month moving average)",
+"TOT","2026-08-01","4316.116","2213.03991666667","All countries","Imports of computers and parts, per month (12-month moving average)",
+"TOT","2026-09-01","4570.055","2419.65641666667","All countries","Imports of computers and parts, per month (12-month moving average)",
 "USA","2010-01-01","36.208","50.5289166666667","From the U.S.","Imports of computers and parts, per month (12-month moving average)",
 "USA","2010-02-01","35.315","49.5803333333333","From the U.S.","Imports of computers and parts, per month (12-month moving average)",
 "USA","2010-03-01","53.999","48.04","From the U.S.","Imports of computers and parts, per month (12-month moving average)",
@@ -396,9 +397,10 @@
 "USA","2026-03-01","630.61","350.249416666667","From the U.S.","Imports of computers and parts, per month (12-month moving average)",
 "USA","2026-04-01","601.026","380.700666666667","From the U.S.","Imports of computers and parts, per month (12-month moving average)",
 "USA","2026-05-01","419.548","388.277416666667","From the U.S.","Imports of computers and parts, per month (12-month moving average)",
-"USA","2026-06-01","122.703","367.566416666667","From the U.S.","Imports of computers and parts, per month (12-month moving average)",
-"USA","2026-07-01","207.211","371.456","From the U.S.","Imports of computers and parts, per month (12-month moving average)",
-"USA","2026-08-01","272.941","358.864666666667","From the U.S.","Imports of computers and parts, per month (12-month moving average)",
+"USA","2026-06-01","117.699","367.149416666667","From the U.S.","Imports of computers and parts, per month (12-month moving average)",
+"USA","2026-07-01","207.22","371.03975","From the U.S.","Imports of computers and parts, per month (12-month moving average)",
+"USA","2026-08-01","265.328","357.814","From the U.S.","Imports of computers and parts, per month (12-month moving average)",
+"USA","2026-09-01","878.914","394.670333333333","From the U.S.","Imports of computers and parts, per month (12-month moving average)",
 ,"2010-03-01",,,"Equipment capex, information media and telecoms","Information Media & Telecommunications equipment capex, per year (rolling four-quarter sum)",
 ,"2010-06-01",,,"Equipment capex, information media and telecoms","Information Media & Telecommunications equipment capex, per year (rolling four-quarter sum)",
 ,"2010-09-01",,,"Equipment capex, information media and telecoms","Information Media & Telecommunications equipment capex, per year (rolling four-quarter sum)",
@@ -660,11 +662,12 @@
 "TOT","2026-01-01","2062.551","1559.9555","All countries","Imports of computers and parts, per month (12-month moving average)","GeomLine"
 "TOT","2026-02-01","1062.869","1581.64691666667","All countries","Imports of computers and parts, per month (12-month moving average)","GeomLine"
 "TOT","2026-03-01","3974.725","1824.76916666667","All countries","Imports of computers and parts, per month (12-month moving average)","GeomLine"
-"TOT","2026-04-01","2378.559","1899.56583333333","All countries","Imports of computers and parts, per month (12-month moving average)","GeomLine"
-"TOT","2026-05-01","1899.24","1935.54566666667","All countries","Imports of computers and parts, per month (12-month moving average)","GeomLine"
-"TOT","2026-06-01","1794.397","1933.63983333333","All countries","Imports of computers and parts, per month (12-month moving average)","GeomLine"
-"TOT","2026-07-01","2350.346","2003.31075","All countries","Imports of computers and parts, per month (12-month moving average)","GeomLine"
-"TOT","2026-08-01","4319.571","2213.8335","All countries","Imports of computers and parts, per month (12-month moving average)","GeomLine"
+"TOT","2026-04-01","2378.557","1899.56566666667","All countries","Imports of computers and parts, per month (12-month moving average)","GeomLine"
+"TOT","2026-05-01","1899.24","1935.5455","All countries","Imports of computers and parts, per month (12-month moving average)","GeomLine"
+"TOT","2026-06-01","1789.395","1933.22283333333","All countries","Imports of computers and parts, per month (12-month moving average)","GeomLine"
+"TOT","2026-07-01","2349.282","2002.80508333333","All countries","Imports of computers and parts, per month (12-month moving average)","GeomLine"
+"TOT","2026-08-01","4316.116","2213.03991666667","All countries","Imports of computers and parts, per month (12-month moving average)","GeomLine"
+"TOT","2026-09-01","4570.055","2419.65641666667","All countries","Imports of computers and parts, per month (12-month moving average)","GeomLine"
 "USA","2010-01-01","36.208","50.5289166666667","From the U.S.","Imports of computers and parts, per month (12-month moving average)","GeomLine"
 "USA","2010-02-01","35.315","49.5803333333333","From the U.S.","Imports of computers and parts, per month (12-month moving average)","GeomLine"
 "USA","2010-03-01","53.999","48.04","From the U.S.","Imports of computers and parts, per month (12-month moving average)","GeomLine"
@@ -862,6 +865,7 @@
 "USA","2026-03-01","630.61","350.249416666667","From the U.S.","Imports of computers and parts, per month (12-month moving average)","GeomLine"
 "USA","2026-04-01","601.026","380.700666666667","From the U.S.","Imports of computers and parts, per month (12-month moving average)","GeomLine"
 "USA","2026-05-01","419.548","388.277416666667","From the U.S.","Imports of computers and parts, per month (12-month moving average)","GeomLine"
-"USA","2026-06-01","122.703","367.566416666667","From the U.S.","Imports of computers and parts, per month (12-month moving average)","GeomLine"
-"USA","2026-07-01","207.211","371.456","From the U.S.","Imports of computers and parts, per month (12-month moving average)","GeomLine"
-"USA","2026-08-01","272.941","358.864666666667","From the U.S.","Imports of computers and parts, per month (12-month moving average)","GeomLine"
+"USA","2026-06-01","117.699","367.149416666667","From the U.S.","Imports of computers and parts, per month (12-month moving average)","GeomLine"
+"USA","2026-07-01","207.22","371.03975","From the U.S.","Imports of computers and parts, per month (12-month moving average)","GeomLine"
+"USA","2026-08-01","265.328","357.814","From the U.S.","Imports of computers and parts, per month (12-month moving average)","GeomLine"
+"USA","2026-09-01","878.914","394.670333333333","From the U.S.","Imports of computers and parts, per month (12-month moving average)","GeomLine"

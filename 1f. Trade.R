@@ -1373,7 +1373,7 @@ make_services_partner <- function(cur) {
     labs(
       title = "Australia's services trade by partner",
       subtitle = paste0("Services exports and imports, ten largest partners by two-way trade, ", cur_sym[[cur]], ", ",
-                        svc_yr, ". Hover over a bar for its value and share."),
+                        svc_yr, "."),
       x = NULL, y = NULL,
       caption = paste0("Source: ABS, International Trade: Supplementary Information, Calendar Year ", svc_yr, ".\n",
                        paste(svc_notes, collapse = " "),
@@ -1445,7 +1445,7 @@ make_goods_partner <- function(cur) {
     labs(
       title = "Australia's goods trade by partner",
       subtitle = paste0("Goods exports and imports, ten largest partners by two-way trade, ", cur_sym[[cur]], ", ",
-                        goods_yr, ". Hover over a bar for its value and share."),
+                        goods_yr, "."),
       x = NULL, y = NULL,
       caption = paste0("Source: DFAT, Australia's goods exports and imports by country and commodity ",
                        "(ABS cat. 5368.0), calendar ", goods_yr, ".\n",
