@@ -1,17 +1,20 @@
-"technology","partner","n","au_total","share"
-"Advanced comms (5G/6G)","with China","254","522","0.486590038314176"
-"Advanced comms (5G/6G)","with United States","53","522","0.101532567049808"
-"Artificial intelligence","with China","9198","33157","0.277407485598818"
-"Artificial intelligence","with United States","5030","33157","0.151702506258105"
-"Autonomous systems and robotics","with China","659","2139","0.308087891538102"
-"Autonomous systems and robotics","with United States","199","2139","0.0930341280972417"
-"Critical minerals processing","with China","46","150","0.306666666666667"
-"Critical minerals processing","with United States","8","150","0.0533333333333333"
-"Cybersecurity","with China","226","1278","0.176838810641628"
-"Cybersecurity","with United States","127","1278","0.0993740219092332"
-"Quantum computing","with China","247","1398","0.176680972818312"
-"Quantum computing","with United States","341","1398","0.243919885550787"
-"Quantum sensing and comms","with China","73","418","0.174641148325359"
-"Quantum sensing and comms","with United States","79","418","0.188995215311005"
-"Semiconductors","with China","83","287","0.289198606271777"
-"Semiconductors","with United States","44","287","0.153310104529617"
+"technology","partner","n","au_total","share","yintercept","layer"
+"Advanced comms (5G/6G)","with China","254","522","0.486590038314176",,
+"Advanced comms (5G/6G)","with United States","53","522","0.101532567049808",,
+"All publications","with China","145349","1026207","0.141637116098409",,
+"All publications","with United States","158750","1026207","0.154695884943291",,
+"Artificial intelligence","with China","9198","33157","0.277407485598818",,
+"Artificial intelligence","with United States","5030","33157","0.151702506258105",,
+"Autonomous systems and robotics","with China","659","2139","0.308087891538102",,
+"Autonomous systems and robotics","with United States","199","2139","0.0930341280972417",,
+"Critical minerals processing","with China","46","150","0.306666666666667",,
+"Critical minerals processing","with United States","8","150","0.0533333333333333",,
+"Cybersecurity","with China","226","1278","0.176838810641628",,
+"Cybersecurity","with United States","127","1278","0.0993740219092332",,
+"Quantum computing","with China","247","1398","0.176680972818312",,
+"Quantum computing","with United States","341","1398","0.243919885550787",,
+"Quantum sensing and comms","with China","73","418","0.174641148325359",,
+"Quantum sensing and comms","with United States","79","418","0.188995215311005",,
+"Semiconductors","with China","83","287","0.289198606271777",,
+"Semiconductors","with United States","44","287","0.153310104529617",,
+,,,,,"1.5","GeomHline"
