@@ -444,6 +444,7 @@ annual_us <- patent_flags[
   by = filing_year
 ][order(filing_year)]
 
+fwrite(annual_us[, share_us := n_us / n_total], "annual_us_applicants.csv")   # also used by the Home page headline
 annual_us[, share_us := n_us / n_total]   # share of all standard applications, as IP Australia publishes   # denominator excludes patents with
 # no applicant party record at all
 
@@ -471,9 +472,9 @@ p_share <- ggplot(annual_us, aes(filing_year, share_us)) +
   geom_point(size = 1.4, colour = "#D2232A") +
   scale_x_continuous(breaks = scales::pretty_breaks(8)) +
   scale_y_continuous(labels = scales::percent_format(accuracy = 1),
-                     limits = c(0.3, NA)) +
+                     limits = c(0, NA)) +
   labs(title = "U.S. share of Australian patent applications",
-       subtitle = "Share of all standard complete applications",
+       subtitle = "Share of all standard complete applications with a known U.S. applicant or owner",
        x = NULL, y = NULL,
        caption = paste0("Source: IP Australia, IP RAPID.
 ", LAG_NOTE)) +
@@ -538,7 +539,7 @@ tm_date_basis <- "application_date"
 # originally filed, excluding later assignees/owners.
 tm_founding_only <- FALSE
 
-# Trade marks have a much shorter reporting lag than patents (no 30-month PCT
+# Trademarks have a much shorter reporting lag than patents (no 30-month PCT
 # route), so only the current, incomplete year is dropped.
 tm_year_min <- 1990L
 tm_year_max <- year(Sys.Date()) - 1L
@@ -549,7 +550,7 @@ to_bool <- function(x) {
 }
 
 # ------------------------------------------------------------------------------
-# 8.1 Applications -> trade marks
+# 8.1 Applications -> trademarks
 # ------------------------------------------------------------------------------
 
 tm_apps <- read_iprapid(app_file)
@@ -560,7 +561,7 @@ rm(tm_apps); invisible(gc())
 trade_marks[, ip_right_sub_type := tolower(trimws(ip_right_sub_type))]
 trade_marks[, status := tolower(trimws(status))]
 
-cat("trade marks: ", format(nrow(trade_marks), big.mark = ","), "\n", sep = "")
+cat("trademarks: ", format(nrow(trade_marks), big.mark = ","), "\n", sep = "")
 print(trade_marks[, .N, by = ip_right_sub_type][order(-N)])
 print(trade_marks[, .N, by = status][order(-N)])
 
@@ -619,11 +620,11 @@ if (tm_founding_only) {
   tm_party[, is_applicant := party_role_category == "applicant"]
 }
 
-cat("party_activity (trade marks): ", format(nrow(tm_party), big.mark = ","),
+cat("party_activity (trademarks): ", format(nrow(tm_party), big.mark = ","),
     " rows\n", sep = "")
 
 # ------------------------------------------------------------------------------
-# 8.4 Application links -> one row per trade mark
+# 8.4 Application links -> one row per trademark
 # ------------------------------------------------------------------------------
 
 tm_links <- read_iprapid(links_file, select = links_cols)
@@ -665,8 +666,8 @@ for (v in c("is_madrid_import", "is_madrid_export", "has_convention", "conv_us")
 }
 
 n_tm <- uniqueN(tm_ids)
-cat("\n--- trade mark join summary ---\n")
-cat("unique trade marks:     ", format(n_tm, big.mark = ","), "\n")
+cat("\n--- trademark join summary ---\n")
+cat("unique trademarks:     ", format(n_tm, big.mark = ","), "\n")
 cat("with >=1 party record:  ", format(uniqueN(tm_party$application_number), big.mark = ","), "\n")
 cat("with >=1 link:          ", format(uniqueN(tm_links$application_number), big.mark = ","), "\n")
 cat("Madrid imports:         ", format(sum(tm_links_agg$is_madrid_import), big.mark = ","), "\n")
@@ -677,7 +678,7 @@ rm(tm_links); invisible(gc())
 saveRDS(tm_full, file.path(out_dir, "trade_marks_parties_links.rds"))
 
 # ------------------------------------------------------------------------------
-# 8.6 Australian trade mark applications with at least one US applicant
+# 8.6 Australian trademark applications with at least one US applicant
 # ------------------------------------------------------------------------------
 
 stopifnot(all(c("is_applicant", "country_code") %in% names(tm_full)))
@@ -702,7 +703,7 @@ tm_annual_us <- tm_flags[
 tm_annual_us[, share_us := n_us / n_total]            # excludes marks with no applicant record
 tm_annual_us[, share_us_via_madrid := n_us_madrid / n_us]
 
-cat("\n--- U.S.-applicant trade marks ---\n")
+cat("\n--- U.S.-applicant trademarks ---\n")
 print(tail(tm_annual_us, 15))
 fwrite(tm_annual_us, file.path(out_dir, "annual_us_trade_marks_full.csv"))
 
@@ -714,8 +715,8 @@ p_tm_count <- ggplot(tm_annual_us, aes(filing_year, n_us)) +
   scale_x_continuous(breaks = scales::pretty_breaks(8)) +
   scale_y_continuous(labels = scales::comma) +
   labs(
-    title    = "Australian trade mark applications with a U.S. applicant",
-    subtitle = paste0("Standard trade mark applications, by ", tm_subtitle_basis),
+    title    = "Australian trademark applications with a U.S. applicant",
+    subtitle = paste0("Standard trademark applications, by ", tm_subtitle_basis),
     x = NULL, y = "Applications",
     caption  = "Source: IP Australia, IP RAPID"
   ) +
@@ -729,8 +730,8 @@ p_tm_share <- ggplot(tm_annual_us, aes(filing_year, share_us)) +
   scale_x_continuous(breaks = scales::pretty_breaks(8)) +
   scale_y_continuous(labels = scales::percent_format(accuracy = 1),
                      limits = c(0, NA)) +
-  labs(title = "U.S. share of Australian trade mark applications",
-       subtitle = "Share of all standard trade mark applications",
+  labs(title = "U.S. share of Australian trademark applications",
+       subtitle = "Share of all standard trademark applications with a known U.S. applicant or owner",
        x = NULL, y = NULL,
        caption = "Source: IP Australia, IP RAPID") +
   theme_minimal(base_size = 12) +
@@ -744,7 +745,7 @@ ggsave("us_applicants_tm_count.png", p_tm_count, width = 9, height = 5, dpi = 15
 ggsave("us_applicants_tm_share.png", p_tm_share, width = 9, height = 5, dpi = 150)
 export_chart_csv(p_tm_count, "us_applicants_tm_count.csv", y_format = "number")
 export_chart_csv(p_tm_share, "us_applicants_tm_share.csv", y_format = "percent",
-                 notes = "Denominator is all standard trade mark applications; years are application dates in Australia")
+                 notes = "Denominator is all standard trademark applications; years are application dates in Australia")
 
 
 # ==============================================================================
@@ -1031,7 +1032,7 @@ p_field_share <- ggplot(plot_fs, aes(share_us, field)) +
   geom_vline(xintercept = tot_share_us, linetype = "dashed", colour = "grey40") +
   scale_x_continuous(labels = scales::percent_format(accuracy = 1),
                      expand = expansion(mult = c(0, 0.05))) +
-  labs(title    = "U.S. share of Australian patent applications by technology field",
+  labs(title    = "U.S. share of Australian patent applications, by technology field",
        subtitle = paste0("Standard complete applications, ", window_lab,
                          ". Dashed line = U.S. share across all fields"),
        x = NULL, y = NULL,
@@ -1077,7 +1078,7 @@ p_collab_trend <- ggplot(collab_annual, aes(filing_year, n_us_au)) +
   geom_point(size = 1.4, colour = "#0098A8") +
   scale_x_continuous(breaks = scales::pretty_breaks(8)) +
   scale_y_continuous(labels = scales::comma, limits = c(0, NA)) +
-  labs(title    = "Patent applications with both U.S. and Australian applicants",
+  labs(title    = "Joint U.S.-Australian patent applications in Australia",
        subtitle = "Standard complete applications filed in Australia",
        x = NULL, y = "Applications",
        caption  = paste0("Source: IP Australia, IP RAPID.
@@ -1092,7 +1093,7 @@ p_collab_fields <- ggplot(plot_cf, aes(n_us_au, field)) +
   geom_col(fill = "#0098A8", width = 0.7) +
   scale_y_discrete(labels = field_name_only) +
   scale_x_continuous(labels = scales::comma, expand = expansion(mult = c(0, 0.05))) +
-  labs(title    = "Where U.S. and Australian applicants file together",
+  labs(title    = "Joint U.S.-Australian patent applications in Australia, by technology field",
        subtitle = paste0("Co-applied patent applications by technology field, ", window_lab),
        x = "Applications", y = NULL,
        caption  = "Source: IP Australia, IP RAPID. Applications split across fields, so counts can be fractional.") +
@@ -1206,18 +1207,18 @@ export_chart_csv(p_collab_states, "us_au_coapplied_states.csv", y_format = "numb
 # ==============================================================================
 # 10. TRADE MARKS — Nice classes and US–Australian co-applicants
 #
-# Run after the trade mark block (section 8) and section 9.0 (helpers).
+# Run after the trademark block (section 8) and section 9.0 (helpers).
 # Uses from section 8: trade_marks, tm_full, tm_ids, tm_year_min, tm_year_max,
 #   tm_date_basis (applicant flag is_applicant respects tm_founding_only).
 # Uses from section 9.0: to_bool(), pretty_label(), theme_chart(),
 #   clean_au_state(), export_chart_csv(), first_word(), generic_words.
 #   (first_word / generic_words are defined in 9.4 — run that too, or copy them.)
 #
-# Dictionary notes (Table 8, application-classification) for trade marks:
+# Dictionary notes (Table 8, application-classification) for trademarks:
 #   * classification_system = Nice; classification_area replicates the Nice class
 #   * coarse_classification_area = whether the whole mark covers goods only,
 #     services only, or both (a mark-level attribute repeated on each row)
-#   * classification_importance is not populated for trade marks, so there is
+#   * classification_importance is not populated for trademarks, so there is
 #     no "primary" class: a multi-class mark is split fractionally or counted
 #     once per class (tm_class_method below).
 # ==============================================================================
@@ -1280,7 +1281,7 @@ nice_group_lookup <- data.table(
 stopifnot(setequal(nice_group_lookup$class_no, 1:45))
 
 # ------------------------------------------------------------------------------
-# 10.1 Classification -> class weights per trade mark
+# 10.1 Classification -> class weights per trademark
 # ------------------------------------------------------------------------------
 
 wanted <- c(join_keys, "is_current", "classification_system",
@@ -1308,7 +1309,7 @@ tm_class_w[, w := if (tm_class_method == "fractional") 1 / .N else 1, by = appli
 tm_class_w <- merge(tm_class_w, nice_group_lookup, by = "class_no")
 tm_class_w[, class_label := sprintf("Class %d: %s", class_no, nice_labels[class_no])]
 
-cat("trade marks with a current Nice class: ",
+cat("trademarks with a current Nice class: ",
     format(uniqueN(tm_class_w$application_number), big.mark = ","), " of ",
     format(length(tm_ids), big.mark = ","), "\n", sep = "")
 cat("mean classes per mark: ",
@@ -1346,7 +1347,7 @@ tm_level[is.na(us), `:=`(us = FALSE, au = FALSE)]
 tm_level[, us_au := us & au]
 tm_level <- tm_level[filing_year %between% c(tm_year_min, tm_year_max)]
 
-cat("\nU.S.-AU co-applied trade marks, all years: ", tm_level[us_au == TRUE, .N], "\n", sep = "")
+cat("\nU.S.-AU co-applied trademarks, all years: ", tm_level[us_au == TRUE, .N], "\n", sep = "")
 
 # ------------------------------------------------------------------------------
 # 10.3 Nice classes
@@ -1393,14 +1394,14 @@ p_tm_class_share <- ggplot(plot_tc, aes(share_us, class_label)) +
   geom_vline(xintercept = tm_tot_share_us, linetype = "dashed", colour = "grey40") +
   scale_x_continuous(labels = scales::percent_format(accuracy = 1),
                      expand = expansion(mult = c(0, 0.05))) +
-  labs(title    = "U.S. share of Australian trade mark applications by Nice class",
-       subtitle = paste0("Standard trade mark applications, ", tm_window_lab,
+  labs(title    = "U.S. share of Australian trademark applications, by Nice class",
+       subtitle = paste0("Standard trademark applications, ", tm_window_lab,
                          ". Dashed line = U.S. share across all classes"),
        x = NULL, y = NULL,
        caption  = "Source: IP Australia, IP RAPID. Nice classification; class names shortened.") +
   theme_chart(horizontal_bars = TRUE)
 
-# Chart 2: US trade marks by class group over time
+# Chart 2: US trademarks by class group over time
 tm_group_trend <- merge(tm_class_w, tm_level[known == TRUE & us == TRUE],
                         by = "application_number")[
                           , .(n_us = round(sum(w), 1)), by = .(filing_year, class_group)][order(class_group, filing_year)]
@@ -1416,8 +1417,8 @@ p_tm_group_trend <- ggplot(tm_group_trend, aes(filing_year, n_us, colour = class
   scale_colour_manual(values = tm_group_pal) +
   scale_x_continuous(breaks = scales::pretty_breaks(8)) +
   scale_y_continuous(labels = scales::comma) +
-  labs(title    = "Australian trade mark applications with a U.S. applicant, by sector",
-       subtitle = "Standard trade mark applications grouped by Nice class",
+  labs(title    = "Australian trademark applications with a U.S. applicant, by sector",
+       subtitle = "Standard trademark applications grouped by Nice class",
        x = NULL, y = "Applications", colour = NULL,
        caption  = "Source: IP Australia, IP RAPID. Multi-class applications split across sectors.") +
   theme_chart() +
@@ -1434,19 +1435,19 @@ tm_collab_annual <- tm_level[known == TRUE,
 tm_collab_annual[, share_of_us_with_au := n_us_au / n_us]
 fwrite(tm_collab_annual, file.path(out_dir, "tm_us_au_coapplied_annual_full.csv"))
 
-# Chart 3: co-applied trade marks per year
+# Chart 3: co-applied trademarks per year
 p_tm_collab_trend <- ggplot(tm_collab_annual, aes(filing_year, n_us_au)) +
   geom_line(linewidth = 0.8, colour = "#0098A8") +
   geom_point(size = 1.4, colour = "#0098A8") +
   scale_x_continuous(breaks = scales::pretty_breaks(8)) +
   scale_y_continuous(labels = scales::comma, limits = c(0, NA)) +
-  labs(title    = "Trade mark applications with both U.S. and Australian applicants",
-       subtitle = "Standard trade mark applications filed in Australia",
+  labs(title    = "Joint U.S.-Australian trademark applications in Australia",
+       subtitle = "Standard trademark applications filed in Australia",
        x = NULL, y = "Applications",
        caption  = "Source: IP Australia, IP RAPID") +
   theme_chart()
 
-# Chart 4: co-applied trade marks by Nice class (recent window, top 15)
+# Chart 4: co-applied trademarks by Nice class (recent window, top 15)
 plot_tcf <- head(tct[n_us_au > 0][order(-n_us_au)], 15)[order(n_us_au)]
 plot_tcf[, `:=`(class_label = factor(class_label, levels = class_label),
                 n_us_au = round(n_us_au, 1))]
@@ -1455,8 +1456,8 @@ p_tm_collab_classes <- ggplot(plot_tcf, aes(n_us_au, class_label)) +
   geom_col(fill = "#0098A8", width = 0.7) +
   scale_y_discrete(labels = class_name_only) +
   scale_x_continuous(labels = scales::comma, expand = expansion(mult = c(0, 0.05))) +
-  labs(title    = "Where U.S. and Australian applicants register brands together",
-       subtitle = paste0("Co-applied trade mark applications by Nice class, ", tm_window_lab),
+  labs(title    = "Joint U.S.-Australian trademark applications in Australia, by Nice class",
+       subtitle = paste0("Co-applied trademark applications by Nice class, ", tm_window_lab),
        x = "Applications", y = NULL,
        caption  = "Source: IP Australia, IP RAPID. Multi-class applications split across classes.") +
   theme_chart(horizontal_bars = TRUE)
@@ -1484,8 +1485,8 @@ plot_tst[, state := factor(state, levels = state)]
 p_tm_collab_states <- ggplot(plot_tst, aes(n_us_au, state)) +
   geom_col(fill = "#0098A8", width = 0.7) +
   scale_x_continuous(labels = scales::comma, expand = expansion(mult = c(0, 0.05))) +
-  labs(title    = "Location of Australian co-applicants on U.S.–Australian trade marks",
-       subtitle = paste0("Trade mark applications by state of the Australian applicant, ", tm_window_lab),
+  labs(title    = "Location of Australian co-applicants on U.S.–Australian trademarks",
+       subtitle = paste0("Trademark applications by state of the Australian applicant, ", tm_window_lab),
        x = "Applications", y = NULL,
        caption  = "Source: IP Australia, IP RAPID. An application with partners in two states counts in both.") +
   theme_chart(horizontal_bars = TRUE)
@@ -1518,7 +1519,7 @@ tm_au_partners <- tm_au_side[, .(n_applications = uniqueN(application_number),
                              by = .(au_name, au_type)][order(-n_applications)]
 fwrite(tm_au_partners, file.path(out_dir, "tm_us_au_australian_partners.csv"))
 
-cat("\nTop U.S.-AU trade mark pairs,", tm_window_lab, "\n")
+cat("\nTop U.S.-AU trademark pairs,", tm_window_lab, "\n")
 print(head(tm_pair_tab, 20))
 cat("\nShare of pairs flagged as possible same corporate group: ",
     round(tm_pair_tab[, weighted.mean(possible_same_group, n_applications)], 3), "\n", sep = "")
@@ -1599,9 +1600,9 @@ local({
     ca$n_us_au, ca$filing_year, 100 * ca$share_of_us_with_au))
   t <- tm_annual_us[order(filing_year)][.N]
   takeaway(pt("us_applicants_tm_count.png"), sprintf(
-    "%s trade mark applications filed in Australia in %d had a U.S. applicant.",
+    "%s trademark applications filed in Australia in %d had a U.S. applicant.",
     format(t$n_us, big.mark = ","), t$filing_year))
   takeaway(pt("us_applicants_tm_share.png"), sprintf(
-    "U.S. applicants accounted for %.0f%% of Australian trade mark applications in %d; %.0f%% of them came through the Madrid system.",
+    "U.S. applicants accounted for %.0f%% of Australian trademark applications in %d; %.0f%% of them came through the Madrid system.",
     100 * t$share_us, t$filing_year, 100 * t$share_us_via_madrid))
 })

@@ -1,5 +1,5 @@
-﻿title,Location of Australian co-applicants on U.S.–Australian trade marks
-subtitle,"Trade mark applications by state of the Australian applicant, 2021–2025"
+﻿title,Location of Australian co-applicants on U.S.–Australian trademarks
+subtitle,"Trademark applications by state of the Australian applicant, 2021–2025"
 caption,"Source: IP Australia, IP RAPID. An application with partners in two states counts in both."
 chart_type,Horizontal bar
 category_variable,state
@@ -18,9 +18,9 @@ title_style,Bold
 notes,State of the Australian co-applicant. Applications with partners in two states count in both.
 
 state,n_us_au
-VIC,196
+VIC,195
 NSW,103
-QLD,83
+QLD,84
 SA,18
 WA,15
 ACT,0

@@ -304,7 +304,7 @@ ggplot(plot_dat, aes(x = value_bn, y = partner, fill = direction)) +
                      limits = c(0, x_max),
                      expand = expansion(mult = c(0, 0))) +
   labs(
-    title    = sprintf("Two-way investment between Australia and its partners, %d", YEAR),
+    title    = sprintf("Two-way investment between Australia and selected major partners, %d", YEAR),
     subtitle = sprintf("Level of investment at 31 December %d, %s billion", YEAR, cur_sym[[cur]]),
     caption  = paste("Source: ABS, International Investment Position, Australia:",
                      "Supplementary Statistics, Tables 2 and 5.",

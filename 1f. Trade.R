@@ -997,7 +997,7 @@ ggplot(plot_dat,
   ) +
   labs(
     #title    = "China's rise reshaped Australia's export base",
-    title = "Goods exports",
+    title = "Australian goods exports",
     subtitle = paste0("By destination, ", cur_sym[[cur]], " billion, 2006-", max(plot_dat$year),
                       ". Labels show each partner's rank among all destinations in ", max(plot_dat$year), "."),
     caption  = paste0(
@@ -1046,7 +1046,7 @@ p_shares_long <- ggplot(plot_dat,
                      expand = expansion(mult = c(0, 0.08))) +
   labs(
     #title    = "A third of Australia's goods exports go to a single market",
-    title = "Share of total goods exports",
+    title = "Share of Australia's total goods exports",
     subtitle = "By destination, 2006-2025",
     caption  = paste0(
       "Source: DFAT, Australia's goods exports and imports country ",
@@ -1219,7 +1219,7 @@ make_imports_long <- function(cur) plot_partner_series(
   scale_y_continuous(labels = label_dollar(prefix = cur_sym[[cur]], suffix = "bn", accuracy = 1),
                      limits = c(0, NA), expand = expansion(mult = c(0, 0.08))),
   #title    = "China supplies more than a quarter of Australia's goods imports",
-   title = "Goods imports by origin",
+   title = "Australian goods imports by origin",
   subtitle = paste0(cur_sym[[cur]], " billion, 2006-", max(imports_long$year),
                     ". Labels show each partner's rank among all sources in ", max(imports_long$year), "."),
   caption  = paste0(DFAT_SRC, GOODS_NOTE,
@@ -1240,7 +1240,7 @@ p_imports_share <- plot_partner_series(
   scale_y_continuous(labels = label_percent(accuracy = 1),
                      limits = c(0, NA), expand = expansion(mult = c(0, 0.08))),
   #title    = "Import sourcing has concentrated on a single supplier",
-   title = "Share of total goods imports",
+   title = "Share of Australia's total goods imports",
   subtitle = "By origin, 2006-2025",
   caption  = DFAT_SRC
 )
@@ -1280,7 +1280,7 @@ p_both <- ggplot(sec_latest |> mutate(sector = factor(sector, levels = sec_order
                     breaks = c("Exports", "Imports")) +
   scale_x_continuous(labels = label_percent(accuracy = 1), expand = expansion(mult = c(0, 0.12))) +
   labs(
-    title = "Goods trade by sector",
+    title = "Australia's goods trade by sector",
     subtitle = paste0("Share of all goods exports and of all goods imports, calendar ", sec_yr),
     caption  = paste0(DFAT_SRC, "
 Sectors are DFAT's four-way grouping of SITC 3-digit products."),

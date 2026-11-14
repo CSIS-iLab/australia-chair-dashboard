@@ -271,7 +271,8 @@ p_a <- three_share |>
     subtitle = paste0("Share of world publications, ", min(YEARS), "-", max(YEARS)),
     x = NULL, y = NULL, fill = NULL,
     caption = paste0("Source: OpenAlex.
-", OA_NOTE, " ", KW_NOTE, " All publications: the same measure across every field. Papers with authors in several countries count for each.")
+", OA_NOTE, " ", KW_NOTE, " All publications: the same measure across every field. Papers with authors in several countries count for each. ",
+                     max(YEARS), " may be incomplete while recent papers are still being indexed.")
   ) +
   theme_minimal(base_size = 13) +
   theme(plot.title = element_text(face = "bold"),
@@ -381,7 +382,7 @@ p_b <- quality_gap |>
   scale_x_continuous(labels = percent_format(accuracy = 0.1)) +
   labs(
     title    = "Australian share of world publications: all papers and top 10% cited",
-    subtitle = "Share of world output, all papers vs top decile by citations",
+    subtitle = "Share of world output, all papers vs the top 10% most cited",
     x = NULL, y = NULL, colour = NULL,
     caption = paste0("Source: OpenAlex.
 ", OA_NOTE, " ", KW_NOTE)
@@ -518,7 +519,8 @@ p_d <- collab |>
     x = NULL, y = NULL, fill = NULL,
     caption = paste0("Source: OpenAlex.
 ", OA_NOTE, " Shares overlap: a paper can have both U.S. and Chinese co-authors. ", KW_NOTE,
-                     " All publications: the same measure across every field.")
+                     " All publications: the same measure across every field. ", max(YEARS),
+                     " may be incomplete while recent papers are still being indexed.")
   ) +
   theme_minimal(base_size = 13) +
   theme(plot.title = element_text(face = "bold"),

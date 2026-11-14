@@ -12,9 +12,13 @@ removes price changes, so it measures growth in output.</li>
 adjusts for differences in prices between countries, so GDP per person
 and productivity compare what the money buys, not just the exchange
 rate.</li>
-<li><strong>Productivity.</strong> Output per hour worked. The growth
-chart is an index; the level chart compares the two countries in the
-same units.</li>
+<li><strong>Labor productivity.</strong> Output per hour worked: the
+inflation-adjusted value of goods and services produced, divided by hours
+worked. Output is the business part of GDP: the market sector in Australia
+(ABS) and the business sector in the U.S. (BLS). These
+leave out government, nonprofits and owner-occupied housing, where output
+is hard to measure. The growth chart is an index; the level chart compares
+the two countries in the same units.</li>
 <li><strong>Value added.</strong> What each industry adds to the
 economy: its output less the inputs it buys. Industries’ value added
 sums to GDP before taxes on products.</li>
@@ -31,21 +35,26 @@ accounts run July to June; U.S. data are calendar years.</li>
 </template>
 <template id="guide-intellectual-property">
 <ul>
+<li><strong>Applications in Australia.</strong> Every chart on this page
+counts applications filed with IP Australia to protect a patent or trade
+mark in Australia. Filings in the United States are not included.</li>
 <li><strong>Patent application.</strong> A request to IP Australia for a
 standard (complete) patent. Counted by the date it was filed in Australia
 (for international applications, the date they entered Australia), as in
 IP Australia's published figures.</li>
-<li><strong>U.S. applicant.</strong> At least one applicant or owner on
-the application has a U.S. address. This is ownership, not where the
-inventors live.</li>
-<li><strong>Joint filing.</strong> An application with both a U.S. and an
-Australian applicant.</li>
-<li><strong>Publication lag.</strong> Filings made through the
-international (PCT) route can reach Australia 30 months or more after
-they were first filed, so the latest years are incomplete. The patent
-time-series charts stop at the last complete year and leave them out.</li>
-<li><strong>Trade mark classes.</strong> The 45 Nice classes (1-34
-goods, 35-45 services) that a trade mark is registered for.</li>
+<li><strong>With a U.S. applicant.</strong> At least one applicant or owner on
+the application has a U.S. address, whether or not anyone else applies
+with them. This is ownership, not where the inventors live.</li>
+<li><strong>Joint U.S.-Australian filing.</strong> An application with at
+least one U.S. applicant and at least one Australian applicant. Joint
+filings are a subset of applications with a U.S. applicant, so every joint
+filing is also counted in the &ldquo;with a U.S. applicant&rdquo; charts.</li>
+<li><strong>Counting date.</strong> Applications are counted by the date
+they were filed in Australia; international (PCT) applications by the date
+they entered Australia, as in IP Australia's published figures. Every year
+shown is complete; the current year is left out until it ends.</li>
+<li><strong>Trademark classes.</strong> The 45 Nice classes (1-34
+goods, 35-45 services) that a trademark is registered for.</li>
 <li><strong>Madrid system.</strong> The international route for trade
 marks: one application through WIPO that designates Australia.</li>
 <li><strong>Sector and field.</strong> WIPO’s grouping of patent
@@ -78,19 +87,42 @@ there.</li>
 years (January to December).</li>
 </ul>
 </template>
+<template id="guide-trade-in-services">
+<ul>
+<li><strong>Exports and imports.</strong> A services export is a service an
+Australian resident sells to a foreign resident; an import is one an
+Australian resident buys from abroad. The ABS calls them credits and
+debits.</li>
+<li><strong>Charges for the use of intellectual property.</strong> Fees for
+using patents, trademarks, copyright, software, films and franchises. An
+<em>import</em> is a payment by an Australian resident to a foreign owner of
+the intellectual property (for example, royalties or licence fees an
+Australian business pays a U.S. company). An <em>export</em> is a payment by
+a foreign resident to an Australian owner.</li>
+<li><strong>Calendar years.</strong> All services figures here are calendar
+years (January to December).</li>
+</ul>
+</template>
 <template id="guide-energy">
 <ul>
-<li><strong>Generation mix.</strong> The share of electricity produced
-from each fuel. Rooftop (small-scale) solar is counted for both
-countries, including the U.S. states (EIA's estimate of small-scale
-solar by state), even though it is not sold through the grid.</li>
+<li><strong>Electricity only.</strong> The generation, price and cost
+charts cover electricity, not transport fuels or other energy use.</li>
+<li><strong>Net energy trade.</strong> Covers all energy: coal, natural gas,
+crude oil, refined fuels (including transport fuels), biofuels and
+electricity. It is measured against each country&rsquo;s total primary
+energy use, unlike the electricity-only charts. Uranium is not counted as
+energy trade.</li>
+<li><strong>Generation mix.</strong> The share of electricity produced from
+each source type. Rooftop (small-scale) solar is counted for both countries,
+including U.S. states (EIA's estimate of small-scale solar by state), even
+though it is not sold through the grid.</li>
+<li><strong>Rooftop and utility solar.</strong> Rooftop (small-scale) solar
+is panels on homes and businesses, mostly used where they are installed.
+Utility solar is large solar farms that sell power into the grid.</li>
 <li><strong>Renewables.</strong> Hydro, wind, solar, bioenergy and
-geothermal. Nuclear is low-carbon but not renewable; the dashed U.S. line
-adds nuclear to show all low-carbon generation.</li>
-<li><strong>Data center share of electricity.</strong> AEMO's forecast is
-a share of NEM operational consumption; the U.S. figures (LBNL, EPRI) are
-shares of total U.S. electricity use. Close enough to compare, not identical.</li>
-<li><strong>LCOE.</strong> Levelised cost of electricity: the lifetime
+geothermal. Nuclear is carbon-free but not renewable; the dashed U.S. line
+adds nuclear to show all carbon-free generation.</li>
+<li><strong>LCOE.</strong> Levelized cost of electricity: the lifetime
 cost of building and running a new plant, divided by the electricity it
 produces (per MWh). It compares technologies and countries on the same
 basis.</li>
@@ -101,14 +133,17 @@ prices are set close to delivery; day-ahead prices a day before.</li>
 Queensland, New South Wales, the ACT, Victoria, South Australia and
 Tasmania. Western Australia and the Northern Territory have separate
 grids.</li>
+<li><strong>ERCOT.</strong> The Electric Reliability Council of Texas, which
+runs the grid and wholesale market for most of Texas. CAISO, the California
+Independent System Operator, does the same for most of California.</li>
 <li><strong>Financial and calendar years.</strong> Australian energy
-statistics run July to June (financial years); the charts say which is
-used.</li>
+statistics are mostly financial years (July to June); some charts use
+calendar years. Each chart states which it uses.</li>
 <li><strong>MWh, GWh, TWh.</strong> Megawatt hours, gigawatt hours and
 terawatt hours (1 TWh = 1,000 GWh = 1 million MWh).</li>
 </ul>
 </template>
-<template id="guide-foreign-investment">
+<template id="guide-investment">
 <ul>
 <li><strong>International investment position.</strong> The stock of
 investment at a date (31 December), not the flow during the year. It
@@ -118,9 +153,13 @@ abroad.</strong> What foreign investors hold in Australia (Australia’s
 liabilities) and what Australians hold overseas (its assets).</li>
 <li><strong>Direct investment.</strong> A lasting interest in a business:
 10% or more of the voting power.</li>
-<li><strong>Portfolio investment.</strong> Shares and bonds below that
-threshold. <strong>Other</strong> covers loans, deposits, trade credit,
-financial derivatives and reserve assets.</li>
+<li><strong>Portfolio investment.</strong> Shares and bonds below the 10%
+direct-investment threshold.</li>
+<li><strong>Other investment.</strong> Other investment covers loans,
+deposits, trade credit, financial derivatives and reserve assets.</li>
+<li><strong>Partners shown.</strong> The two-way investment charts by
+partner and by type show selected major partners: the United States, the
+United Kingdom, Japan, Hong Kong, Canada, New Zealand and China.</li>
 <li><strong>Partner country.</strong> The ABS records the country of the
 immediate counterparty, so investment routed through a third country
 (for example a U.K. holding company owned in the U.S.) counts against
@@ -154,7 +193,7 @@ Australia if at least one author is at an Australian institution.</li>
 <li><strong>Critical technology fields.</strong> Keyword searches of paper
 titles and abstracts; the keywords are listed in
 Tech/technology_keywords.csv.</li>
-<li><strong>Top 10% cited.</strong> Papers among the most cited tenth in
+<li><strong>Top 10% cited.</strong> Papers in the top 10% most cited in
 their field and year, a common measure of research quality.</li>
 <li><strong>Collaboration.</strong> Papers with at least one co-author at an
 institution in the U.S. or China. Shares overlap: a paper can have
@@ -171,20 +210,29 @@ research and development as a share of GDP (OECD).</li>
 specialty occupations, usually needing a degree. Up to 10,500 new visas
 can be issued a year; renewals and family members do not count against
 the cap.</li>
-<li><strong>Skilled jobs certified.</strong> Before an E-3 visa, the U.S.
+<li><strong>Skilled jobs certified.</strong> Before an E-3 visa is issued, the U.S.
 employer files a Labor Condition Application (LCA) for the job with the
 Department of Labor, stating the role, pay and location. Employers file
 one for each new job, transfer and extension, so certified jobs run well
 above visas issued and are not a count of people.</li>
+<li><strong>F-1 and J-1 visas.</strong> F-1 is the U.S. student visa for
+full-time study at a university, college or school, valid for the length
+of the course. J-1 is the exchange visitor visa for approved exchange
+programs, such as study abroad, research, internships and work and travel,
+lasting from a few weeks to several years depending on the program.</li>
 <li><strong>U.S. fiscal year.</strong> October to September; FY2025 ended on
 30 September 2025.</li>
 <li><strong>Net overseas migration.</strong> Arrivals less departures of
 people who spend 12 months or more of a 16-month period in (or away from)
-Australia. Counted by country of birth, whatever the person’s
-citizenship.</li>
+Australia. Counts people born in the United States, whatever their
+citizenship: a U.S.-born person who is now an Australian citizen is
+included; a U.S. citizen born in another country is not.</li>
 <li><strong>Temporary skilled visas.</strong> Australia’s employer-sponsored
 work visas (Temporary Skill Shortage, now Skills in Demand, and earlier
 457 visas), by the occupation the employer nominated.</li>
+<li><strong>Bridging visa.</strong> A temporary Australian visa that lets a
+person stay lawfully while an application for another visa is decided or
+reviewed. Bridging visas are left out of the temporary visa chart.</li>
 </ul>
 </template>
 <template id="guide-data-centers">
@@ -216,6 +264,9 @@ Classification codes for computers and for computer parts.</li>
 <li><strong>MW, GW, TWh.</strong> Megawatts and gigawatts measure power
 drawn at a point in time (1 GW = 1,000 MW); terawatt hours measure
 energy used over a year.</li>
+<li><strong>Data center share of electricity.</strong> AEMO's forecast is
+a share of NEM operational consumption; the U.S. figures (LBNL, EPRI) are
+shares of total U.S. electricity use. Close enough to compare, not identical.</li>
 <li><strong>NEM.</strong> The National Electricity Market, the grid
 covering Queensland, New South Wales, the ACT, Victoria, South Australia
 and Tasmania.</li>

@@ -417,7 +417,7 @@ plot_estimate_paths <- function(ind, ast, ttl, sub, n_years = 8, cur = "AUD") {
 make_p6 <- function(cur) plot_estimate_paths(
   IMT, EPM,
   "Information Media & Telecommunications equipment capex: estimates and outturn",
-  "Equipment, plant and machinery; each line is one financial year, latest in navy",
+  "Equipment, plant and machinery; each line is one financial year, latest in blue",
   cur = cur)
 save_both(make_p6, "06_actual_vs_expected_epm_divj.png", save_csis)
 

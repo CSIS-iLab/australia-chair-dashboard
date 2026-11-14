@@ -698,7 +698,7 @@ p_contrib <- contrib |>
   scale_y_continuous(labels = label_percent(scale = 1, accuracy = 1)) +
   scale_x_date(date_breaks = "2 years", date_labels = "%Y") +
   labs(title = "Contributions to nominal GVA growth",
-       subtitle = "Through the year. Navy line shows total.",
+       subtitle = "Through the year. Blue line shows total.",
        x = NULL, y = NULL,
        caption = paste("Source: ABS, Australian National Accounts (cat. no. 5206.0),",
                        "Table 45. Excludes ownership of dwellings. Current prices, seasonally adjusted.")) +
@@ -836,7 +836,7 @@ make_states <- function(cur) {
   scale_x_continuous(labels = label_number(prefix = sym, suffix = "tn", accuracy = 1),
                      expand = expansion(mult = c(0, 0.04))) +
   labs(title = "GDP of Australia and U.S. states",
-       subtitle = paste0("GDP, current ", sym, ", ", states_yr, ". Australia in navy, the 15 largest U.S. states in red."),
+       subtitle = paste0("GDP, current ", sym, ", ", states_yr, ". Australia in blue, the 15 largest U.S. states in red."),
        x = NULL, y = NULL,
        caption = paste0("Sources: U.S. BEA, GDP by state (SAGDP2).
 Australia, ", GDP_SRC_AU, ".",

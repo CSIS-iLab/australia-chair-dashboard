@@ -81,6 +81,12 @@ get_cube <- function() {
 }
 
 cube_path <- get_cube()
+# Release month of the cube (its first sheet says "Released at ... 19 December 2025")
+ABS_RELEASE <- local({
+  v <- unlist(suppressMessages(read_excel(cube_path, sheet = 1, col_names = FALSE)))
+  r <- grep("Released at", v, value = TRUE)[1]
+  if (is.na(r)) "the latest ABS release" else sub(".*\\b\\d{1,2} ([A-Z][a-z]+ \\d{4}).*", "\\1", r)
+})
 
 data_sheets <- str_subset(excel_sheets(cube_path), "^Table\\s")
 message("Data sheets: ", paste(data_sheets, collapse = ", "))
@@ -181,7 +187,7 @@ abs_caption <- paste0(
   # people regardless of nationality, citizenship or legal status, and country
   # of birth is usually taken from the traveller's passport or visa.
   "Counts people born in the United States, whatever their citizenship: it includes Australian and dual citizens\n",
-  "born in the U.S., and leaves out U.S. citizens born elsewhere. People count as migrants when they spend\n",
+  "born in the U.S., and leaves out U.S. citizens born elsewhere. People count as migrants when they spend ",
   "12 months or more of a 16-month period in (or away from) Australia. Retrieved ", Sys.Date(), "."
 )
 
@@ -190,20 +196,22 @@ p_national <- nom_usa |>
   ggplot(aes(x = fy_end, y = value)) +
   geom_hline(yintercept = 0, linewidth = 0.3, colour = "grey60") +
   geom_line(linewidth = 0.9, colour = "#00205B") +
-  geom_point(aes(shape = preliminary), size = 2, colour = "#00205B") +
-  scale_shape_manual(values = c(`FALSE` = 16, `TRUE` = 1),
-                     labels = c("Final", "Preliminary"), name = NULL) +
+  geom_point(aes(shape = preliminary), size = 2, colour = "#00205B", show.legend = FALSE) +
+  scale_shape_manual(values = c(`FALSE` = 16, `TRUE` = 1)) +
+  # The preliminary year is labeled on the chart instead of in a legend
+  geom_text(data = function(d) d[d$preliminary, ], aes(label = paste0("Preliminary,\nas of ", ABS_RELEASE)),
+            hjust = 0.85, vjust = 0, nudge_y = 650, size = 3.4, lineheight = 0.9, colour = "#565A5C") +
   scale_x_continuous(breaks = seq(2005, 2035, 5)) +
   scale_y_continuous(labels = scales::comma) +
   labs(
     title    = "Net migration of Americans to Australia",
-    subtitle = "Net overseas migration of people born in the USA, by financial year (year to June)",
+    subtitle = sprintf("Net overseas migration of people born in the United States, by Australian financial year (July-June; %d = year to June %d)",
+                       max(nom_usa$fy_end), max(nom_usa$fy_end)),
     x = NULL, y = NULL, caption = abs_caption
   ) +
   theme_minimal(base_size = 13) +
   theme(legend.position = "bottom", plot.caption = element_text(hjust = 0))
 
-print(p_national)
 
 p_states <- nom_usa |>
   filter(region != "Australia") |>
@@ -211,25 +219,26 @@ p_states <- nom_usa |>
   geom_hline(yintercept = 0, linewidth = 0.3, colour = "grey70") +
   geom_line(linewidth = 0.7, colour = "#00205B") +
   # One scale for every state, so the panels can be compared directly
-  facet_wrap(~ region, ncol = 4) +
-  scale_x_continuous(breaks = seq(2005, 2035, 10)) +
+  facet_wrap(~ region, ncol = 3) +
+  scale_x_continuous(breaks = seq(2005, 2035, 10), expand = expansion(mult = 0.06)) +
   scale_y_continuous(labels = scales::comma, breaks = seq(-500, 2000, 500),
                      limits = c(min(-500, nom_usa$value[nom_usa$region != "Australia"], na.rm = TRUE),
                                 max(2000, nom_usa$value[nom_usa$region != "Australia"], na.rm = TRUE))) +
   labs(
     title    = "Net migration of Americans to Australia, by state and territory",
-    subtitle = "Net overseas migration of people born in the USA, by financial year (year to June)",
+    subtitle = sprintf("Net overseas migration of people born in the United States, by Australian financial year (July-June; %d = year to June %d)",
+                       max(nom_usa$fy_end), max(nom_usa$fy_end)),
     x = NULL, y = NULL, caption = abs_caption
   ) +
   theme_minimal(base_size = 13) +
-  theme(plot.caption = element_text(hjust = 0))
+  theme(plot.caption = element_text(hjust = 0), panel.spacing.x = unit(2, "lines"), panel.spacing.y = unit(1, "lines"),
+        panel.border = element_rect(fill = NA, colour = "grey85", linewidth = 0.4))
 
-print(p_states)
 
 ggsave(file.path(OUT_DIR, "nom_usa_national.png"), p_national,
        width = 9, height = 5, dpi = 150)
 ggsave(file.path(OUT_DIR, "nom_usa_states.png"), p_states,
-       width = 11, height = 6, dpi = 200)   # many small state labels
+       width = 11, height = 7.5, dpi = 200)   # many small state labels
 # The dashboard reads the charts from Migration/ itself, so copy them up a level
 file.copy(file.path(OUT_DIR, c("nom_usa_national.png", "nom_usa_states.png",
                              "nom_usa_national_data.csv", "nom_usa_states_data.csv",
@@ -415,11 +424,13 @@ p_e3 <- ggplot(e3, aes(fy, visas, colour = type)) +
                      expand = expansion(c(0, 0.02))) +
   scale_x_continuous(breaks = seq(2006, niv_last, 2)) +
   guides(colour = guide_legend(nrow = 1)) +
-  labs(title = "Skilled professional visas issued to Australians",
+  labs(title = "Skilled professional E-3 visas issued to Australians",
        subtitle = sprintf("Visas issued by U.S. fiscal year, FY%d to FY%d. A U.S. work visa reserved for Australian professionals.",
                           min(e3$fy), niv_last),
        x = NULL, y = NULL,
-       caption = paste0(NIV_CAPTION, " Visa class E-3; renewals and dependants do not count against the cap.")) +
+       caption = paste0(NIV_CAPTION, " Visa class E-3; renewals and dependants do not count against the cap.",
+                        if (niv_last < as.integer(format(Sys.Date(), "%Y")) - 1L)
+                          sprintf(" FY%d figures not yet published.", niv_last + 1L) else "")) +
   theme_csis()
 
 save_csis(p_e3, "e3_visas_australians.png")
@@ -515,7 +526,7 @@ p_sk <- ggplot(sk_occ, aes(holders, occupation)) +
             colour = csis_colours[["grey"]]) +
   scale_x_continuous(labels = comma, expand = expansion(c(0, 0.12))) +
   labs(title = "Skilled visas held by Americans in Australia, by occupation",
-       subtitle = sprintf("U.S. citizens holding temporary skilled visas (primary applicants) at %s, top 15 nominated occupations",
+       subtitle = sprintf("U.S. citizens holding temporary skilled visas (primary applicants) as of %s, top 15 nominated occupations",
                           trimws(format(sk_last, "%e %B %Y"))),
        x = NULL, y = NULL,
        caption = paste0(HA_CAPTION, ", Temporary Resident (Skilled) visa holders (BP0014). ",
