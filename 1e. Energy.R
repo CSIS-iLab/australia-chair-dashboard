@@ -354,7 +354,7 @@ p1 <- mix_ts |>
     subtitle = sprintf("Share of total generation, 1990 to %d", us_last),
     x = NULL, y = NULL,
     caption  = paste0("Sources: DCCEEW, Australian Energy Statistics, Table O (includes rooftop solar); ",
-                      US_SRC, "\nAustralian years are financial years (to June), labeled by the year they end. Australia's black and brown coal are combined. U.S. pumped storage is left out.")
+                      US_SRC, "\nAustralian years are financial years (to June), labeled by the year they end, so the latest Australian year differs slightly from the calendar-year Source tab. Australia's black and brown coal are combined. U.S. pumped storage is left out.")
   ) +
   theme_csis() +
   theme(strip.text = element_text(face = "bold", hjust = 0.5), panel.spacing.x = unit(1.5, "lines"))
@@ -458,7 +458,7 @@ p2 <- ggplot(state_mix, aes(share, label, fill = fuel)) +
   scale_x_continuous(labels = percent_format(accuracy = 1), expand = c(0, 0), limits = c(0, 1.09)) +
   guides(fill = guide_legend(nrow = 2)) +
   labs(
-    title    = "Electricity generation mix by state",
+    title    = "Electricity generation by source, by state",
     subtitle = "Share of generation by source, calendar years, including rooftop solar. Right-hand figure is renewable share.",
     x = NULL, y = NULL,
     caption  = paste0("Sources: DCCEEW, Australian Energy Statistics, Table O (calendar 2025); EIA, Electric Power ",
@@ -519,7 +519,8 @@ p3 <- ggplot(comparison, aes(share, country, fill = fuel)) +
     subtitle = sprintf("Share of total generation, calendar %d", mix_year),
     x = NULL, y = NULL,
     caption = paste0("Sources: DCCEEW, Australian Energy Statistics, Table O (calendar years, includes rooftop solar);\n",
-                     "EIA, Monthly Energy Review, Tables 7.2a and 10.6 (includes small-scale solar).")
+                     "EIA, Monthly Energy Review, Tables 7.2a and 10.6 (includes small-scale solar).\n",
+                     "Australia is shown for the calendar year to match the U.S.; the Source over Time tab uses Australian financial years, so its latest figures differ slightly.")
   ) +
   theme_csis() +
   theme(plot.margin = margin(5.5, 18, 5.5, 5.5))   # room for the 100% label
@@ -618,17 +619,18 @@ p4 <- ggplot() +
   geom_line(data = us_lowc |> mutate(s = "United States"),
             aes(year, share, colour = s), linewidth = 1.1, linetype = "22") +
   geom_line(data = target_line, aes(year, share), linetype = "11", colour = "#00205B", linewidth = 0.6) +
-  geom_line(data = us_goal, aes(year, share), linetype = "11", colour = "#D2232A", linewidth = 0.6, alpha = 0.6) +
+  geom_line(data = us_goal, aes(year, share), linetype = "11", colour = "grey60", linewidth = 0.6) +   # revoked: grey
   geom_point(data = tibble(year = 2030, share = 0.82), aes(year, share),
              shape = 21, fill = "white", colour = "#00205B", size = 3) +
   geom_point(data = tibble(year = 2035, share = 1), aes(year, share),
-             shape = 21, fill = "white", colour = "#D2232A", size = 3) +
+             shape = 21, fill = "white", colour = "grey60", size = 3) +
   # Target labels above their markers, clear of the dotted paths
   annotate("text", x = 2029.4, y = 0.9, label = "Australia: 82% renewable\nby 2030 (current target)",
            hjust = 1, vjust = 0, size = 3, colour = "#00205B", lineheight = 0.95) +
   annotate("text", x = 2035, y = 1.07, label = "U.S.: 100% carbon-free by 2035\n(former target, revoked 2025)",
-           hjust = 1, vjust = 0, size = 3, colour = "#D2232A", lineheight = 0.95) +
-  scale_colour_manual(values = tgt_cols, name = NULL) +
+           hjust = 1, vjust = 0, size = 3, colour = "grey45", lineheight = 0.95) +
+  scale_colour_manual(values = tgt_cols, name = NULL,
+                      labels = c("Australia" = "Australia: renewable share", "United States" = "U.S.: carbon-free share")) +
   guides(colour = guide_legend(override.aes = list(linetype = c("solid", "22")))) +
   scale_y_continuous(labels = percent_format(accuracy = 1), limits = c(0, 1.24), breaks = seq(0, 1, 0.25)) +
   scale_x_continuous(breaks = seq(2000, 2035, 5)) +

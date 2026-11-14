@@ -150,8 +150,7 @@ $border-radius:           6px;
 
 // Explore grid
 // Ten tiles: two rows of five on a wide screen
-.ov-grid { display: grid; gap: 18px; grid-template-columns: repeat(5, minmax(0, 1fr)); }
-@media (max-width: 1300px) { .ov-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.ov-grid { display: grid; gap: 18px; grid-template-columns: repeat(4, minmax(0, 1fr)); }   // 12 tiles: 3 rows of 4
 @media (max-width: 1100px) { .ov-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 640px)  { .ov-grid { grid-template-columns: 1fr; } }
 .ov-tile {
@@ -419,3 +418,25 @@ $border-radius:           6px;
 @media (min-width: 992px) and (max-width: 1079.98px) { .navbar .navbar-brand-container { display: none !important; } }
 // Energy security: a full-width card, but the chart itself a little smaller and centered
 #energy img[aria-label^="Chart: Energy Security"] { max-width: min(100%, 980px) !important; margin: 0 auto; }
+
+// Critical Minerals, Reserves vs Production: full card width like the other
+// charts on the page; the card scrolls if the footnote then runs below the fold
+#critical-minerals .card-body:has(> img[data-csv-name^="minerals_au_reserves_vs_production"]) { overflow-y: auto; }
+#critical-minerals .card-body > img[data-csv-name^="minerals_au_reserves_vs_production"] {
+  width: 100%; max-width: 1150px; height: auto; max-height: none; flex: 0 0 auto;
+}
+
+// Critical Minerals on tablets and narrow windows: the filter sidebar sits
+// above the map instead of beside it, so the page does not scroll sideways
+@media (max-width: 1000px) {
+  #critical-minerals .bslib-sidebar-layout { display: block !important; }
+  #critical-minerals .bslib-sidebar-layout > .sidebar { width: 100% !important; max-width: none !important; position: static !important; }
+  #critical-minerals .bslib-sidebar-layout > .main { width: 100% !important; min-width: 0 !important; }
+}
+
+// Narrow windows (tablets, split screens): the top menu wraps onto a second
+// line instead of running off the page and making every page scroll sideways
+@media (max-width: 1200px) {
+  .navbar .navbar-nav { flex-wrap: wrap; }
+  .navbar .navbar-collapse { min-width: 0; }
+}

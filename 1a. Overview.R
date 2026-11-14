@@ -187,7 +187,7 @@ map_same_scale <- ggplot() +
            ylim = c(bb[["ymin"]] - 0.03 * bh, bb[["ymax"]] + 0.03 * bh), expand = FALSE) +
   labs(
     title    = "Australia and the Contiguous United States at the Same Scale",
-    subtitle = "Australia (navy) laid over the 48 contiguous states and DC (red outline), each in an equal-area projection",
+    subtitle = "Australia (blue) laid over the 48 contiguous states and DC (red outline), each in an equal-area projection",
     caption  = paste0("Boundaries: Natural Earth (1:50m). Land areas: CIA World Factbook (Australia); U.S. Census Bureau ",
                       "(contiguous states and DC).\nEach country is drawn in its own Lambert azimuthal equal-area ",
                       "projection; Australia is moved, not resized. Alaska and Hawaii are not shown.")
@@ -231,13 +231,13 @@ pac_xy <- function(lon, lat) {
 }
 
 cities <- data.frame(
-  id   = c("perth", "adelaide", "darwin", "canberra",
+  id   = c("perth", "adelaide", "darwin", "canberra", "sydney", "melbourne",
            "guam", "honolulu", "sandiego", "seattle", "washington"),
-  name = c("Perth", "Adelaide", "Darwin", "Canberra",
+  name = c("Perth", "Adelaide", "Darwin", "Canberra", "Sydney", "Melbourne",
            "Guam", "Honolulu", "San Diego", "Seattle", "Washington, DC"),
-  lon  = c(115.86, 138.60, 130.84, 149.13, 144.75, -157.86, -117.16, -122.33, -77.04),
-  lat  = c(-31.95, -34.93, -12.46, -35.28,  13.47,   21.31,   32.72,   47.61,  38.91),
-  country = c(rep("Australia", 4), rep("United States", 5))
+  lon  = c(115.86, 138.60, 130.84, 149.13, 151.21, 144.96, 144.75, -157.86, -117.16, -122.33, -77.04),
+  lat  = c(-31.95, -34.93, -12.46, -35.28, -33.87, -37.81,  13.47,   21.31,   32.72,   47.61,  38.91),
+  country = c(rep("Australia", 6), rep("United States", 5))
 )
 cities[, c("x", "y")] <- pac_xy(cities$lon, cities$lat)
 
@@ -287,10 +287,10 @@ u <- (view[["xmax"]] - view[["xmin"]]) / 100           # 1% of the map's width, 
 # Label positions, set by hand so nothing collides: offset (in % of map width)
 # and which side of the point the text sits on
 lab_pos <- data.frame(
-  id    = c("perth", "adelaide", "darwin", "canberra", "guam", "honolulu", "sandiego", "seattle", "washington"),
-  dx    = c(-1.0,     0.0,       -1.0,      0.0,       -1.0,    1.0,       -1.0,        0.0,       -0.5),
-  dy    = c( 1.2,    -1.6,        0.0,     -1.6,        1.6,    0.0,        1.0,        1.8,        1.8),
-  hjust = c( 1,       0.5,        1,        0.5,        1,      0,          1,          0.5,        1)
+  id    = c("perth", "adelaide", "darwin", "canberra", "sydney", "melbourne", "guam", "honolulu", "sandiego", "seattle", "washington"),
+  dx    = c(-1.0,    -1.0,       -1.0,      0.8,        0.8,       0.0,        -1.0,    1.0,       -1.0,        0.0,       -0.5),
+  dy    = c( 1.2,     0.2,        0.0,     -0.9,        0.4,      -1.5,         1.6,    0.0,        1.0,        1.8,        1.8),
+  hjust = c( 1,       1,          1,        0,          0,         0.5,         1,      0,          1,          0.5,        1)
 )
 cities <- merge(cities, lab_pos, by = "id")
 cities$lx <- cities$x + cities$dx * u
@@ -320,7 +320,7 @@ map_pacific <- ggplot() +
            expand = FALSE, datum = NA) +
   labs(
     title    = "Tyranny of Distance",
-    subtitle = "Great-circle distances from Perth and Canberra to U.S. cities and territories. Australia in navy, the United States in red.",
+    subtitle = "Great-circle distances from Perth and Canberra to U.S. cities and territories. Australia in blue, the United States in red.",
     caption  = paste0("Boundaries: Natural Earth (1:50m). Distances are great-circle (shortest path over the earth's surface), ",
                       "in statute miles and kilometers.\nGray markers show Pacific island capitals. ",
                       "Equal Earth projection centered on the Pacific.")

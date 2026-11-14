@@ -1,5 +1,5 @@
 ﻿title,U.S. share of Australian patent applications
-subtitle,Share of all standard complete applications
+subtitle,Share of all standard complete applications with a known U.S. applicant or owner
 caption,"Source: IP Australia, IP RAPID.
 Counted by filing date in Australia (for international PCT applications, the date they entered Australia). 2026 is excluded as the year is incomplete."
 chart_type,Line with point markers
@@ -8,7 +8,7 @@ x_axis_label,(none)
 y_variable,share_us
 y_axis_label,(none)
 y_units_format,Percent (values are 0-100); axis labels shown as whole-number %
-y_axis_min,0.3
+y_axis_min,0
 y_axis_max,auto
 line_colour,#D2232A
 line_width_mm,1
