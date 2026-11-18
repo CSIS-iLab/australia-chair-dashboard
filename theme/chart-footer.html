@@ -178,3 +178,24 @@ img[data-zoom][data-zoomed="true"] { cursor: zoom-out; }
   document.addEventListener("scroll", hide, true);
 })();
 </script>
+<script>
+// Phones: tap a chart to see it full size (the page view shrinks it to the
+// screen width). Charts with their own click-to-zoom keep that behaviour.
+(function () {
+  document.addEventListener("click", function (e) {
+    var img = e.target.closest && e.target.closest('img[aria-label^="Chart:"]');
+    if (!img || img.hasAttribute("data-zoom") || window.innerWidth >= 768) return;
+    var box = document.createElement("div");
+    box.className = "chart-enlarge";
+    box.setAttribute("role", "dialog");
+    box.setAttribute("aria-label", "Enlarged chart. Tap to close.");
+    box.innerHTML = '<div class="chart-enlarge-hint">Scroll to explore; tap to close</div>';
+    var big = document.createElement("img");
+    big.src = img.currentSrc || img.src;
+    big.alt = img.getAttribute("aria-label") || "";
+    box.appendChild(big);
+    box.addEventListener("click", function () { box.remove(); });
+    document.body.appendChild(box);
+  });
+})();
+</script>

@@ -4,6 +4,8 @@ format:
   dashboard:
     theme: [cosmo, theme/csis-redesign.scss]
     embed-resources: true
+    include-in-header:
+      - theme/currency-early.html # opens in US$ without an A$ flash
     include-after-body:
       - theme/navigation.html   # drop-down menus and the A$/US$ toggle
       - theme/page-guides.html  # "How to read this page" link and pop-up on pages with jargon
@@ -188,8 +190,8 @@ cat(paste0(
   '<section class="ov-hero">', arcs,
   '<div class="ov-kicker">CSIS Australia Chair</div>',
   '<h1 class="ov-title">U.S.-Australia Economic Dashboard</h1>',
-  '<p class="ov-lede">An interactive guide to the full breadth of the U.S.-Australia economic and strategic relationship: trade, investment, critical minerals, energy, technology, human capital and innovation.</p>',
-  '<p class="ov-tip">Hover over any chart for exact values, and download the data behind it as a CSV file from the link underneath.</p>',
+  '<p class="ov-lede">An interactive guide to the full breadth of the U.S.-Australia economic relationship: trade, investment, critical minerals, energy, technology, human capital and innovation.</p>',
+  '<p class="ov-tip">Hover over (or tap) any chart for exact values, and download the data behind it as a CSV file from the link underneath.</p>',
   '<div class="ov-meta">Updated quarterly &middot; ', edition_stamp(edition), '</div>',
   # Time this page was built, Washington time ("ET" covers both EST and EDT)
   '<div class="ov-updated">Last updated: <b>', trimws(gsub(" +", " ", format(Sys.time(), "%e %B %Y, %l:%M %p", tz = "America/New_York"))),
@@ -257,11 +259,11 @@ cat(paste0(
 
 ### Relative Size
 
-![](<Economy/au_us_size.png>){title="Relative Economy Size"}
+![](<Economy/au_us_size.png>){title="Aggregate GDP and GDP per Person, Australia and the United States"}
 
 ### OECD Comparison
 
-![](<Economy/oecd_comparison.png>){title="OECD Comparison"}
+![](<Economy/oecd_comparison.png>){title="Largest OECD Economies"}
 
 ### Industry Composition
 
@@ -371,7 +373,7 @@ cat(paste0(
 ## Column {width="50%"}
 
 ::: {.card .trade-us title="U.S. Trade Balance with Australia"}
-![](Trade/us_au_trade_balance.png)
+![](Trade/us_au_trade_balance.png){title="Australia's Trade with the United States"}
 :::
 
 
@@ -656,15 +658,15 @@ if (length(svc_files) == 0) {
 
 ### By Partner
 
-![](<Investment/iip_levels_latest.png>){title="International Investment Position"}
+![](<Investment/iip_levels_latest.png>){title="Two-Way Investment between Australia and Selected Major Partners"}
 
 ### By Type of Investment
 
-![](<Investment/iip_by_type_latest.png>){title="Two-Way Investment by Type: Direct, Portfolio and Other"}
+![](<Investment/iip_by_type_latest.png>){title="Two-Way Investment by Type"}
 
 ### By Industry
 
-![](<Investment/iip_direct_by_industry_latest.png>){title="Direct Investment by Industry, All Partner Countries"}
+![](<Investment/iip_direct_by_industry_latest.png>){title="Direct Investment by Industry"}
 
 # Critical Minerals
 
@@ -867,7 +869,7 @@ if (!file.exists(mtab_file)) {
 
 ### Reserves vs Production
 
-![](<Critical minerals/minerals_au_reserves_vs_production.png>){title="Australia's Share of World Reserves vs Production"}
+![](<Critical minerals/minerals_au_reserves_vs_production.png>){title="Australia's Share of World Reserves and World Production, Critical Minerals"}
 
 # Energy {scrolling="true"}
 
@@ -881,7 +883,7 @@ if (!file.exists(mtab_file)) {
 
 #### Wholesale Prices, Australia vs U.S.
 
-![](Energy/07_wholesale_prices_au_us.png){title="Wholesale Electricity Prices, Australia and U.S. Markets"}
+![](Energy/07_wholesale_prices_au_us.png){title="Wholesale Electricity Prices, Australian NEM Regions, California and Texas (ERCOT)"}
 
 #### Cost of New Solar and Wind
 
@@ -895,7 +897,7 @@ if (!file.exists(mtab_file)) {
 
 #### Source over Time
 
-![](Energy/01_fuel_mix_timeseries.png){title="Share of Generation by Source over Time, Australia and the U.S."}
+![](Energy/01_fuel_mix_timeseries.png){title="Electricity Generation by Source over Time, Australia and the United States"}
 
 #### By State
 
@@ -903,7 +905,7 @@ if (!file.exists(mtab_file)) {
 
 #### Renewables Share
 
-![](Energy/09_renewable_share_au_us.png){title="Renewable Share of Generation, Australia and the United States"}
+![](Energy/09_renewable_share_au_us.png){title="Renewable Share of Electricity Generation, Australia and the United States"}
 
 #### Carbon-Free by Technology
 
@@ -927,21 +929,21 @@ if (!file.exists(mtab_file)) {
 
 ### Quality vs Volume
 
-![](Tech/B_quality_vs_volume.png){title="Share of All Papers vs the Top 10% Most Cited"}
+![](Tech/B_quality_vs_volume.png){title="Australian Share of World Publications: All Papers and Top 10% Cited"}
 
 ### Institutions
 
-![](Tech/C_australian_institutions.png){title="Leading Australian Institutions by Field"}
+![](Tech/C_australian_institutions.png){title="Leading Australian Institutions by Publications in Each Field"}
 
 ## Column {.tabset width="50%" title="Collaboration and Capability"}
 
 ### Collaboration: U.S. vs China
 
-![](Tech/D_collaboration_partners.png){title="Research Collaboration: U.S. vs China"}
+![](Tech/D_collaboration_partners.png){title="Australian Publications with U.S. and Chinese Co-Authors"}
 
 ### AI Models
 
-![](Tech/E_ai_models_by_country.png){title="Notable AI Models by Country of Developer"}
+![](Tech/E_ai_models_by_country.png){title="Notable AI Models by Country"}
 
 ### R&D Intensity
 
@@ -953,7 +955,7 @@ if (!file.exists(mtab_file)) {
 
 ### Australia and the U.S.
 
-![](<Data centres/12_dc_share_of_grid_au_us.png>){title="Data Centers' Share of Electricity Use, Australia and the U.S."}
+![](<Data centres/12_dc_share_of_grid_au_us.png>){title="Data Centers' Share of Electricity Use, Australia and the United States"}
 
 ## Column {.tabset .dc-au width="50%" title="Australian Investment in Data Centers"}
 
@@ -963,11 +965,11 @@ if (!file.exists(mtab_file)) {
 
 ### Commercial Buildings
 
-![](<Data centres/14_commercial_nec_building.png>){title="Commercial Buildings n.e.c.: Work Done and Approvals"}
+![](<Data centres/14_commercial_nec_building.png>){title="Building Work on Commercial Buildings Not Elsewhere Classified"}
 
 ### Computer Imports
 
-![](<Data centres/15_computer_imports.png>){title="Imports of Computers and Parts"}
+![](<Data centres/15_computer_imports.png>){title="Imports of Computers and Parts, and Equipment Spending by the Industry"}
 
 # Human Capital {orientation="columns"}
 
@@ -1037,7 +1039,7 @@ cat(paste0(
   '<li>Money is shown in billions (bn) or trillions (tn) of dollars.</li></ul>',
 
   '<h3>Reading the Charts</h3><ul>',
-  '<li>Hover over a chart to see its values: each line, bar or segment shows its exact figure.</li>',
+  '<li>Hover over (or tap) a chart to see its values: each line, bar or segment shows its exact figure.</li>',
   '<li>Keyboard and screen-reader users: every chart has a text description, and the full data behind it can be downloaded as a CSV file from the link under the chart.</li></ul>',
   '<h3>Sources</h3>',
   '<p>Australian Bureau of Statistics; Department of Foreign Affairs and Trade; Department of Climate Change, Energy, the ',

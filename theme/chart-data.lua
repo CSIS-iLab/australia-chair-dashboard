@@ -146,7 +146,8 @@ local function takeaways()
 end
 
 local function alt_text(title, finding, period, has_csv)
-  local parts = { "Chart: " .. (title ~= "" and title or "chart") .. "." }
+  local t = (title ~= "" and title or "chart")
+  local parts = { "Chart: " .. t .. (t:match("%.$") and "" or ".") }   -- titles ending "U.S." keep one full stop
   if finding and finding ~= "" then parts[#parts + 1] = finding end
   local tail = {}
   if period then tail[#tail + 1] = "Data to " .. period .. "." end
@@ -185,6 +186,10 @@ function Image(img)
     local p = read_all(stem .. "_period.txt")
     if p then period = p:gsub("%s+$", "") end
   end
+  -- A chart script can set the "Data to" text by hand (<name>_period_override.txt),
+  -- e.g. when one comparator country has a later year than the countries in focus
+  local over = read_all(stem .. "_period_override.txt")
+  if over then period = over:gsub("%s+$", "") end
   if period then img.attributes["data-period"] = period end
   if csv_text and #csv_text <= MAX_CSV then
     img.attributes["data-csv"] = "data:text/csv;charset=utf-8," .. url_encode(csv_text)

@@ -1,0 +1,18 @@
+<!-- Runs in <head>, before any chart is drawn. The dashboard opens in US$ unless
+     the visitor has picked A$ before; until the toggle script (navigation.html)
+     has switched the charts and figures over, hide them so first-time visitors
+     never see the A$ versions flash up while the page loads. -->
+<style>
+  html.cur-wait img[data-usd], html.cur-wait [data-usd-text] { visibility: hidden; }
+</style>
+<script>
+  (function () {
+    var saved = null;
+    try { saved = localStorage.getItem("csis-au-tool-currency"); } catch (e) {}
+    if (saved !== "AUD") document.documentElement.classList.add("cur-wait");
+    // Safety net: never leave the charts hidden if the toggle script fails
+    window.addEventListener("load", function () {
+      document.documentElement.classList.remove("cur-wait");
+    });
+  })();
+</script>

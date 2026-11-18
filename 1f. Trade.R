@@ -817,7 +817,7 @@ p_shares <- ggplot(plot_dat, aes(year, share, colour = sector, group = sector)) 
     expand = expansion(mult = c(0, 0.06))
   ) +
   labs(
-    title    = "Share of total goods exports by broad sector, 2006-2025",
+    title    = "Share of total goods exports by broad sector, 2006–2025",
     #subtitle = "Share of total merchandise exports by broad sector, 2006-2025",
     caption  = paste0(
       DFAT_SOURCE,
@@ -850,7 +850,7 @@ p_area <- ggplot(plot_dat, aes(year, share, fill = sector)) +
                      expand = expansion(mult = c(0, 0))) +
   labs(
     title    = "Composition of Australia's goods exports",
-    subtitle = "Share of total goods exports by broad sector, 2006-2025",
+    subtitle = "Share of total goods exports by broad sector, 2006–2025",
     caption  = DFAT_SOURCE,
     x = NULL, y = NULL
   ) +
@@ -997,13 +997,13 @@ ggplot(plot_dat,
   ) +
   labs(
     #title    = "China's rise reshaped Australia's export base",
-    title = "Australian goods exports",
-    subtitle = paste0("By destination, ", cur_sym[[cur]], " billion, 2006-", max(plot_dat$year),
+    title = "Australian goods exports, five largest partners",
+    subtitle = paste0("By destination, ", cur_sym[[cur]], " billion, 2006–", max(plot_dat$year),
                       ". Labels show each partner's rank among all destinations in ", max(plot_dat$year), "."),
     caption  = paste0(
       "Source: DFAT, Australia's goods exports and imports country ",
       "and commodity pivot table (ABS cat. 5368.0), calendar years.",
-      "\nNote: goods only. Not comparable in level with ABS ",
+      "\nGoods only. Not comparable in level with ABS ",
       "series covering goods and services.",
       if (cur == "USD") fx_note[["USD"]] else ""
     ),
@@ -1047,7 +1047,7 @@ p_shares_long <- ggplot(plot_dat,
   labs(
     #title    = "A third of Australia's goods exports go to a single market",
     title = "Share of Australia's total goods exports",
-    subtitle = "By destination, 2006-2025",
+    subtitle = "By destination, 2006–2025",
     caption  = paste0(
       "Source: DFAT, Australia's goods exports and imports country ",
       "and commodity pivot table (ABS cat. 5368.0), calendar years."
@@ -1202,7 +1202,7 @@ DFAT_SRC <- paste0(
   "and commodity pivot table (ABS cat. 5368.0), calendar years."
 )
 GOODS_NOTE <- paste0(
-  "\nNote: goods only. Not comparable in level with ABS ",
+  "\nGoods only. Not comparable in level with ABS ",
   "series covering goods and services."
 )
 
@@ -1219,8 +1219,8 @@ make_imports_long <- function(cur) plot_partner_series(
   scale_y_continuous(labels = label_dollar(prefix = cur_sym[[cur]], suffix = "bn", accuracy = 1),
                      limits = c(0, NA), expand = expansion(mult = c(0, 0.08))),
   #title    = "China supplies more than a quarter of Australia's goods imports",
-   title = "Australian goods imports by origin",
-  subtitle = paste0(cur_sym[[cur]], " billion, 2006-", max(imports_long$year),
+   title = "Australian goods imports, five largest partners",
+  subtitle = paste0("By origin, ", cur_sym[[cur]], " billion, 2006–", max(imports_long$year),
                     ". Labels show each partner's rank among all sources in ", max(imports_long$year), "."),
   caption  = paste0(DFAT_SRC, GOODS_NOTE,
                     if (cur == "USD") fx_note[["USD"]] else ""),
@@ -1241,7 +1241,7 @@ p_imports_share <- plot_partner_series(
                      limits = c(0, NA), expand = expansion(mult = c(0, 0.08))),
   #title    = "Import sourcing has concentrated on a single supplier",
    title = "Share of Australia's total goods imports",
-  subtitle = "By origin, 2006-2025",
+  subtitle = "By origin, 2006–2025",
   caption  = DFAT_SRC
 )
 
@@ -1318,7 +1318,7 @@ SVC_DROP <- "(?i)^total|all other|^[(]|^APEC$|^OECD$|^ASEAN$|^EU$|^European Unio
 # ABS partner names, shortened; what each covers is in the caption
 SVC_SHORT <- c(
   "United States of America"                              = "United States",
-  "United Kingdom, Channel Islands and Isle of Man, nfd"  = "UK",
+  "United Kingdom, Channel Islands and Isle of Man, nfd"  = "United Kingdom",
   "China (excludes SARs and Taiwan)"                      = "China",
   "Asia, nes"                                             = "Asia",
   "Hong Kong (SAR of China)"                              = "Hong Kong",
@@ -1333,7 +1333,10 @@ svc_partner <- bind_rows(
 ) |>
   filter(year == svc_yr, !is.na(value_m), !grepl(SVC_DROP, country, perl = TRUE)) |>
   mutate(partner = if_else(country %in% names(SVC_SHORT), SVC_SHORT[country], country))
+# Regional catch-alls ("Asia, nes" etc.) are not countries, so they are left out of the ranking
+svc_regions <- unname(SVC_SHORT[grepl("nes$", names(SVC_SHORT))])
 svc_top <- svc_partner |>
+  filter(!partner %in% svc_regions) |>
   group_by(partner) |> summarise(two_way = sum(value_m), .groups = "drop") |>
   slice_max(two_way, n = 10) |> arrange(two_way)
 # Ranked by two-way trade (exports + imports), largest first; the rank is in the label
@@ -1351,7 +1354,7 @@ cat(sprintf("United States: services exports A$%.1fbn, imports A$%.1fbn in %d\n"
             us_svc$value_bn[us_svc$flow == "Exports"], us_svc$value_bn[us_svc$flow == "Imports"], svc_yr))
 
 # Footnotes for shortened names that appear in the chart
-svc_notes <- c(UK = "UK includes the Channel Islands and Isle of Man.",
+svc_notes <- c(`United Kingdom` = "United Kingdom includes the Channel Islands and Isle of Man.",
                China = "China excludes Hong Kong, Macau and Taiwan.",
                Asia = "Asia = Asian countries the ABS does not list separately.",
                Europe = "Europe = European countries the ABS does not list separately.",
@@ -1373,7 +1376,7 @@ make_services_partner <- function(cur) {
     labs(
       title = "Australia's services trade by partner",
       subtitle = paste0("Services exports and imports, ten largest partners by two-way trade, ", cur_sym[[cur]], ", ",
-                        svc_yr, "."),
+                        svc_yr),
       x = NULL, y = NULL,
       caption = paste0("Source: ABS, International Trade: Supplementary Information, Calendar Year ", svc_yr, ".\n",
                        paste(svc_notes, collapse = " "),
@@ -1408,7 +1411,7 @@ GOODS_DROP <- "(?i)unknown|confidential|stores|no country|unallocated|not elsewh
 GOODS_SHORT <- c("United States"            = "United States",
                  "United States of America" = "United States",
                  "Republic of Korea"        = "South Korea",
-                 "United Kingdom"           = "UK",
+                 "United Kingdom"           = "United Kingdom",
                  "Hong Kong (SAR of China)" = "Hong Kong")
 goods_partner_all <- read_csv("dfat_trade_by_country.csv", show_col_types = FALSE)
 goods_yr <- max(goods_partner_all$year)
@@ -1427,8 +1430,7 @@ goods_partner <- goods_partner |>
   mutate(partner = factor(goods_top$label[match(partner, goods_top$partner)], levels = goods_top$label),
          flow = factor(flow, levels = c("Exports", "Imports")))
 
-goods_notes <- c(UK = "UK = United Kingdom.",
-                 China = "China excludes Hong Kong, Macau and Taiwan.")
+goods_notes <- c(China = "China excludes Hong Kong, Macau and Taiwan.")
 goods_notes <- goods_notes[names(goods_notes) %in% goods_top$partner]
 
 # Drawn twice, in A$ and US$ (at the calendar year's average rate).
@@ -1445,7 +1447,7 @@ make_goods_partner <- function(cur) {
     labs(
       title = "Australia's goods trade by partner",
       subtitle = paste0("Goods exports and imports, ten largest partners by two-way trade, ", cur_sym[[cur]], ", ",
-                        goods_yr, "."),
+                        goods_yr),
       x = NULL, y = NULL,
       caption = paste0("Source: DFAT, Australia's goods exports and imports by country and commodity ",
                        "(ABS cat. 5368.0), calendar ", goods_yr, ".\n",
@@ -2390,7 +2392,7 @@ local({
     if (grepl("^United States", si$country[1])) ", more than any other country" else ""))
   us_svc <- fread("us_share_services_all.csv")[service == "Total services" & year == max(year)]
   takeaway(tr("overview_us_share_by_service.png"), sprintf(
-    "The United States took %.0f%% of Australia's services exports and supplied %.0f%% of its services imports in %d.",
+    "The United States took %.1f%% of Australia's services exports and supplied %.1f%% of its services imports in %d.",
     us_svc[flow == "Credits", us_share_pct], us_svc[flow == "Debits", us_share_pct], us_svc$year[1]))
   t10 <- top10 |> group_by(flow) |> slice_max(us_m, n = 1) |> ungroup()
   line_t10 <- function(cur) {

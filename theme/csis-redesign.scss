@@ -440,3 +440,20 @@ $border-radius:           6px;
   .navbar .navbar-nav { flex-wrap: wrap; }
   .navbar .navbar-collapse { min-width: 0; }
 }
+
+
+// Phones: rows given a fixed height for desktop (e.g. Energy's 540px and
+// 660px) size to their content instead, so short cards don't leave blank gaps
+// and tall tab sets don't squash their charts
+@media (max-width: 767.98px) {
+  .quarto-dashboard .bslib-grid { grid-template-rows: none !important; grid-auto-rows: auto !important; }
+  .quarto-dashboard .bslib-grid > .html-fill-item { min-height: 0 !important; height: auto !important; }
+}
+
+// Tap-to-enlarge on phones (theme/chart-footer.html): the chart at full size in a
+// scrollable overlay; tap again to close
+.chart-enlarge { position: fixed; inset: 0; z-index: 2000; background: rgba(255, 255, 255, 0.98);
+  overflow: auto; -webkit-overflow-scrolling: touch; padding: 12px; }
+.chart-enlarge img { width: 960px; max-width: none; height: auto; display: block; }
+.chart-enlarge .chart-enlarge-hint { position: sticky; left: 0; top: 0; font-size: 0.85rem; color: #565A5C;
+  background: rgba(255, 255, 255, 0.95); padding: 4px 0 8px; }

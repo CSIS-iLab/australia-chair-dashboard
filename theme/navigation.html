@@ -162,17 +162,20 @@
       b.classList.toggle("is-on", on);
       b.setAttribute("aria-pressed", on);
     });
-    try { localStorage.setItem(KEY, cur); } catch (e) {}
+    document.documentElement.classList.remove("cur-wait");  // see currency-early.html
   }
 
   box.addEventListener("click", function (e) {
     var b = e.target.closest("button");
-    if (b) apply(b.dataset.cur);
+    if (!b) return;
+    apply(b.dataset.cur);
+    // Only a visitor's own choice is remembered, so the default can change later
+    try { localStorage.setItem(KEY, b.dataset.cur); } catch (e) {}
   });
 
   var saved = null;
   try { saved = localStorage.getItem(KEY); } catch (e) {}
-  apply(saved === "USD" ? "USD" : "AUD");
+  apply(saved === "AUD" ? "AUD" : "USD");   // US$ by default; a saved choice wins
 
   // ---- 3. Edition menu: earlier quarters of the dashboard ---------------------
   // Each quarter's dashboard is filed in editions/ by '3. Editions.R' and

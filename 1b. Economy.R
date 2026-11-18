@@ -769,14 +769,13 @@ make_size <- function(cur) {
   p_agg  <- size_bar(size |> mutate(v = gdp_usd * conv / 1e12), paste0(sym, "%.1ftn"),
                      label_number(prefix = sym, suffix = "tn"), paste0("Aggregate GDP, current ", sym))
   p_pcap <- size_bar(size |> mutate(v = pcap_ppp / 1e3), "$%.0fk",
-                     label_number(prefix = "$", suffix = "k"), "GDP per capita, PPP (international dollars)")
+                     label_number(prefix = "$", suffix = "k"), "GDP per person, PPP (international dollars)")
 
   (p_agg | p_pcap) +
     plot_annotation(
-      title   = "Aggregate GDP and GDP per capita, Australia and the United States",
-      caption = paste0("Sources: aggregate GDP, Australia ", GDP_SRC_AU, "; U.S. BEA.",
-                       "
-GDP per capita, World Bank World Development Indicators. ", size_yr, ".",
+      title   = "Aggregate GDP and GDP per person, Australia and the United States",
+      caption = paste0("Sources: aggregate GDP, ", GDP_SRC_AU, " (Australia) and U.S. BEA; GDP per person, ",
+                       "World Bank World Development Indicators (PPP, current international dollars). ", size_yr, " data.",
                        if (cur == "AUD") fx_note_aud_from_usd else ""),
       theme   = theme_csis()
     )
@@ -810,7 +809,7 @@ au_val <- au_gdp_usd_tn(au_yr)
 comb <- state_gdp |>
   filter(year == states_yr) |>
   transmute(name = state, value = gdp / 1e6, is_au = FALSE) |>   # $m -> $tn
-  bind_rows(data.frame(name = "AUSTRALIA", value = au_val, is_au = TRUE)) |>
+  bind_rows(data.frame(name = "Australia", value = au_val, is_au = TRUE)) |>
   arrange(desc(value)) |>
   mutate(rank = row_number())
 
@@ -935,7 +934,7 @@ make_oecd_rank <- function(cur) {
   scale_fill_manual(values = c(au = csis_colours[["navy"]], us = csis_colours[["red"]],
                                other = csis_colours[["ltgrey"]]), guide = "none") +
   scale_x_continuous(labels = label_dollar(prefix = sym, suffix = "tn", accuracy = 1),
-                     expand = expansion(mult = c(0, 0.12))) +
+                     expand = expansion(mult = c(0, 0.2))) +                 # room for the U.S. value label
   labs(title = "Largest OECD economies by nominal GDP",
        subtitle = paste0("Nominal GDP, current ", sym, ", ", oecd_yr,
                          ". Ranking is among all 38 OECD members."),
