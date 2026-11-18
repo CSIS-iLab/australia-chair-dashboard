@@ -514,17 +514,18 @@ all_fy <- seq(min(fy_divj$ref_fy), max(fy_divj$ref_fy))
 np_fy  <- setdiff(all_fy, fy_divj$ref_fy)
 fy_divj <- fy_divj %>% mutate(fy = factor(fy_label(ref_fy), levels = fy_label(all_fy)))
 
-ggplot(fy_divj, aes(fy, actual, fill = asset)) +
+ggplot(fy_divj, aes(fy, actual / 1000, fill = asset)) +   # A$ billion
   geom_col(width = 0.7) +
   annotate("text", x = fy_label(np_fy), y = 0, label = "Not\npublished", vjust = -0.3,
            size = 2.8, lineheight = 0.9, family = "source_sans",
            colour = csis_colours[["grey"]]) +
   scale_x_discrete(drop = FALSE) +
   scale_fill_manual(values = c(csis_colours[["navy"]], csis_colours[["teal"]])) +
-  scale_y_continuous(labels = label_comma(), expand = expansion(c(0, 0.05))) +
+  scale_y_continuous(labels = label_dollar(prefix = cur_sym[[cur]], suffix = "bn", accuracy = 1),
+                     expand = expansion(c(0, 0.05))) +
   labs(
     title    = "Information Media & Telecommunications capital expenditure",
-    y = y_lab(cur), x = NULL,
+    y = NULL, x = NULL,
     caption  = src_cp(cur, "Financial years (July to June), complete years only.")
   ) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
@@ -672,11 +673,11 @@ p12 <- ggplot() +
   geom_line(data = filter(gs_line, country == "Australia"), aes(year, value, colour = country),
             linewidth = 0.9, linetype = "22") +
   geom_point(data = gs_line, aes(year, value, colour = country), size = 2.6) +
-  geom_text(data = gs_line, aes(year, value, colour = country, label = paste0(value, "%")),
-            vjust = -1, size = 3.3, family = "source_sans", show.legend = FALSE) +
-  geom_text(data = gs_rng, aes(x = year + 0.3, y = hi,
-                               label = sprintf("U.S. %d, %s: %s-%s%%", year, src, lo, hi)),
-            hjust = 0, vjust = 1, size = 3.1, family = "source_sans", colour = csis_colours[["red"]]) +
+  geom_text(data = gs_line, aes(year, value, colour = country, label = sprintf("%.1f%%", value)),
+            hjust = 1.15, vjust = -0.7, size = 3.3, family = "source_sans", show.legend = FALSE) +   # left of the point, clear of the U.S. bars
+  geom_text(data = gs_rng, aes(x = year - 0.3, y = hi,
+                               label = sprintf("U.S. %d, %s: %s–%s%%", year, src, lo, hi)),
+            hjust = 1, vjust = 1, size = 3.1, family = "source_sans", colour = csis_colours[["red"]]) +
   scale_colour_manual(values = c(Australia = csis_colours[["navy"]], `United States` = csis_colours[["red"]])) +
   scale_y_continuous(labels = label_percent(scale = 1, accuracy = 1), limits = c(0, 18),
                      expand = expansion(c(0, 0.02))) +
@@ -751,7 +752,7 @@ make_p14 <- function(cur) {
                         guide = "none") +
     scale_y_continuous(labels = label_dollar(prefix = cur_sym[[cur]], suffix = "bn", accuracy = 0.5),
                        expand = expansion(c(0, 0.05)), limits = c(0, NA)) +
-    scale_x_date(date_breaks = "2 years", date_labels = "%Y") +
+    scale_x_date(date_breaks = "2 years", date_labels = "%Y", expand = expansion(mult = c(0.01, 0.01))) +
     labs(title = "Building work on commercial buildings not elsewhere classified",
          subtitle = paste("Private sector. Approvals: 12-month moving average, monthly values faint. The ABS includes",
                           "\ndata centers in this category, alongside other commercial buildings it does not list separately"),
@@ -804,11 +805,11 @@ make_p15 <- function(cur) {
     geom_line(aes(y = smooth / 1000, colour = series), linewidth = 0.9) +
     facet_wrap(~panel, ncol = 1, scales = "free_y") +
     scale_colour_manual(values = c(`All countries` = csis_colours[["navy"]],
-                                   `From the US` = csis_colours[["red"]],
+                                   `From the U.S.` = csis_colours[["red"]],   # must match imp_lbl
                                    `Equipment capex, information media and telecoms` = csis_colours[["gold"]])) +
     scale_y_continuous(labels = label_dollar(prefix = cur_sym[[cur]], suffix = "bn", accuracy = 0.5),
                        expand = expansion(c(0, 0.05)), limits = c(0, NA)) +
-    scale_x_date(date_breaks = "2 years", date_labels = "%Y") +
+    scale_x_date(date_breaks = "2 years", date_labels = "%Y", expand = expansion(mult = c(0.01, 0.01))) +
     labs(title = "Imports of computers and parts, and equipment spending by the industry",
          subtitle = "Current prices. Imports: 12-month moving average, monthly values faint",
          x = NULL, y = NULL,

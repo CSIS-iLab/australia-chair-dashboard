@@ -12,7 +12,7 @@
 "Australia
 2025","Australia","Rooftop solar","34843.854","0.121506128828435","286.766226","0.395056860705765","TRUE","Australia  (287 TWh)",
 "Australia
-2025","Australia","Utility solar","21366.266","0.0745076095537136","286.766226","0.395056860705765","TRUE","Australia  (287 TWh)",
+2025","Australia","Utility-scale solar","21366.266","0.0745076095537136","286.766226","0.395056860705765","TRUE","Australia  (287 TWh)",
 "Australia
 2025","Australia","Wind","40246.976","0.140347685155922","286.766226","0.395056860705765","TRUE","Australia  (287 TWh)",
 "Australia
@@ -28,7 +28,7 @@
 "Australia
 2025","NSW","Rooftop solar","10692.993","0.138794320350455","77.042007","0.407147272266674","FALSE","NSW  (77 TWh)",
 "Australia
-2025","NSW","Utility solar","9005.375","0.116889153731418","77.042007","0.407147272266674","FALSE","NSW  (77 TWh)",
+2025","NSW","Utility-scale solar","9005.375","0.116889153731418","77.042007","0.407147272266674","FALSE","NSW  (77 TWh)",
 "Australia
 2025","NSW","Wind","7949.39","0.103182540402926","77.042007","0.407147272266674","FALSE","NSW  (77 TWh)",
 "Australia
@@ -44,7 +44,7 @@
 "Australia
 2025","NT","Rooftop solar","311.403","0.0596126364554369","5.223775","0.0867007097357754","FALSE","NT  (5.2 TWh)",
 "Australia
-2025","NT","Utility solar","134.339","0.025716842704749","5.223775","0.0867007097357754","FALSE","NT  (5.2 TWh)",
+2025","NT","Utility-scale solar","134.339","0.025716842704749","5.223775","0.0867007097357754","FALSE","NT  (5.2 TWh)",
 "Australia
 2025","NT","Wind","0","0","5.223775","0.0867007097357754","FALSE","NT  (5.2 TWh)",
 "Australia
@@ -60,7 +60,7 @@
 "Australia
 2025","QLD","Rooftop solar","9460.359","0.125121064253669","75.609643","0.312532159423104","FALSE","QLD  (76 TWh)",
 "Australia
-2025","QLD","Utility solar","6972.816","0.0922212527838546","75.609643","0.312532159423104","FALSE","QLD  (76 TWh)",
+2025","QLD","Utility-scale solar","6972.816","0.0922212527838546","75.609643","0.312532159423104","FALSE","QLD  (76 TWh)",
 "Australia
 2025","QLD","Wind","4331.95","0.0572936179582279","75.609643","0.312532159423104","FALSE","QLD  (76 TWh)",
 "Australia
@@ -76,7 +76,7 @@
 "Australia
 2025","SA","Rooftop solar","3612.11","0.231907928422244","15.575621","0.770368128500302","FALSE","SA  (16 TWh)",
 "Australia
-2025","SA","Utility solar","1176.502","0.0755348374231756","15.575621","0.770368128500302","FALSE","SA  (16 TWh)",
+2025","SA","Utility-scale solar","1176.502","0.0755348374231756","15.575621","0.770368128500302","FALSE","SA  (16 TWh)",
 "Australia
 2025","SA","Wind","7122.708","0.457298492304095","15.575621","0.770368128500302","FALSE","SA  (16 TWh)",
 "Australia
@@ -92,7 +92,7 @@
 "Australia
 2025","TAS","Rooftop solar","428.113","0.0454759544561683","9.414052","0.975470711230403","FALSE","TAS  (9.4 TWh)",
 "Australia
-2025","TAS","Utility solar","16.494","0.00175206170520409","9.414052","0.975470711230403","FALSE","TAS  (9.4 TWh)",
+2025","TAS","Utility-scale solar","16.494","0.00175206170520409","9.414052","0.975470711230403","FALSE","TAS  (9.4 TWh)",
 "Australia
 2025","TAS","Wind","1940.883","0.206168714598135","9.414052","0.975470711230403","FALSE","TAS  (9.4 TWh)",
 "Australia
@@ -108,7 +108,7 @@
 "Australia
 2025","VIC","Rooftop solar","6424.397","0.109649341093242","58.590384","0.460028935806258","FALSE","VIC  (59 TWh)",
 "Australia
-2025","VIC","Utility solar","2873.103","0.0490371082053328","58.590384","0.460028935806258","FALSE","VIC  (59 TWh)",
+2025","VIC","Utility-scale solar","2873.103","0.0490371082053328","58.590384","0.460028935806258","FALSE","VIC  (59 TWh)",
 "Australia
 2025","VIC","Wind","14595.187","0.249105501680958","58.590384","0.460028935806258","FALSE","VIC  (59 TWh)",
 "Australia
@@ -124,7 +124,7 @@
 "Australia
 2025","WA","Rooftop solar","3914.479","0.0863918500212665","45.310744","0.214139189592649","FALSE","WA  (45 TWh)",
 "Australia
-2025","WA","Utility solar","1187.637","0.0262109357551048","45.310744","0.214139189592649","FALSE","WA  (45 TWh)",
+2025","WA","Utility-scale solar","1187.637","0.0262109357551048","45.310744","0.214139189592649","FALSE","WA  (45 TWh)",
 "Australia
 2025","WA","Wind","4306.858","0.0950515842335319","45.310744","0.214139189592649","FALSE","WA  (45 TWh)",
 "Main U.S. data
@@ -153,7 +153,7 @@ center states
 2024","Arizona","Rooftop solar","5446","0.0447758662454929","121.628021","0.199833630442774","FALSE","Arizona  (122 TWh)",
 "Main U.S. data
 center states
-2024","Arizona","Utility solar","10820.663","0.0889652146851917","121.628021","0.199833630442774","FALSE","Arizona  (122 TWh)",
+2024","Arizona","Utility-scale solar","10820.663","0.0889652146851917","121.628021","0.199833630442774","FALSE","Arizona  (122 TWh)",
 "Main U.S. data
 center states
 2024","Arizona","Wind","2540.455","0.0208870865374024","121.628021","0.199833630442774","FALSE","Arizona  (122 TWh)",
@@ -186,7 +186,7 @@ center states
 2024","California","Rooftop solar","31724","0.128398896240607","247.073775","0.568770457325955","FALSE","California  (247 TWh)",
 "Main U.S. data
 center states
-2024","California","Utility solar","48427.6","0.196004614411222","247.073775","0.568770457325955","FALSE","California  (247 TWh)",
+2024","California","Utility-scale solar","48427.6","0.196004614411222","247.073775","0.568770457325955","FALSE","California  (247 TWh)",
 "Main U.S. data
 center states
 2024","California","Wind","15648.353","0.0633347387839928","247.073775","0.568770457325955","FALSE","California  (247 TWh)",
@@ -216,7 +216,7 @@ center states
 2024","Georgia","Rooftop solar","568","0.00402456295637649","141.133337","0.127963933850724","FALSE","Georgia  (141 TWh)",
 "Main U.S. data
 center states
-2024","Georgia","Utility solar","9184.669","0.0650779553239076","141.133337","0.127963933850724","FALSE","Georgia  (141 TWh)",
+2024","Georgia","Utility-scale solar","9184.669","0.0650779553239076","141.133337","0.127963933850724","FALSE","Georgia  (141 TWh)",
 "Main U.S. data
 center states
 2024","Illinois","Bioenergy","224.361","0.00120144304254402","186.742935","0.160632641872101","FALSE","Illinois  (187 TWh)",
@@ -243,7 +243,7 @@ center states
 2024","Illinois","Rooftop solar","1730","0.00926407202500057","186.742935","0.160632641872101","FALSE","Illinois  (187 TWh)",
 "Main U.S. data
 center states
-2024","Illinois","Utility solar","3057.409","0.016372287390685","186.742935","0.160632641872101","FALSE","Illinois  (187 TWh)",
+2024","Illinois","Utility-scale solar","3057.409","0.016372287390685","186.742935","0.160632641872101","FALSE","Illinois  (187 TWh)",
 "Main U.S. data
 center states
 2024","Illinois","Wind","24910.345","0.133393774709603","186.742935","0.160632641872101","FALSE","Illinois  (187 TWh)",
@@ -273,7 +273,7 @@ center states
 2024","Ohio","Rooftop solar","508","0.00354613132220592","143.254706","0.0564777397260513","FALSE","Ohio  (143 TWh)",
 "Main U.S. data
 center states
-2024","Ohio","Utility solar","4001.558","0.0279331696091017","143.254706","0.0564777397260513","FALSE","Ohio  (143 TWh)",
+2024","Ohio","Utility-scale solar","4001.558","0.0279331696091017","143.254706","0.0564777397260513","FALSE","Ohio  (143 TWh)",
 "Main U.S. data
 center states
 2024","Ohio","Wind","2821.711","0.0196971609435295","143.254706","0.0564777397260513","FALSE","Ohio  (143 TWh)",
@@ -300,7 +300,7 @@ center states
 2024","Oregon","Rooftop solar","618","0.00946702067604975","65.279249","0.617761273571024","FALSE","Oregon  (65 TWh)",
 "Main U.S. data
 center states
-2024","Oregon","Utility solar","2001.404","0.0306591149662276","65.279249","0.617761273571024","FALSE","Oregon  (65 TWh)",
+2024","Oregon","Utility-scale solar","2001.404","0.0306591149662276","65.279249","0.617761273571024","FALSE","Oregon  (65 TWh)",
 "Main U.S. data
 center states
 2024","Oregon","Wind","9518.977","0.145819339925311","65.279249","0.617761273571024","FALSE","Oregon  (65 TWh)",
@@ -330,7 +330,7 @@ center states
 2024","Texas","Rooftop solar","4956","0.00867041844793527","571.59871","0.300010572102236","FALSE","Texas  (572 TWh)",
 "Main U.S. data
 center states
-2024","Texas","Utility solar","40558.964","0.0709570600675428","571.59871","0.300010572102236","FALSE","Texas  (572 TWh)",
+2024","Texas","Utility-scale solar","40558.964","0.0709570600675428","571.59871","0.300010572102236","FALSE","Texas  (572 TWh)",
 "Main U.S. data
 center states
 2024","Texas","Wind","124277.504","0.217420896558706","571.59871","0.300010572102236","FALSE","Texas  (572 TWh)",
@@ -363,7 +363,7 @@ center states
 2024","United States","Rooftop solar","83918","0.0190791925813109","4398.404159","0.241083150767364","TRUE","United States  (4,398 TWh)",
 "Main U.S. data
 center states
-2024","United States","Utility solar","219833.913","0.049980380395507","4398.404159","0.241083150767364","TRUE","United States  (4,398 TWh)",
+2024","United States","Utility-scale solar","219833.913","0.049980380395507","4398.404159","0.241083150767364","TRUE","United States  (4,398 TWh)",
 "Main U.S. data
 center states
 2024","United States","Wind","451904.357","0.102742799584553","4398.404159","0.241083150767364","TRUE","United States  (4,398 TWh)",
@@ -393,7 +393,7 @@ center states
 2024","Virginia","Rooftop solar","1044","0.00991686541638614","105.275201","0.120952796850989","FALSE","Virginia  (105 TWh)",
 "Main U.S. data
 center states
-2024","Virginia","Utility solar","6998.366","0.0664768714143799","105.275201","0.120952796850989","FALSE","Virginia  (105 TWh)",
+2024","Virginia","Utility-scale solar","6998.366","0.0664768714143799","105.275201","0.120952796850989","FALSE","Virginia  (105 TWh)",
 "Main U.S. data
 center states
 2024","Virginia","Wind","50.26","0.00047741537914518","105.275201","0.120952796850989","FALSE","Virginia  (105 TWh)",

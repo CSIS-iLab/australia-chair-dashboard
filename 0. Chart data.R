@@ -84,7 +84,7 @@ TITLE_SMALL <- c("a", "an", "the", "and", "but", "or", "nor", "for", "so", "yet"
                  "before", "behind", "below", "beneath", "beside", "between", "beyond", "by", "despite",
                  "during", "except", "from", "in", "into", "of", "on", "onto", "over", "per", "since",
                  "through", "throughout", "to", "toward", "towards", "under", "until", "upon", "via", "vs",
-                 "with", "within", "without")
+                 "with", "within", "without", "including")
 TITLE_KEEP  <- c("bn", "tn", "m", "k", "km", "kt", "mt", "pj", "gwh", "twh", "mwh", "e.g.", "i.e.", "etc.", "n.e.c.", "n.i.e", "n.i.e.")
 title_case <- function(x) {
   if (!is.character(x)) return(x)
@@ -657,7 +657,15 @@ hover_value <- function(built, v, whole, axis = "y") {
   } else {
     out <- tryCatch(f(round(v, digits)), error = function(e) NULL)
   }
-  if (is.null(out) || !length(out) || is.na(out[1]) || !nzchar(out[1])) plain(v) else as.character(out[1])
+  res <- if (is.null(out) || !length(out) || is.na(out[1]) || !nzchar(out[1])) plain(v) else as.character(out[1])
+  # Values of 1,000bn or more read as trillions, as the chart labels do (A$1,361.2bn -> A$1.36tn)
+  m <- regmatches(res, regexec("^(-?)(A\\$|US\\$|\\$)([0-9,]+(\\.[0-9]+)?)bn$", res))[[1]]
+  if (length(m) && as.numeric(gsub(",", "", m[4])) >= 1000)
+    res <- sprintf("%s%s%.2ftn", m[2], m[3], as.numeric(gsub(",", "", m[4])) / 1000)
+  # A unit the axis leaves out can be added for the pop-ups with labs(hover_suffix = "/MWh")
+  sfx <- built$plot$labels$hover_suffix
+  if (axis == "y" && is.character(sfx)) res <- paste0(res, sfx)
+  res
 }
 
 # Series name for each row of a layer: the label of its colour or fill

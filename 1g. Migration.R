@@ -188,7 +188,7 @@ abs_caption <- paste0(
   # of birth is usually taken from the traveller's passport or visa.
   "Counts people born in the United States, whatever their citizenship: it includes Australian and dual citizens\n",
   "born in the U.S., and leaves out U.S. citizens born elsewhere. People count as migrants when they spend ",
-  "12 months or more of a 16-month period in (or away from) Australia. Retrieved ", Sys.Date(), "."
+  "12 months or more of a 16-month period in (or away from) Australia. Retrieved ", trimws(format(Sys.Date(), "%e %B %Y")), "."
 )
 
 p_national <- nom_usa |>
@@ -428,7 +428,7 @@ p_e3 <- ggplot(e3, aes(fy, visas, colour = type)) +
        subtitle = sprintf("Visas issued by U.S. fiscal year, FY%d to FY%d. A U.S. work visa reserved for Australian professionals.",
                           min(e3$fy), niv_last),
        x = NULL, y = NULL,
-       caption = paste0(NIV_CAPTION, " Visa class E-3; renewals and dependants do not count against the cap.",
+       caption = paste0(NIV_CAPTION, " Visa class E-3; renewals and dependents do not count against the cap.",
                         if (niv_last < as.integer(format(Sys.Date(), "%Y")) - 1L)
                           sprintf(" FY%d figures not yet published.", niv_last + 1L) else "")) +
   theme_csis()
@@ -541,7 +541,7 @@ save_csis(p_sk, "us_citizens_skilled_visas_occupation.png", height = 6)
 
 # --- Chart 4: US citizens on temporary work, study and graduate visas ---
 TEMP_GROUPS <- c("Temporary Resident (Skilled Employment)" = "Skilled employment",
-                 "Temporary Resident (Other Employment)"   = "Other employment (incl. research, entertainment, sport)",
+                 "Temporary Resident (Other Employment)"   = "Other employment (including research, entertainment and sport)",
                  "Temporary Graduate"                      = "Temporary graduate",
                  "Student"                                 = "Student",
                  "Working Holiday Maker"                   = "Work and Holiday")

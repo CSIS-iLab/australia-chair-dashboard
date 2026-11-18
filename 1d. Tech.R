@@ -168,7 +168,7 @@ oa_group <- function(filters, group_by, retries = 3) {
 
 # Shared filters applied to every query.
 base_filters <- function(extra = character()) {
-  c(paste0("publication_year:", min(YEARS), "-", max(YEARS)),
+  c(paste0("publication_year:", min(YEARS), "–", max(YEARS)),
     "type:article",
     "is_retracted:false",
     extra)
@@ -182,6 +182,11 @@ write_csv(tibble(technology = names(TECHNOLOGIES), openalex_query = unname(TECHN
           "technology_keywords.csv")
 KW_NOTE <- "Fields are defined by keyword searches of paper titles and abstracts."
 OA_NOTE <- "Publication counts are from OpenAlex, an open bibliographic database."
+# Source line with the date the OpenAlex counts were downloaded (the cache date)
+OA_SRC <- local({
+  f <- file.path(CACHE_DIR, "A_country_counts.rds")
+  paste0("Source: OpenAlex, accessed ", format(if (file.exists(f)) file.mtime(f) else Sys.time(), "%B %Y"), ".")
+})
 
 # OpenAlex group_by returns `key` in different shapes depending on the field:
 # a bare code ("AU"), a lowercase code ("au"), or a full URI
@@ -263,14 +268,14 @@ p_a <- three_share |>
   geom_hline(yintercept = 1.5, colour = "grey60", linewidth = 0.4) +   # sets the benchmark apart
   scale_fill_manual(values = c(Australia = AU_COL, `United States` = US_COL, China = CN_COL),
                     breaks = c("Australia", "United States", "China")) +
-  scale_y_discrete(labels = function(x) ifelse(x == ALL_PUBS, "All publications\n(all fields)", x)) +
+  scale_y_discrete(labels = function(x) ifelse(x == ALL_PUBS, "All publications", x)) +
   scale_x_continuous(labels = percent_format(accuracy = 1),
                      expand = expansion(c(0, 0.05))) +
   labs(
     title    = "Share of world publications by critical technology",
-    subtitle = paste0("Share of world publications, ", min(YEARS), "-", max(YEARS)),
+    subtitle = paste0("Share of world publications, ", min(YEARS), "–", max(YEARS)),
     x = NULL, y = NULL, fill = NULL,
-    caption = paste0("Source: OpenAlex.
+    caption = paste0(OA_SRC, "
 ", OA_NOTE, " ", KW_NOTE, " All publications: the same measure across every field. Papers with authors in several countries count for each. ",
                      max(YEARS), " may be incomplete while recent papers are still being indexed.")
   ) +
@@ -327,9 +332,9 @@ p_g <- share_time |>
   scale_x_continuous(breaks = c(2016, 2020, 2024)) +                    # inner years, so neighbouring panels' labels don't touch
   labs(
     title    = "Share of world publications over time, by critical technology",
-    subtitle = paste0("Share of world publications, ", min(YEARS), "-", last_year),
+    subtitle = paste0("Share of world publications, ", min(YEARS), "–", last_year),
     x = NULL, y = NULL, colour = NULL,
-    caption = paste0("Source: OpenAlex.
+    caption = paste0(OA_SRC, "
 ", OA_NOTE, " ", KW_NOTE, " Papers with authors in several countries count for each. ",
                      last_year, " may be incomplete while recent papers are still being indexed. All panels on the same scale.")
   ) +
@@ -384,7 +389,7 @@ p_b <- quality_gap |>
     title    = "Australian share of world publications: all papers and top 10% cited",
     subtitle = "Share of world output, all papers vs the top 10% most cited",
     x = NULL, y = NULL, colour = NULL,
-    caption = paste0("Source: OpenAlex.
+    caption = paste0(OA_SRC, "
 ", OA_NOTE, " ", KW_NOTE)
   ) +
   theme_minimal(base_size = 13) +
@@ -439,8 +444,8 @@ p_c <- au_institutions |>
   scale_x_continuous(labels = comma, expand = expansion(c(0, 0.1))) +
   labs(
     title    = "Leading Australian institutions by publications in each field",
-    subtitle = paste0("Publications ", min(YEARS), "-", max(YEARS), ", top six institutions per field"),
-    x = NULL, y = NULL, caption = paste0("Source: OpenAlex.
+    subtitle = paste0("Publications ", min(YEARS), "–", max(YEARS), ", top six institutions per field"),
+    x = NULL, y = NULL, caption = paste0(OA_SRC, "
 ", OA_NOTE)
   ) +
   theme_minimal(base_size = 12) +
@@ -507,17 +512,17 @@ p_d <- collab |>
   ggplot(aes(share, technology, fill = partner)) +
   geom_col(position = position_dodge(width = 0.7), width = 0.65) +
   geom_hline(yintercept = 1.5, colour = "grey60", linewidth = 0.4) +   # sets the benchmark apart
-  scale_y_discrete(labels = function(x) ifelse(x == ALL_PUBS, "All publications\n(all fields)", x)) +
+  scale_y_discrete(labels = function(x) ifelse(x == ALL_PUBS, "All publications", x)) +
   scale_fill_manual(values = c("with United States" = US_COL,
                                "with China" = CN_COL)) +
   scale_x_continuous(labels = percent_format(accuracy = 1),
                      expand = expansion(c(0, 0.05))) +
   labs(
     title    = "Australian publications with U.S. and Chinese co-authors",
-    subtitle = paste0("Share of all Australian publications in each field, ", min(YEARS), "-", max(YEARS),
+    subtitle = paste0("Share of all Australian publications in each field, ", min(YEARS), "–", max(YEARS),
                       ", co-authored with a U.S. or Chinese institution"),
     x = NULL, y = NULL, fill = NULL,
-    caption = paste0("Source: OpenAlex.
+    caption = paste0(OA_SRC, "
 ", OA_NOTE, " Shares overlap: a paper can have both U.S. and Chinese co-authors. ", KW_NOTE,
                      " All publications: the same measure across every field. ", max(YEARS),
                      " may be incomplete while recent papers are still being indexed.")
@@ -592,7 +597,8 @@ p_e <- model_countries |>
     title    = "Notable AI models by country",
     subtitle = "Notable AI models by country of developing organization, 2015 onward",
     x = NULL, y = NULL,
-    caption = paste("Source: Epoch AI, 'Data on AI Models' (CC-BY).",
+    caption = paste(sprintf("Source: Epoch AI, 'Data on AI Models' (CC-BY), accessed %s.",
+                            format(file.mtime(file.path(CACHE_DIR, "E_epoch_models.rds")), "%B %Y")),
                     "Note: Notable models are those Epoch AI judges to have advanced the state of the art,",
                     "been highly cited, been historically significant or been widely used.")
   ) +
@@ -606,6 +612,8 @@ ggsave("E_ai_models_by_country.png", p_e, width = 9, height = 5.5, dpi = 150, bg
 write_hover(p_e, "E_ai_models_by_country.png", width = 9, height = 5.5, dpi = 150,
             spots = hbar_spots(function(cat, series, v)
               sprintf("<b>%s</b><br>%s notable AI model%s since 2015", cat, comma(v), if (v == 1) "" else "s")))
+# "Data to": the latest model in the data, not the "2015 onward" in the subtitle
+writeLines(as.character(max(lubridate::year(models[[date_col]]), na.rm = TRUE)), "E_ai_models_by_country_period.txt")
 
 
 # ------------------------------------------------------------------------------
@@ -666,6 +674,7 @@ if (is.null(rd) || nrow(rd) == 0) {
     scale_linewidth_manual(values = c(au = 1.2, us = 1.2, cn = 0.9, other = 0.6),
                            guide = "none") +
     scale_x_continuous(expand = expansion(c(0.02, 0.22))) +                # room for country names
+    scale_y_continuous(labels = function(x) paste0(x, "%")) +
     labs(
       title    = "R&D intensity",
       subtitle = "Gross domestic expenditure on R&D, percent of GDP",
@@ -681,6 +690,8 @@ if (is.null(rd) || nrow(rd) == 0) {
   ggsave("F_rd_intensity.png", p_f, width = 9, height = 5.5, dpi = 150, bg = "white")
 
   au_l <- rd_labels |> filter(iso3c == "AUS"); us_l <- rd_labels |> filter(iso3c == "USA")
+  # "Data to" for the two countries in focus, not the comparator with the latest year
+  writeLines(sprintf("%d (Australia %d)", us_l$year[1], au_l$year[1]), "F_rd_intensity_period_override.txt")
   oecd_rank <- rd_labels |> arrange(desc(gerd)) |> mutate(r = row_number())
   takeaway("Tech/F_rd_intensity.png", sprintf(
     "Australia spent %.2f%% of GDP on R&D in %d, against %.2f%% in the United States in %d.",
@@ -693,8 +704,8 @@ local({
   top <- au_share |> arrange(desc(share))
   takeaway("Tech/A_australian_share_by_technology.png", sprintf(
     "Australia's largest share of world research among these fields is in %s (%.1f%% of papers, %s papers); its smallest is in %s (%.1f%%).",
-    top$technology[1], 100 * top$share[1], comma(top$au_papers[1]),
-    top$technology[nrow(top)], 100 * top$share[nrow(top)]))
+    tolower(top$technology[1]), 100 * top$share[1], comma(top$au_papers[1]),
+    tolower(top$technology[nrow(top)]), 100 * top$share[nrow(top)]))
   q <- quality_gap |> select(technology, measure, share) |>
     pivot_wider(names_from = measure, values_from = share) |>
     mutate(ratio = `Top 10% most cited` / `All papers`) |> arrange(desc(ratio))
@@ -705,9 +716,9 @@ local({
     nrow(q), q$technology[1]))
   ai <- au_institutions |> filter(technology == "Artificial intelligence") |> slice_max(n, n = 1)
   takeaway("Tech/C_australian_institutions.png", sprintf(
-    "%s publishes the most Australian research on artificial intelligence (%s papers, %d-%d).",
+    "%s publishes the most Australian research on artificial intelligence (%s papers, %d–%d).",
     str_remove(ai$label, "^The "), comma(ai$n), min(YEARS), max(YEARS)))
-  w <- collab |> select(technology, partner, share) |>
+  w <- collab |> filter(technology != ALL_PUBS) |> select(technology, partner, share) |>   # the 8 fields, not the benchmark
     pivot_wider(names_from = partner, values_from = share)
   takeaway("Tech/D_collaboration_partners.png", sprintf(
     "Australian researchers co-author more with Chinese than U.S. institutions in %d of %d fields.",

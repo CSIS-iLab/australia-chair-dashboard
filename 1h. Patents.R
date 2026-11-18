@@ -457,10 +457,10 @@ p_count <- ggplot(annual_us, aes(filing_year, n_us)) +
   scale_x_continuous(breaks = scales::pretty_breaks(8)) +
   scale_y_continuous(labels = scales::comma) +
   labs(
-    title    = "Australian patent applications with a U.S. applicant",
+    title    = "Patent applications in Australia with a U.S. applicant",
     subtitle = paste0("Standard complete applications, by filing date in Australia"),
     x = NULL, y = "Applications",
-    caption  = paste0("Source: IP Australia, IP RAPID.
+    caption  = paste0("Source: IP Australia, IP RAPID (2 November 2026 release).
 ", LAG_NOTE)
   ) +
   theme_minimal(base_size = 12) +
@@ -473,10 +473,10 @@ p_share <- ggplot(annual_us, aes(filing_year, share_us)) +
   scale_x_continuous(breaks = scales::pretty_breaks(8)) +
   scale_y_continuous(labels = scales::percent_format(accuracy = 1),
                      limits = c(0, NA)) +
-  labs(title = "U.S. share of Australian patent applications",
+  labs(title = "U.S. share of patent applications in Australia",
        subtitle = "Share of all standard complete applications with a known U.S. applicant or owner",
        x = NULL, y = NULL,
-       caption = paste0("Source: IP Australia, IP RAPID.
+       caption = paste0("Source: IP Australia, IP RAPID (2 November 2026 release).
 ", LAG_NOTE)) +
   theme_minimal(base_size = 12) +
   theme(panel.grid.minor = element_blank(),
@@ -715,10 +715,11 @@ p_tm_count <- ggplot(tm_annual_us, aes(filing_year, n_us)) +
   scale_x_continuous(breaks = scales::pretty_breaks(8)) +
   scale_y_continuous(labels = scales::comma) +
   labs(
-    title    = "Australian trademark applications with a U.S. applicant",
+    title    = "Trademark applications in Australia with a U.S. applicant",
     subtitle = paste0("Standard trademark applications, by ", tm_subtitle_basis),
     x = NULL, y = "Applications",
-    caption  = "Source: IP Australia, IP RAPID"
+    caption  = paste0("Source: IP Australia, IP RAPID (2 November 2026 release).\n",
+                      "Counted by application date in Australia. The current year is left out until it ends.")
   ) +
   theme_minimal(base_size = 12) +
   theme(panel.grid.minor = element_blank(),
@@ -730,10 +731,11 @@ p_tm_share <- ggplot(tm_annual_us, aes(filing_year, share_us)) +
   scale_x_continuous(breaks = scales::pretty_breaks(8)) +
   scale_y_continuous(labels = scales::percent_format(accuracy = 1),
                      limits = c(0, NA)) +
-  labs(title = "U.S. share of Australian trademark applications",
+  labs(title = "U.S. share of trademark applications in Australia",
        subtitle = "Share of all standard trademark applications with a known U.S. applicant or owner",
        x = NULL, y = NULL,
-       caption = "Source: IP Australia, IP RAPID") +
+       caption = paste0("Source: IP Australia, IP RAPID (2 November 2026 release).\n",
+                        "Counted by application date in Australia. The current year is left out until it ends.")) +
   theme_minimal(base_size = 12) +
   theme(panel.grid.minor = element_blank(),
         plot.title = element_text(face = "bold"))
@@ -1018,7 +1020,22 @@ fwrite(ft, file.path(out_dir, "tech_fields_us_share_full.csv"))
 # Field and class codes (WIPO field numbers, Nice class numbers) are left off
 # the axis labels, which show the names only; the codes stay in the data, the
 # CSV download and the hover pop-ups.
-field_name_only <- function(x) { x <- sub("^[0-9]+ ", "", x); paste0(toupper(substr(x, 1, 1)), substring(x, 2)) }
+# WIPO technology field names as WIPO writes them, by field number (the data have lower-case names without commas)
+WIPO_FIELDS <- c("Electrical machinery, apparatus, energy", "Audio-visual technology", "Telecommunications",
+                 "Digital communication", "Basic communication processes", "Computer technology",
+                 "IT methods for management", "Semiconductors", "Optics", "Measurement",
+                 "Analysis of biological materials", "Control", "Medical technology", "Organic fine chemistry",
+                 "Biotechnology", "Pharmaceuticals", "Macromolecular chemistry, polymers", "Food chemistry",
+                 "Basic materials chemistry", "Materials, metallurgy", "Surface technology, coating",
+                 "Micro-structural and nano-technology", "Chemical engineering", "Environmental technology",
+                 "Handling", "Machine tools", "Engines, pumps, turbines", "Textile and paper machines",
+                 "Other special machines", "Thermal processes and apparatus", "Mechanical elements", "Transport",
+                 "Furniture, games", "Other consumer goods", "Civil engineering")
+field_name_only <- function(x) {
+  n <- suppressWarnings(as.integer(sub("^([0-9]+) .*", "\\1", x)))
+  out <- sub("^[0-9]+ ", "", x); out <- paste0(toupper(substr(out, 1, 1)), substring(out, 2))
+  ifelse(!is.na(n) & n >= 1 & n <= 35, WIPO_FIELDS[pmax(1, pmin(35, n))], out)
+}
 field_hover     <- function(x) sub("^([0-9]+) (.*)$", "Field \\1: \\2", x)
 class_name_only <- function(x) sub("^Class [0-9]+: ", "", x)
 
@@ -1032,11 +1049,11 @@ p_field_share <- ggplot(plot_fs, aes(share_us, field)) +
   geom_vline(xintercept = tot_share_us, linetype = "dashed", colour = "grey40") +
   scale_x_continuous(labels = scales::percent_format(accuracy = 1),
                      expand = expansion(mult = c(0, 0.05))) +
-  labs(title    = "U.S. share of Australian patent applications, by technology field",
+  labs(title    = "U.S. share of patent applications in Australia, by field",
        subtitle = paste0("Standard complete applications, ", window_lab,
                          ". Dashed line = U.S. share across all fields"),
        x = NULL, y = NULL,
-       caption  = "Source: IP Australia, IP RAPID. Fields: WIPO technology concordance.") +
+       caption  = "Source: IP Australia, IP RAPID (2 November 2026 release). Fields: WIPO technology concordance.") +
   theme_chart(horizontal_bars = TRUE)
 
 # Chart 2: US applications by sector over time (fractional counts)
@@ -1054,10 +1071,10 @@ p_sector_trend <- ggplot(sector_trend, aes(filing_year, n_us, colour = sector)) 
   scale_colour_manual(values = sector_pal) +
   scale_x_continuous(breaks = scales::pretty_breaks(8)) +
   scale_y_continuous(labels = scales::comma) +
-  labs(title    = "Australian patent applications with a U.S. applicant, by technology sector",
+  labs(title    = "Patent applications in Australia with a U.S. applicant, by technology sector",
        subtitle = "Standard complete applications; each application split across its sectors",
        x = NULL, y = "Applications", colour = NULL,
-       caption  = paste0("Source: IP Australia, IP RAPID. Sectors: WIPO technology concordance.
+       caption  = paste0("Source: IP Australia, IP RAPID (2 November 2026 release). Sectors: WIPO technology concordance.
 ", LAG_NOTE)) +
   theme_chart() +
   theme(legend.position = "top")
@@ -1078,10 +1095,10 @@ p_collab_trend <- ggplot(collab_annual, aes(filing_year, n_us_au)) +
   geom_point(size = 1.4, colour = "#0098A8") +
   scale_x_continuous(breaks = scales::pretty_breaks(8)) +
   scale_y_continuous(labels = scales::comma, limits = c(0, NA)) +
-  labs(title    = "Joint U.S.-Australian patent applications in Australia",
+  labs(title    = "Joint U.S.-Australian patent applications in Australia over time",
        subtitle = "Standard complete applications filed in Australia",
        x = NULL, y = "Applications",
-       caption  = paste0("Source: IP Australia, IP RAPID.
+       caption  = paste0("Source: IP Australia, IP RAPID (2 November 2026 release).
 ", LAG_NOTE)) +
   theme_chart()
 
@@ -1093,10 +1110,10 @@ p_collab_fields <- ggplot(plot_cf, aes(n_us_au, field)) +
   geom_col(fill = "#0098A8", width = 0.7) +
   scale_y_discrete(labels = field_name_only) +
   scale_x_continuous(labels = scales::comma, expand = expansion(mult = c(0, 0.05))) +
-  labs(title    = "Joint U.S.-Australian patent applications in Australia, by technology field",
+  labs(title    = "Joint U.S.-Australian patent applications in Australia, by field",
        subtitle = paste0("Co-applied patent applications by technology field, ", window_lab),
        x = "Applications", y = NULL,
-       caption  = "Source: IP Australia, IP RAPID. Applications split across fields, so counts can be fractional.") +
+       caption  = "Source: IP Australia, IP RAPID (2 November 2026 release). Applications split across fields, so counts can be fractional.") +
   theme_chart(horizontal_bars = TRUE)
 
 # Chart 5: Australian partner state (recent window)
@@ -1125,7 +1142,7 @@ p_collab_states <- ggplot(plot_st, aes(n_us_au, state)) +
   labs(title    = "Location of Australian co-applicants on U.S.–Australian patents",
        subtitle = paste0("Patent applications by state of the Australian applicant, ", window_lab),
        x = "Applications", y = NULL,
-       caption  = "Source: IP Australia, IP RAPID. An application with partners in two states counts in both.") +
+       caption  = "Source: IP Australia, IP RAPID (2 November 2026 release). An application with partners in two states counts in both.") +
   theme_chart(horizontal_bars = TRUE)
 
 # Partner tables (recent window) --------------------------------------------
@@ -1394,11 +1411,11 @@ p_tm_class_share <- ggplot(plot_tc, aes(share_us, class_label)) +
   geom_vline(xintercept = tm_tot_share_us, linetype = "dashed", colour = "grey40") +
   scale_x_continuous(labels = scales::percent_format(accuracy = 1),
                      expand = expansion(mult = c(0, 0.05))) +
-  labs(title    = "U.S. share of Australian trademark applications, by Nice class",
+  labs(title    = "U.S. share of trademark applications in Australia, by class",
        subtitle = paste0("Standard trademark applications, ", tm_window_lab,
                          ". Dashed line = U.S. share across all classes"),
        x = NULL, y = NULL,
-       caption  = "Source: IP Australia, IP RAPID. Nice classification; class names shortened.") +
+       caption  = "Source: IP Australia, IP RAPID (2 November 2026 release). Nice classification; class names shortened.") +
   theme_chart(horizontal_bars = TRUE)
 
 # Chart 2: US trademarks by class group over time
@@ -1417,10 +1434,10 @@ p_tm_group_trend <- ggplot(tm_group_trend, aes(filing_year, n_us, colour = class
   scale_colour_manual(values = tm_group_pal) +
   scale_x_continuous(breaks = scales::pretty_breaks(8)) +
   scale_y_continuous(labels = scales::comma) +
-  labs(title    = "Australian trademark applications with a U.S. applicant, by sector",
+  labs(title    = "Trademark applications in Australia with a U.S. applicant, by sector",
        subtitle = "Standard trademark applications grouped by Nice class",
        x = NULL, y = "Applications", colour = NULL,
-       caption  = "Source: IP Australia, IP RAPID. Multi-class applications split across sectors.") +
+       caption  = "Source: IP Australia, IP RAPID (2 November 2026 release). Multi-class applications split across sectors.") +
   theme_chart() +
   theme(legend.position = "top") +
   guides(colour = guide_legend(ncol = 3))   # three columns: every sector name fits
@@ -1441,10 +1458,11 @@ p_tm_collab_trend <- ggplot(tm_collab_annual, aes(filing_year, n_us_au)) +
   geom_point(size = 1.4, colour = "#0098A8") +
   scale_x_continuous(breaks = scales::pretty_breaks(8)) +
   scale_y_continuous(labels = scales::comma, limits = c(0, NA)) +
-  labs(title    = "Joint U.S.-Australian trademark applications in Australia",
+  labs(title    = "Joint U.S.-Australian trademark applications in Australia over time",
        subtitle = "Standard trademark applications filed in Australia",
        x = NULL, y = "Applications",
-       caption  = "Source: IP Australia, IP RAPID") +
+       caption  = paste0("Source: IP Australia, IP RAPID (2 November 2026 release).\n",
+                         "Counted by application date in Australia. The current year is left out until it ends.")) +
   theme_chart()
 
 # Chart 4: co-applied trademarks by Nice class (recent window, top 15)
@@ -1456,10 +1474,10 @@ p_tm_collab_classes <- ggplot(plot_tcf, aes(n_us_au, class_label)) +
   geom_col(fill = "#0098A8", width = 0.7) +
   scale_y_discrete(labels = class_name_only) +
   scale_x_continuous(labels = scales::comma, expand = expansion(mult = c(0, 0.05))) +
-  labs(title    = "Joint U.S.-Australian trademark applications in Australia, by Nice class",
+  labs(title    = "Joint U.S.-Australian trademark applications in Australia, by class",
        subtitle = paste0("Co-applied trademark applications by Nice class, ", tm_window_lab),
        x = "Applications", y = NULL,
-       caption  = "Source: IP Australia, IP RAPID. Multi-class applications split across classes.") +
+       caption  = "Source: IP Australia, IP RAPID (2 November 2026 release). Multi-class applications split across classes.") +
   theme_chart(horizontal_bars = TRUE)
 
 # Chart 5: Australian partner state (recent window)
@@ -1488,7 +1506,7 @@ p_tm_collab_states <- ggplot(plot_tst, aes(n_us_au, state)) +
   labs(title    = "Location of Australian co-applicants on U.S.–Australian trademarks",
        subtitle = paste0("Trademark applications by state of the Australian applicant, ", tm_window_lab),
        x = "Applications", y = NULL,
-       caption  = "Source: IP Australia, IP RAPID. An application with partners in two states counts in both.") +
+       caption  = "Source: IP Australia, IP RAPID (2 November 2026 release). An application with partners in two states counts in both.") +
   theme_chart(horizontal_bars = TRUE)
 
 # Partner tables (recent window) --------------------------------------------
@@ -1592,7 +1610,7 @@ local({
     st$sector[1], year_max, format(round(st$n_us[1]), big.mark = ",")))
   top_f <- ft[n_all >= min_field_n][order(-share_us)][1]
   takeaway(pt("us_share_by_field.png"), sprintf(
-    "U.S. applicants filed %.0f%% of Australian patent applications in %s, the highest share of any field (%d-%d).",
+    "U.S. applicants filed %.0f%% of Australian patent applications in %s, the highest share of any field (%d–%d).",
     100 * top_f$share_us, tolower(sub("^[0-9]+ +", "", top_f$field)), min(recent_years), max(recent_years)))
   ca <- collab_annual[filing_year <= year_max][order(filing_year)][.N]
   takeaway(pt("us_au_coapplied_trend.png"), sprintf(

@@ -1,6 +1,6 @@
-﻿title,"U.S. share of Australian patent applications, by technology field"
+﻿title,"U.S. share of patent applications in Australia, by field"
 subtitle,"Standard complete applications, 2021–2025. Dashed line = U.S. share across all fields"
-caption,"Source: IP Australia, IP RAPID. Fields: WIPO technology concordance."
+caption,"Source: IP Australia, IP RAPID (2 November 2026 release). Fields: WIPO technology concordance."
 chart_type,Horizontal bar with reference line
 category_variable,field
 category_axis,vertical
