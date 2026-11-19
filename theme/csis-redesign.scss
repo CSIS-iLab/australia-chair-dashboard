@@ -448,6 +448,11 @@ $border-radius:           6px;
 @media (max-width: 767.98px) {
   .quarto-dashboard .bslib-grid { grid-template-rows: none !important; grid-auto-rows: auto !important; }
   .quarto-dashboard .bslib-grid > .html-fill-item { min-height: 0 !important; height: auto !important; }
+  // Goods and services pickers: the chart sizes to its width rather than to a
+  // card height that no longer exists (otherwise it collapses to nothing)
+  .svc-stage { flex: 0 0 auto !important; display: block !important; }
+  // (aspect-ratio gives the box a size before the lazy-loaded chart arrives)
+  .svc-stage img.is-on { width: 100%; max-height: none; height: auto; aspect-ratio: auto 16 / 9; }
 }
 
 // Tap-to-enlarge on phones (theme/chart-footer.html): the chart at full size in a

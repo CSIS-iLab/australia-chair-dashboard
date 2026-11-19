@@ -379,6 +379,11 @@ by_type <- by_type |>
 stopifnot("Types of investment not found in Tables 2 and 5" = nrow(by_type) > 0)
 write.csv(by_type, file.path(OUT_DIR, "iip_by_type_latest.csv"), row.names = FALSE)
 
+# Total labels at the end of the bars: billions, or trillions (two decimals) from 1,000bn
+bar_label <- function(v, cur) ifelse(v >= 1000,
+                                     sprintf("%s%.2ftn", cur_sym[[cur]], v / 1000),
+                                     sprintf("%s%sbn", cur_sym[[cur]], trimws(format(round(v), big.mark = ","))))
+
 make_iip_type <- function(cur) {
   d <- by_type |>
     mutate(value_bn = if (cur == "USD") value_bn * usd_per_aud else value_bn,
@@ -386,14 +391,19 @@ make_iip_type <- function(cur) {
            group    = factor(group, levels = c("Other", "Portfolio", "Direct")),
            direction = factor(direction, levels = c("Foreign investment in Australia",
                                                     "Australian investment abroad")))
+  # one total per partner and direction, at the end of its stacked bar
+  tot <- d |> group_by(direction, partner) |> summarise(value_bn = sum(value_bn), .groups = "drop") |>
+    mutate(label = bar_label(value_bn, cur))
   ggplot(d, aes(value_bn, partner, fill = group)) +
     geom_col(width = 0.7) +
+    geom_text(data = tot, aes(value_bn, partner, label = label), inherit.aes = FALSE, hjust = -0.12,
+              size = 3.1, colour = csis_grey, family = font_family) +
     facet_wrap(~direction, ncol = 2) +
     scale_fill_manual(values = c(Direct = csis_navy, Portfolio = csis_teal, Other = "#B1B3B3"),
                       breaks = c("Direct", "Portfolio", "Other")) +
     scale_x_continuous(labels = dollar_format(prefix = cur_sym[[cur]], suffix = "bn", big.mark = ","),
                        breaks = scales::breaks_pretty(n = 3),
-                       expand = expansion(mult = c(0, 0.05))) +
+                       expand = expansion(mult = c(0, 0.24))) +   # room for the total labels
     labs(
       title    = sprintf("Two-way investment by type, %d", YEAR),
       subtitle = sprintf("Level of investment at 31 December %d, %s billion", YEAR, cur_sym[[cur]]),
@@ -525,12 +535,14 @@ make_iip_industry <- function(cur) {
                                                     "Australian direct investment abroad")))
   ggplot(d, aes(value_bn, sector, fill = shade)) +
     geom_col(width = 0.7) +
-  # values are in the hover pop-ups, not printed on the bars
+    # total at the end of each bar (also in the hover pop-ups)
+    geom_text(aes(label = bar_label(value_bn, cur)), hjust = -0.12,
+              size = 3.1, colour = csis_grey, family = font_family) +
     facet_wrap(~direction, ncol = 2, labeller = label_wrap_gen(26)) +   # panel titles wrap, not clip
     scale_fill_manual(values = c(`FALSE` = csis_navy, `TRUE` = "#B1B3B3"), guide = "none") +
     scale_x_continuous(labels = dollar_format(prefix = cur_sym[[cur]], suffix = "bn", big.mark = ","),
                        breaks = scales::breaks_pretty(n = 3),
-                       expand = expansion(mult = c(0, 0.22))) +
+                       expand = expansion(mult = c(0, 0.3))) +   # room for the value labels
     labs(
       title    = sprintf("Direct investment by industry, %d", unique(by_ind$year)[1]),
       subtitle = sprintf("Level of direct investment at 31 December %d, all partner countries, %s billion",
