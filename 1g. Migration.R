@@ -205,8 +205,7 @@ p_national <- nom_usa |>
   scale_y_continuous(labels = scales::comma) +
   labs(
     title    = "Net migration of Americans to Australia",
-    subtitle = sprintf("Net overseas migration of people born in the United States, by Australian financial year (July-June; %d = year to June %d)",
-                       max(nom_usa$fy_end), max(nom_usa$fy_end)),
+    subtitle = "Net overseas migration of people born in the United States, by Australian financial year",
     x = NULL, y = NULL, caption = abs_caption
   ) +
   theme_minimal(base_size = 13) +
@@ -226,8 +225,7 @@ p_states <- nom_usa |>
                                 max(2000, nom_usa$value[nom_usa$region != "Australia"], na.rm = TRUE))) +
   labs(
     title    = "Net migration of Americans to Australia, by state and territory",
-    subtitle = sprintf("Net overseas migration of people born in the United States, by Australian financial year (July-June; %d = year to June %d)",
-                       max(nom_usa$fy_end), max(nom_usa$fy_end)),
+    subtitle = "Net overseas migration of people born in the United States, by Australian financial year",
     x = NULL, y = NULL, caption = abs_caption
   ) +
   theme_minimal(base_size = 13) +
@@ -400,7 +398,7 @@ message("State Department visa tables: FY", min(niv$fy), "-FY", niv_last)
 write_csv(niv, "visas_issued_australians_tidy.csv")
 
 NIV_CAPTION <- paste0("Source: U.S. Department of State, Report of the Visa Office, nonimmigrant visas issued ",
-                      "by nationality and visa class (via the adoption.state.gov mirror).\n",
+                      "by nationality and visa class.\n",
                       "U.S. fiscal years ending 30 September. Visas issued, not people admitted.")
 
 # --- Chart 1: E-3 visas against the cap ---
@@ -425,7 +423,7 @@ p_e3 <- ggplot(e3, aes(fy, visas, colour = type)) +
   scale_x_continuous(breaks = seq(2006, niv_last, 2)) +
   guides(colour = guide_legend(nrow = 1)) +
   labs(title = "Skilled professional E-3 visas issued to Australians",
-       subtitle = sprintf("Visas issued by U.S. fiscal year, FY%d to FY%d. A U.S. work visa reserved for Australian professionals.",
+       subtitle = sprintf("Visas issued by U.S. fiscal year, FY%d to FY%d",
                           min(e3$fy), niv_last),
        x = NULL, y = NULL,
        caption = paste0(NIV_CAPTION, " Visa class E-3; renewals and dependents do not count against the cap.",

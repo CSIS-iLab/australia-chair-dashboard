@@ -123,7 +123,7 @@ tiles <- c(   # one per page, named and ordered as in the top menu
   tile("intellectual-property", "Intellectual Property", "U.S. patents and trademarks in Australia and joint U.S.-Australian filings.", "Patents/us_au_coapplied_trend.png"),
   tile("trade-overview", "Trade Overview", "Australia's goods and services trade by partner and sector, and the U.S. trade balance with Australia.", "Trade/us_au_trade_balance.png"),
   tile("trade-in-goods", "Trade in Goods", "The goods Australia and the U.S. trade with each other, and the U.S. share of each.", "Trade/goods_exports_us_share.png"),
-  tile("trade-in-services", "Trade in Services", "Services trade with the U.S. by type, from travel and education to intellectual property charges.", "Trade/overview_us_share_by_service.png"),
+  tile("trade-in-services", "Trade in Services", "The U.S. share of Australia's services trade over time, by type, from travel and education to intellectual property charges.", "Trade/credits_13_total_services.png"),
   tile("investment", "Investment", "Two-way investment positions with the United States and Australia's other partners.", "Investment/iip_levels_latest.png"),
   tile("critical-minerals", "Critical Minerals", "Mines and deposits, Australia's share of world supply and U.S. import reliance.", "Critical minerals/minerals_au_world_share_us_reliance.png"),
   tile("energy", "Energy", "Net energy trade, wholesale prices, the cost of new solar and wind, and each country's electricity mix.", "Energy/07_wholesale_prices_au_us.png"),
@@ -510,16 +510,10 @@ if (length(files) == 0) {
 
 # Trade in Services
 
-## Column {.tabset title="Services Traded with the U.S."}
-
-### U.S. Share by Service
-
-![](Trade/overview_us_share_by_service.png){title="U.S. Share of Australia's Services Trade, by Service"}
-
-### All Services
+## Column
 
 ```{r}
-#| title: "Services Trade by Type with the U.S."
+#| title: "Services Traded with the U.S."
 #| echo: false
 #| output: asis
 #| padding: 0
@@ -902,10 +896,6 @@ if (!file.exists(mtab_file)) {
 #### By State
 
 ![](Energy/02_state_fuel_mix.png){title="Electricity Generation by Source, by State"}
-
-#### Renewables Share
-
-![](Energy/09_renewable_share_au_us.png){title="Renewable Share of Electricity Generation, Australia and the United States"}
 
 #### Carbon-Free by Technology
 

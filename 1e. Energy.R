@@ -570,7 +570,7 @@ p9 <- ggplot(renew_ts, aes(year, share, colour = series, linetype = series)) +
     x = NULL, y = NULL,
     caption  = paste0("Sources: DCCEEW, Australian Energy Statistics, Table O; ", US_SRC,
                       "\nAustralian years are financial years (to June), labeled by the year they end. ",
-                      "Nuclear is carbon-free but not renewable, so it is not included; see Carbon-Free by Technology.")
+                      "Nuclear is carbon-free but not renewable, so it is not included.")
   ) +
   theme_csis() +
   theme(legend.key.width = unit(1.2, "cm"))
@@ -627,7 +627,7 @@ p4 <- ggplot() +
   annotate("text", x = 2035, y = 1.07, label = "U.S.: 100% carbon-free by 2035\n(former target, revoked 2025)",
            hjust = 1, vjust = 0, size = 3, colour = "grey45", lineheight = 0.95) +
   scale_colour_manual(values = tgt_cols, name = NULL,
-                      labels = c("Australia" = "Australia: renewable share", "United States" = "U.S.: carbon-free share")) +
+                      labels = c("Australia" = "Australia", "United States" = "United States")) +
   guides(colour = guide_legend(override.aes = list(linetype = c("solid", "22")))) +
   scale_y_continuous(labels = percent_format(accuracy = 1), limits = c(0, 1.24), breaks = seq(0, 1, 0.25)) +
   scale_x_continuous(breaks = seq(2000, 2035, 5)) +
@@ -636,7 +636,7 @@ p4 <- ggplot() +
     subtitle = "Share of generation against each country's target",
     x = NULL, y = NULL,
     caption = paste0("Sources: DCCEEW, Australian Energy Statistics, Table O; ", US_SRC,
-                     "\nLines show Australia's renewable share and the U.S. carbon-free share, as each target is defined. ",
+                     "\nAustralia's line is its renewable share; the U.S. line is its carbon-free share (renewables plus nuclear), as each target is defined. ",
                      "Dotted lines: straight paths to target. Australian years are financial years (to June), labeled by the year they end. ",
                      "Australia's 82% target applies to the main grids (NEM and WA's SWIS); this all-Australia share is a close proxy. ",
                      "The U.S. has no current national target; the 2035 target (2021) was reversed in January 2025.")
