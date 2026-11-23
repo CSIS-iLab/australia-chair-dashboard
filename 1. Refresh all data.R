@@ -2,7 +2,11 @@
 # Every other script reads the folder from here. To run one script on its
 # own, run this section first (select lines 1-12 and press Ctrl+Enter).
 
-DASHBOARD_DIR <- "C:/Users/Angelina/Documents/CSIS/Dashboard"
+DASHBOARD_DIR <- Filter(dir.exists, c(
+  "C:/Users/Angelina/Documents/CSIS/Dashboard",   # Windows PC
+  "/Users/angelina/Documents/CSIS/Dashboard"      # MacBook Air
+))[1]
+if (is.na(DASHBOARD_DIR)) DASHBOARD_DIR <- "(not found)"
 
 if (!dir.exists(DASHBOARD_DIR))
   stop("DASHBOARD_DIR doesn't exist: ", DASHBOARD_DIR,
@@ -27,7 +31,9 @@ Sys.setenv(DASHBOARD_DIR = normalizePath(DASHBOARD_DIR, winslash = "/"))
 #  "1h. Patents.R",             # the slowest: downloads a ~1.3 GB zip from IP RAPID
                                # (reused for 30 days). Put # in front to skip it.
   "1i. Investment.R",
-  "1j. Critical minerals.R"     # USGS world shares; reused once downloaded
+  "1j. Critical minerals.R",    # USGS world shares; reused once downloaded
+  "1l. Quarterly.R"             # quarterly trade, GDP growth, terms of trade and
+                                # BEA direct investment (needs Investment/raw/bea_api_key.txt)
 )
 
 

@@ -31,13 +31,13 @@
   // Menu label, then the pages in it: [page id, name shown in the menu].
   // Page ids are the page titles in the .qmd, lower case, spaces as hyphens.
   var MENUS = [
-    ["Economies",  [["economic-indicators", "Economic Indicators"],
-                    ["intellectual-property", "Intellectual Property"]]],
     ["Trade",      [["trade-overview", "Trade Overview"],
                     ["trade-in-goods", "Trade in Goods"],
                     ["trade-in-services", "Trade in Services"]]],
-    ["Technology", [["research-and-ai", "Research and AI"],
-                    ["data-centers", "Data Centers"]]]
+    // Nov 2026: data centers and intellectual property sit under Investment
+    ["Investment", [["investment", "Foreign Investment"],
+                    ["data-centers", "Data Centers"],
+                    ["intellectual-property", "Intellectual Property"]]]
   ];
 
   var navList = document.querySelector(".navbar .navbar-nav");
@@ -114,6 +114,39 @@
     csis.rel = "noopener";
     csis.innerHTML = "CSIS <span>Australia Chair</span>";
     collapse.appendChild(csis);
+  }
+
+  // ---- 1b2. "Print this tab" button (Nov 2026) ---------------------------------
+  // Prints only the page that is showing, with each card's visible tab, laid
+  // out for paper (see the @media print rules in theme/csis-redesign.scss).
+  // A heading naming the page is added for the printout.
+  if (collapse) {
+    var pr = document.createElement("button");
+    pr.type = "button";
+    pr.className = "print-tab";
+    pr.title = "Print the page that is showing";
+    pr.innerHTML = '<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" fill="currentColor">' +
+      '<path d="M4 1h8v4H4zM2 6h12a1 1 0 0 1 1 1v5h-3v3H4v-3H1V7a1 1 0 0 1 1-1zm3 5v3h6v-3zM12 8.5a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5z"/></svg>' +
+      '<span>Print this tab</span>';
+    var csisLink = collapse.querySelector(".csis-link");
+    if (csisLink) csisLink.before(pr); else collapse.appendChild(pr);
+    var printHead = function () {
+      var old = document.querySelector(".print-head");
+      if (old) old.remove();
+      var page = document.querySelector(".dashboard-page.active, .tab-pane.active.dashboard-page") ||
+                 document.querySelector(".dashboard-page.show");
+      var link = document.querySelector('.navbar .nav-link.active .nav-link-text');
+      var name = link ? link.textContent.trim() : "";
+      var h = document.createElement("div");
+      h.className = "print-head";
+      h.innerHTML = '<div class="print-kicker">CSIS Australia Chair &middot; U.S.-Australia Economic Dashboard</div>' +
+                    '<div class="print-title">' + name + '</div>' +
+                    '<div class="print-url">' + location.href.replace(/</g, "") + ' &middot; printed ' +
+                    new Date().toLocaleDateString("en-US", { day: "numeric", month: "long", year: "numeric" }) + '</div>';
+      if (page) page.prepend(h);
+    };
+    window.addEventListener("beforeprint", printHead);
+    pr.addEventListener("click", function () { printHead(); window.print(); });
   }
 
   // ---- 1c. Critical minerals: the filters are for the map only -------------
