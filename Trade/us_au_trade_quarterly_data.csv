@@ -1,0 +1,102 @@
+"quarter","au_exports","us_exports","surplus","layer","yintercept","value","series"
+"2021-12-01","4.155","8.597","4.442","GeomCol",,,
+"2022-03-01","4.417","9.361","4.944","GeomCol",,,
+"2022-06-01","4.999","10.738","5.739","GeomCol",,,
+"2022-09-01","4.995","10.986","5.991","GeomCol",,,
+"2022-12-01","5.605","11.218","5.613","GeomCol",,,
+"2023-03-01","4.739","11.764","7.025","GeomCol",,,
+"2023-06-01","5.578","11.166","5.588","GeomCol",,,
+"2023-09-01","5.538","11.862","6.324","GeomCol",,,
+"2023-12-01","5.019","11.603","6.584","GeomCol",,,
+"2024-03-01","5.203","11.444","6.241","GeomCol",,,
+"2024-06-01","5.425","13.045","7.62","GeomCol",,,
+"2024-09-01","6.175","13.267","7.092","GeomCol",,,
+"2024-12-01","6.966","12.874","5.908","GeomCol",,,
+"2025-03-01","16.548","12.648","-3.9","GeomCol",,,
+"2025-06-01","6.358","13.179","6.821","GeomCol",,,
+"2025-09-01","10.246","12.469","2.223","GeomCol",,,
+"2025-12-01","7.016","12.452","5.436","GeomCol",,,
+"2026-03-01","5.907","11.733","5.826","GeomCol",,,
+"2026-06-01","6.595","13.744","7.149","GeomCol",,,
+"2026-09-01","8.339","12.599","4.26","GeomCol",,,
+,,,,"GeomHline","0",,
+"2021-12-01",,,,"GeomLine",,"4.155","Australian exports to the U.S."
+"2022-03-01",,,,"GeomLine",,"4.417","Australian exports to the U.S."
+"2022-06-01",,,,"GeomLine",,"4.999","Australian exports to the U.S."
+"2022-09-01",,,,"GeomLine",,"4.995","Australian exports to the U.S."
+"2022-12-01",,,,"GeomLine",,"5.605","Australian exports to the U.S."
+"2023-03-01",,,,"GeomLine",,"4.739","Australian exports to the U.S."
+"2023-06-01",,,,"GeomLine",,"5.578","Australian exports to the U.S."
+"2023-09-01",,,,"GeomLine",,"5.538","Australian exports to the U.S."
+"2023-12-01",,,,"GeomLine",,"5.019","Australian exports to the U.S."
+"2024-03-01",,,,"GeomLine",,"5.203","Australian exports to the U.S."
+"2024-06-01",,,,"GeomLine",,"5.425","Australian exports to the U.S."
+"2024-09-01",,,,"GeomLine",,"6.175","Australian exports to the U.S."
+"2024-12-01",,,,"GeomLine",,"6.966","Australian exports to the U.S."
+"2025-03-01",,,,"GeomLine",,"16.548","Australian exports to the U.S."
+"2025-06-01",,,,"GeomLine",,"6.358","Australian exports to the U.S."
+"2025-09-01",,,,"GeomLine",,"10.246","Australian exports to the U.S."
+"2025-12-01",,,,"GeomLine",,"7.016","Australian exports to the U.S."
+"2026-03-01",,,,"GeomLine",,"5.907","Australian exports to the U.S."
+"2026-06-01",,,,"GeomLine",,"6.595","Australian exports to the U.S."
+"2026-09-01",,,,"GeomLine",,"8.339","Australian exports to the U.S."
+"2021-12-01",,,,"GeomLine",,"8.597","Australian imports from the U.S."
+"2022-03-01",,,,"GeomLine",,"9.361","Australian imports from the U.S."
+"2022-06-01",,,,"GeomLine",,"10.738","Australian imports from the U.S."
+"2022-09-01",,,,"GeomLine",,"10.986","Australian imports from the U.S."
+"2022-12-01",,,,"GeomLine",,"11.218","Australian imports from the U.S."
+"2023-03-01",,,,"GeomLine",,"11.764","Australian imports from the U.S."
+"2023-06-01",,,,"GeomLine",,"11.166","Australian imports from the U.S."
+"2023-09-01",,,,"GeomLine",,"11.862","Australian imports from the U.S."
+"2023-12-01",,,,"GeomLine",,"11.603","Australian imports from the U.S."
+"2024-03-01",,,,"GeomLine",,"11.444","Australian imports from the U.S."
+"2024-06-01",,,,"GeomLine",,"13.045","Australian imports from the U.S."
+"2024-09-01",,,,"GeomLine",,"13.267","Australian imports from the U.S."
+"2024-12-01",,,,"GeomLine",,"12.874","Australian imports from the U.S."
+"2025-03-01",,,,"GeomLine",,"12.648","Australian imports from the U.S."
+"2025-06-01",,,,"GeomLine",,"13.179","Australian imports from the U.S."
+"2025-09-01",,,,"GeomLine",,"12.469","Australian imports from the U.S."
+"2025-12-01",,,,"GeomLine",,"12.452","Australian imports from the U.S."
+"2026-03-01",,,,"GeomLine",,"11.733","Australian imports from the U.S."
+"2026-06-01",,,,"GeomLine",,"13.744","Australian imports from the U.S."
+"2026-09-01",,,,"GeomLine",,"12.599","Australian imports from the U.S."
+"2021-12-01",,,,"GeomPoint",,"4.155","Australian exports to the U.S."
+"2022-03-01",,,,"GeomPoint",,"4.417","Australian exports to the U.S."
+"2022-06-01",,,,"GeomPoint",,"4.999","Australian exports to the U.S."
+"2022-09-01",,,,"GeomPoint",,"4.995","Australian exports to the U.S."
+"2022-12-01",,,,"GeomPoint",,"5.605","Australian exports to the U.S."
+"2023-03-01",,,,"GeomPoint",,"4.739","Australian exports to the U.S."
+"2023-06-01",,,,"GeomPoint",,"5.578","Australian exports to the U.S."
+"2023-09-01",,,,"GeomPoint",,"5.538","Australian exports to the U.S."
+"2023-12-01",,,,"GeomPoint",,"5.019","Australian exports to the U.S."
+"2024-03-01",,,,"GeomPoint",,"5.203","Australian exports to the U.S."
+"2024-06-01",,,,"GeomPoint",,"5.425","Australian exports to the U.S."
+"2024-09-01",,,,"GeomPoint",,"6.175","Australian exports to the U.S."
+"2024-12-01",,,,"GeomPoint",,"6.966","Australian exports to the U.S."
+"2025-03-01",,,,"GeomPoint",,"16.548","Australian exports to the U.S."
+"2025-06-01",,,,"GeomPoint",,"6.358","Australian exports to the U.S."
+"2025-09-01",,,,"GeomPoint",,"10.246","Australian exports to the U.S."
+"2025-12-01",,,,"GeomPoint",,"7.016","Australian exports to the U.S."
+"2026-03-01",,,,"GeomPoint",,"5.907","Australian exports to the U.S."
+"2026-06-01",,,,"GeomPoint",,"6.595","Australian exports to the U.S."
+"2026-09-01",,,,"GeomPoint",,"8.339","Australian exports to the U.S."
+"2021-12-01",,,,"GeomPoint",,"8.597","Australian imports from the U.S."
+"2022-03-01",,,,"GeomPoint",,"9.361","Australian imports from the U.S."
+"2022-06-01",,,,"GeomPoint",,"10.738","Australian imports from the U.S."
+"2022-09-01",,,,"GeomPoint",,"10.986","Australian imports from the U.S."
+"2022-12-01",,,,"GeomPoint",,"11.218","Australian imports from the U.S."
+"2023-03-01",,,,"GeomPoint",,"11.764","Australian imports from the U.S."
+"2023-06-01",,,,"GeomPoint",,"11.166","Australian imports from the U.S."
+"2023-09-01",,,,"GeomPoint",,"11.862","Australian imports from the U.S."
+"2023-12-01",,,,"GeomPoint",,"11.603","Australian imports from the U.S."
+"2024-03-01",,,,"GeomPoint",,"11.444","Australian imports from the U.S."
+"2024-06-01",,,,"GeomPoint",,"13.045","Australian imports from the U.S."
+"2024-09-01",,,,"GeomPoint",,"13.267","Australian imports from the U.S."
+"2024-12-01",,,,"GeomPoint",,"12.874","Australian imports from the U.S."
+"2025-03-01",,,,"GeomPoint",,"12.648","Australian imports from the U.S."
+"2025-06-01",,,,"GeomPoint",,"13.179","Australian imports from the U.S."
+"2025-09-01",,,,"GeomPoint",,"12.469","Australian imports from the U.S."
+"2025-12-01",,,,"GeomPoint",,"12.452","Australian imports from the U.S."
+"2026-03-01",,,,"GeomPoint",,"11.733","Australian imports from the U.S."
+"2026-06-01",,,,"GeomPoint",,"13.744","Australian imports from the U.S."
+"2026-09-01",,,,"GeomPoint",,"12.599","Australian imports from the U.S."

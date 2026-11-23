@@ -195,7 +195,12 @@ wrap_labels <- function(p, width_in) {
 # Fixed text sizes (in points, before the 20% TEXT_SCALE): every chart's title,
 # subtitle, axis, legend and footnote text is the same size whatever base size
 # its script uses.
-HOUSE_SIZES <- c(title = 15, subtitle = 11.5, axis = 10.5, legend = 10.5, strip = 11, caption = 9)
+# Nov 2026: one to two points smaller than before (title 15, subtitle 11.5, axis
+# and legend 10.5, strip 11, footnote 9), so chart text sits in proportion to
+# the dashboard's own headings and each chart needs less height. The dashboard
+# also never shows a chart larger than its true size (theme/chart-size.lua), so
+# a 13-point title always appears at about 17 pixels.
+HOUSE_SIZES <- c(title = 13, subtitle = 10, axis = 9.5, legend = 9.5, strip = 10, caption = 8)
 HOUSE_LINE  <- 1.0    # line width for data lines
 HOUSE_POINT <- 1.6    # point size on lines (dot-plot points, 2.4 and up, are left alone)
 HOUSE_GRID  <- "#E3E6EB"
@@ -327,7 +332,7 @@ house_style <- function(p, width_in = NULL) {
     for (k in seq_along(p$patches$plots)) p$patches$plots[[k]] <- wrap_labels(p$patches$plots[[k]], width_in)
     for (el in c("subtitle", "caption"))
       if (is.character(p$patches$annotation[[el]]))
-        p$patches$annotation[[el]] <- wrap_text_to(p$patches$annotation[[el]], width_in, c(subtitle = 11, caption = 9)[[el]],
+        p$patches$annotation[[el]] <- wrap_text_to(p$patches$annotation[[el]], width_in, c(subtitle = HOUSE_SIZES[["subtitle"]], caption = HOUSE_SIZES[["caption"]])[[el]],
                                                    char_em = if (el == "caption") CAPTION_EM else 0.45)
   }
   p <- one_plot(p)

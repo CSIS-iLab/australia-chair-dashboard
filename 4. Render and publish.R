@@ -8,7 +8,11 @@
 # ---- 1. Folder path: the only line to change on a new computer ---------------
 # Same as in '1. Refresh all data.R'.
 
-DASHBOARD_DIR <- "C:/Users/Angelina/Documents/CSIS/Dashboard"
+DASHBOARD_DIR <- Filter(dir.exists, c(
+  "C:/Users/Angelina/Documents/CSIS/Dashboard",   # Windows PC
+  "/Users/angelina/Documents/CSIS/Dashboard"      # MacBook Air
+))[1]
+if (is.na(DASHBOARD_DIR)) DASHBOARD_DIR <- "(not found)"
 
 if (!dir.exists(DASHBOARD_DIR))
   stop("DASHBOARD_DIR doesn't exist: ", DASHBOARD_DIR,
@@ -74,6 +78,10 @@ find_quarto <- function() {
   candidates <- c(Sys.getenv("QUARTO_PATH"), Sys.which("quarto"),
                   "C:/Program Files/RStudio/resources/app/bin/quarto/bin/quarto.exe",
                   "C:/Program Files/Quarto/bin/quarto.exe",
+                  path.expand("~/Applications/quarto/bin/quarto"),                     # Mac (user folder, no admin)
+                  "/Applications/quarto/bin/quarto",                                    # Mac
+                  "/Applications/RStudio.app/Contents/Resources/app/quarto/bin/quarto", # Mac (RStudio)
+                  "/opt/homebrew/bin/quarto", "/usr/local/bin/quarto",
                   file.path(Sys.getenv("LOCALAPPDATA"), "Programs/Quarto/bin/quarto.exe"))
   hit <- candidates[nzchar(candidates) & file.exists(candidates)]
   if (!length(hit))
@@ -88,6 +96,8 @@ find_quarto <- function() {
 # again only once a chart script has rewritten it.
 find_tool <- function(tool, winget_glob) {
   if (file.exists(tool)) return(normalizePath(tool, winslash = "/"))
+  for (p in file.path(c("/opt/homebrew/bin", "/usr/local/bin"), basename(tool)))   # Mac (Homebrew)
+    if (file.exists(p)) return(p)
   hit <- Sys.which(tool)
   if (nzchar(hit)) return(unname(hit))
   w <- Sys.glob(file.path(Sys.getenv("LOCALAPPDATA"), "Microsoft/WinGet/Packages", winget_glob))
@@ -129,6 +139,12 @@ if (isTRUE(COMPRESS)) {
                      log_file, row.names = FALSE)
   }
 }
+
+# Mac with Quarto in the user folder (~/Applications/quarto, no admin needed):
+# tell the quarto R package where it is
+if (!nzchar(Sys.getenv("QUARTO_PATH")) && !nzchar(Sys.which("quarto")) &&
+    file.exists(path.expand("~/Applications/quarto/bin/quarto")))
+  Sys.setenv(QUARTO_PATH = path.expand("~/Applications/quarto/bin/quarto"))
 
 message("Rendering ", QMD, " ...")
 t0 <- Sys.time()

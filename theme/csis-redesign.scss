@@ -293,24 +293,19 @@ $border-radius:           6px;
 // Trade overview: each chart shrinks to fit its card rather than scrolling inside it
 #trade-overview .card-body { overflow: hidden !important; }
 #trade-overview .card-body img { max-height: 100%; max-width: 100%; width: auto; height: auto; object-fit: contain; display: block; margin: 0 auto; }
-// The U.S. chart keeps its own height and stays in view while the left column scrolls
-#trade-overview .trade-us { align-self: start; height: auto !important; position: sticky; top: 0; }
-// Energy: electricity mix and costs side by side, energy security full width below
+// (Nov 2026: the page no longer scrolls; the U.S. charts by year and by quarter
+// share the right-hand column, each filling half of it)
 
-// Two columns on wide screens; below 1200px the columns stack, full width,
-// and the page scrolls, so charts never get too narrow to read
-@media (max-width: 1199.98px) {
+// Two columns on wide screens; below 992px (Nov 2026: was 1200px, so that a
+// ~1000-1200px-wide embed keeps two columns and doesn't scroll) the columns
+// stack, full width, and the page scrolls
+@media (max-width: 991.98px) {
   .quarto-dashboard .dashboard-page > .bslib-grid {
     grid-template-columns: minmax(0, 1fr) !important; grid-auto-rows: auto !important;
     height: auto !important; flex: 0 0 auto !important;
   }
   .quarto-dashboard .dashboard-page > .bslib-grid > * { min-height: 640px; }
   .quarto-dashboard .dashboard-page.active { overflow-y: auto !important; }
-  #trade-overview .trade-us { position: static; height: 660px !important; }
-  // Energy's top row (electricity mix | costs) stacks too
-  #energy .bslib-grid:has(> .energy-costs) { grid-template-columns: minmax(0, 1fr) !important; grid-auto-rows: 640px !important; height: auto !important; }
-  #energy .bslib-grid:has(> .energy-costs) > * { min-height: 640px; }
-  #energy > .bslib-grid { grid-template-rows: auto 640px !important; height: auto !important; }
 }
 
 // Every chart on every page shrinks to fit its card rather than scrolling
@@ -417,7 +412,7 @@ $border-radius:           6px;
 // Narrowest desktop widths: the dashboard name (shown on the Home banner) makes way for the menu
 @media (min-width: 992px) and (max-width: 1079.98px) { .navbar .navbar-brand-container { display: none !important; } }
 // Energy security: a full-width card, but the chart itself a little smaller and centered
-#energy img[aria-label^="Chart: Energy Security"] { max-width: min(100%, 980px) !important; margin: 0 auto; }
+
 
 // Critical Minerals, Reserves vs Production: full card width like the other
 // charts on the page; the card scrolls if the footnote then runs below the fold
@@ -462,3 +457,191 @@ $border-radius:           6px;
 .chart-enlarge img { width: 960px; max-width: none; height: auto; display: block; }
 .chart-enlarge .chart-enlarge-hint { position: sticky; left: 0; top: 0; font-size: 0.85rem; color: #565A5C;
   background: rgba(255, 255, 255, 0.95); padding: 4px 0 8px; }
+
+// ---- Home page, Nov 2026 redesign ------------------------------------------------
+// A compact page header, then the Key Figures band (navy, gold accents) and
+// the page buttons, so the whole page fits a ~900px embed.
+.ov-home { padding-bottom: 12px; }
+.ov-home .ov-hero {
+  background: transparent; color: $ink; padding: 6px 4px 0; border-radius: 0; overflow: visible;
+}
+.ov-home .ov-hero .ov-kicker { margin-bottom: 4px; color: #B07B00; }
+.ov-home .ov-hero .ov-title { color: $navy; font-size: clamp(1.6rem, 2.6vw, 2.2rem); max-width: none; margin: 0 0 4px; }
+.ov-home .ov-hero .ov-lede { color: $muted; font-size: 1rem; max-width: none; margin: 0 0 4px; }
+.ov-home .ov-hero .ov-meta { color: $muted; font-size: 0.74rem; }
+
+.ov .ov-keyfig {
+  display: block !important; position: relative; overflow: hidden;
+  margin-top: 14px; padding: 16px 20px 18px; border-radius: 10px;
+  border-top: 5px solid $gold;
+  background:
+    radial-gradient(circle at 92% 0%, rgba(242,169,0,0.22), transparent 40%),
+    linear-gradient(120deg, $navy 0%, $navy-2 100%);
+  box-shadow: 0 10px 28px rgba(0, 32, 91, 0.22);
+}
+.ov-keyfig-title {
+  font-family: $headings-font-family; font-weight: 600; color: #fff; font-size: 1.3rem;
+  margin: 0 0 12px; display: flex; align-items: center; gap: 10px;
+}
+.ov-keyfig-title::before { content: ""; width: 28px; height: 3px; background: $gold; display: inline-block; }
+.ov-home .ov-stats {
+  grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin: 0; padding: 0;
+}
+.ov-home .ov-stat {
+  background: rgba(255, 255, 255, 0.07); border: 1px solid rgba(255, 255, 255, 0.16);
+  border-top: 3px solid $gold; box-shadow: none; padding: 12px 14px 12px; color: #fff;
+}
+.ov-home .ov-stat:hover { background: rgba(255, 255, 255, 0.14); box-shadow: none; }
+.ov-home .ov-stat-num { color: $gold; font-size: 2.05rem; line-height: 1.05; margin-bottom: 6px; }
+.ov-home .ov-stat-num small { color: rgba(255, 255, 255, 0.8); }
+.ov-home .ov-stat-label { color: #fff; font-size: 0.92rem; line-height: 1.35; }
+
+.ov-home .ov-explore { margin-top: 18px; }
+.ov-home .ov-h2 { font-size: 1.2rem; margin-bottom: 10px; }
+.ov-home .ov-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px; }
+.ov-home .ov-thumb, .ov .ov-home .ov-thumb { height: 104px; padding: 6px; }
+.ov-home .ov-tile-body { padding: 8px 10px 10px; }
+.ov-home .ov-tile-title { font-size: 0.98rem; line-height: 1.2; margin: 0; }
+.ov-home .ov-tile-go { font-size: 0.7rem; margin-top: 4px; }
+.ov-home .ov-footer { margin-top: 14px; font-size: 0.76rem; color: $muted; }
+.ov.ov-home .ov-thumb { height: 104px; }
+
+@media (max-width: 1100px) {
+  .ov-home .ov-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ov-home .ov-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 640px) {
+  .ov-home .ov-stats { grid-template-columns: 1fr; }
+  .ov-home .ov-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ov-home .ov-stat-num { font-size: 1.7rem; }
+}
+
+// ---- Charts never larger than their true size (theme/chart-size.lua) ----------
+// --true-w is the chart's width at its real point size; wider cards center it
+// instead of enlarging the text. Expanded (full-screen) cards may use the room.
+.quarto-dashboard img[data-truew] { max-width: min(100%, var(--true-w)) !important; }
+.quarto-dashboard .bslib-full-screen img[data-truew] { max-width: min(100%, calc(var(--true-w) * 1.6)) !important; }
+.ov-home .ov-hero svg.ov-arcs { display: none; }
+
+// ---- "Print this tab" (theme/navigation.html) -------------------------------------
+.navbar .print-tab {
+  display: inline-flex; align-items: center; gap: 6px; margin-left: auto; margin-right: 10px;
+  background: transparent; border: 1px solid rgba(255, 255, 255, 0.45); border-radius: 999px;
+  color: #fff; font: inherit; font-size: 0.78rem; font-weight: 600; padding: 3px 11px; cursor: pointer;
+  white-space: nowrap; flex: 0 0 auto;
+}
+.navbar .print-tab:hover, .navbar .print-tab:focus-visible { background: rgba(255, 255, 255, 0.14); border-color: $gold; }
+@media (max-width: 991.98px) { .navbar .print-tab span { display: none; } }
+.print-head { display: none; }
+
+// Paper: only the page showing, every card at its natural height, charts full
+// width, no navigation or buttons
+@media print {
+  @page { size: letter landscape; margin: 0.45in; }
+  html, body { height: auto !important; overflow: visible !important; background: #fff !important; }
+  .navbar, header, #quarto-header, .quarto-dashboard-header, .page-guide-link, .chart-quote,
+  .bslib-full-screen-enter, .card-header .nav-tabs .nav-link:not(.active), .ov-tile-go,
+  .print-tab, .cur-toggle, .edition-menu, .edition-banner, .sidebar, .leaflet-control-container { display: none !important; }
+  .print-head { display: block !important; margin: 0 0 10px; border-bottom: 2px solid $gold; padding-bottom: 6px; }
+  .print-kicker { font-size: 9pt; color: $muted; text-transform: uppercase; letter-spacing: 0.08em; }
+  .print-title { font-family: $headings-font-family; font-size: 18pt; color: $navy; font-weight: 600; }
+  .print-url { font-size: 8pt; color: $muted; }
+  .quarto-dashboard .page-layout-custom, .quarto-dashboard .dashboard-page, .quarto-dashboard .bslib-grid,
+  .quarto-dashboard .html-fill-container, .quarto-dashboard .html-fill-item, .quarto-dashboard .card,
+  .quarto-dashboard .card-body, .quarto-dashboard .tab-content, .quarto-dashboard .tab-pane, .bslib-sidebar-layout, .bslib-sidebar-layout > .main {
+    height: auto !important; min-height: 0 !important; max-height: none !important;
+    overflow: visible !important; flex: 0 0 auto !important; position: static !important;
+  }
+  .quarto-dashboard .dashboard-page:not(.active) { display: none !important; }
+  .quarto-dashboard .bslib-grid { display: grid !important; grid-template-rows: none !important; grid-auto-rows: auto !important; }
+  .quarto-dashboard .card { break-inside: avoid; box-shadow: none !important; border: 1px solid $rule !important; margin-bottom: 8px; }
+  .quarto-dashboard img, .quarto-dashboard img[data-truew] { max-width: 100% !important; max-height: 6.6in !important; width: auto; height: auto; }
+  .ov-home .ov-keyfig { -webkit-print-color-adjust: exact; print-color-adjust: exact; box-shadow: none; }
+  .ov-tile:hover, .ov-stat:hover { transform: none; }
+}
+.navbar .print-tab + .csis-link { margin-left: 0; }
+
+// Geography: the two maps side by side (Nov 2026), so the page fits the embed
+.ov .ov-maps { display: grid !important; grid-template-columns: 1fr 1fr; gap: 14px; align-items: start; }
+.ov-geo .ov-section { margin-top: 14px; }
+.ov-geo .ov-figure { padding: 8px; }
+.ov-geo .ov-figure img { max-height: 560px; object-fit: contain; }
+@media (max-width: 900px) { .ov .ov-maps { grid-template-columns: 1fr; } }
+
+// Home page sized to fit a 900px embed with the top bar (measured at 1280px wide)
+@media (max-width: 1599.98px) { .navbar .navbar-title { display: none !important; } }   // the Home header names the dashboard
+.ov-home .ov-hero .ov-title { font-size: 1.75rem; }
+.ov .ov-keyfig { margin-top: 10px; padding: 12px 16px 14px; }
+.ov-keyfig-title { font-size: 1.15rem; margin-bottom: 8px; }
+.ov-home .ov-stats { gap: 10px; }
+.ov-home .ov-stat { padding: 9px 12px; }
+.ov-home .ov-stat-num { font-size: 1.8rem; margin-bottom: 4px; }
+.ov-home .ov-stat-label { font-size: 0.86rem; line-height: 1.3; }
+.ov-home .ov-explore { margin-top: 12px; }
+.ov.ov-home .ov-thumb { height: 84px; }
+.ov-home .ov-grid { gap: 10px; }
+.ov-home .ov-tile-body { padding: 6px 10px 8px; }
+
+// Trade overview: the U.S. charts by year and by quarter stack in the right
+// column, half its height each (Quarto lays the two cards side by side)
+#trade-overview > .bslib-grid > .bslib-grid {
+  grid-template-columns: minmax(0, 1fr) !important; grid-template-rows: minmax(0, 1fr) minmax(0, 1fr) !important;
+}
+
+// Key Figures as sentences (Nov 2026): six statements, three across, with the
+// figure in each picked out in gold
+.ov-home .ov-stats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.ov-home .ov-stat-line { display: flex !important; align-items: center; min-height: 92px; padding: 12px 16px; }
+.ov-home .ov-stat-line .ov-stat-label {
+  font-family: $headings-font-family; font-size: 1.12rem; line-height: 1.35; color: #fff;
+}
+.ov-home .ov-fig { color: $gold; font-weight: 700; font-size: 1.45em; white-space: nowrap; }
+.ov-home .ov-fig small { font-size: 0.7em; color: $gold; }
+.ov .ov-fig span { display: inline !important; }
+.ov-home .ov-contact-link { color: $navy-2; font-weight: 600; white-space: nowrap; }
+.ov-method .ov-authors li { margin-bottom: 4px; }
+@media (max-width: 1100px) { .ov-home .ov-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 640px)  { .ov-home .ov-stats { grid-template-columns: 1fr; } }
+// Quarto's fill layout turns these into flex columns; keep each sentence as running text
+.ov .ov-stat-line .ov-stat-label { display: block !important; }
+.ov .ov-stat-line .ov-fig, .ov .ov-stat-line .ov-fig small { display: inline !important; }
+.ov-home .ov-stat-line { min-height: 70px; padding: 10px 14px; }
+.ov-home .ov-fig { font-size: 1.3em; }
+
+// Home tiles: 12 in three rows of four (Nov 2026)
+.ov-home .ov-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.ov.ov-home .ov-thumb { height: 64px; padding: 4px; }
+.ov-home .ov-tile { flex-direction: row; align-items: center; }
+.ov-home .ov-tile .ov-thumb { flex: 0 0 42%; border-bottom: 0; border-right: 1px solid $rule; }
+.ov-home .ov-tile-body { padding: 6px 10px; }
+.ov .ov-home .ov-tile, .ov.ov-home .ov-tile { display: flex !important; flex-direction: row !important; }
+@media (max-width: 1100px) { .ov-home .ov-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 640px)  { .ov-home .ov-grid { grid-template-columns: 1fr; } }
+.ov .ov-meta .ov-edition-stamp, .ov .ov-meta .ov-edition-stamp span { display: none !important; }
+.ov.ov-home .ov-thumb { height: 76px; }
+
+// Home, Nov 2026 (third pass): tighter header and Key Figures, and bigger
+// tiles: the chart fills the tile, the page name in a navy bar along the foot
+.ov-home .ov-hero { padding-top: 2px; }
+.ov-home .ov-hero .ov-kicker { margin-bottom: 2px; }
+.ov-home .ov-hero .ov-title { font-size: 1.6rem; margin-bottom: 2px; }
+.ov-home .ov-hero .ov-lede { font-size: 0.93rem; line-height: 1.42; margin-bottom: 2px; }
+.ov .ov-keyfig { margin-top: 8px; padding: 10px 14px 12px; }
+.ov-keyfig-title { margin-bottom: 6px; font-size: 1.08rem; }
+.ov-home .ov-stats { gap: 8px; }
+.ov-home .ov-stat-line { min-height: 60px; padding: 8px 12px; }
+.ov-home .ov-stat-line .ov-stat-label { font-size: 1.04rem; line-height: 1.3; }
+.ov-home .ov-explore { margin-top: 10px; }
+.ov-home .ov-h2 { margin-bottom: 6px; font-size: 1.1rem; }
+.ov-home .ov-footer { margin-top: 8px; }
+.ov.ov-home .ov-tile { display: block !important; position: relative; }
+.ov.ov-home .ov-tile .ov-thumb { height: 102px; border: 0; padding: 4px 4px 0; align-items: flex-start; }
+.ov.ov-home .ov-thumb img { object-fit: contain; object-position: top center; }
+.ov.ov-home .ov-tile-body {
+  position: absolute; left: 0; right: 0; bottom: 0; background: rgba(0, 32, 91, 0.93); padding: 5px 10px;
+  display: flex !important; flex-direction: row !important; align-items: center;
+}
+.ov.ov-home .ov-tile-title { color: #fff; font-size: 0.95rem; }
+.ov.ov-home .ov-tile-go { color: $gold; margin: 0 0 0 auto !important; white-space: nowrap; }
+.ov.ov-home .ov-tile:hover .ov-tile-body { background: $navy-2; }
+.ov.ov-home .ov-tile-go { text-align: right; padding-left: 8px; }
