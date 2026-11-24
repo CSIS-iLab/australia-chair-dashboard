@@ -79,6 +79,9 @@ quarter_end <- function(d) {
   d <- as.Date(d)
   as.Date(sprintf("%s-%02d-01", format(d, "%Y"), ((as.integer(format(d, "%m")) - 1) %/% 3 + 1) * 3))
 }
+# Y axis from the data: widened to the next "nice" break at each end, so a
+# labelled gridline always sits beyond the highest (and lowest) value
+nice_range <- function(lim) range(pretty(c(0, lim)))
 qtr_label <- function(d) paste0("Q", (as.integer(format(d, "%m")) - 1) %/% 3 + 1, " ", format(d, "%Y"))
 # Axis: a label for every fourth quarter, ending on the latest one
 qtr_breaks <- function(dates) { u <- sort(unique(dates)); rev(rev(u)[seq(1, length(u), by = 4)]) }
@@ -136,7 +139,7 @@ make_trade_q <- function(cur) {
     geom_point(data = flows, aes(quarter, value, colour = series), size = 1.6) +
     scale_colour_manual(values = setNames(unname(csis_colours[c("navy", "red")]), flow_levels)) +
     scale_fill_manual(values = c("U.S. goods trade surplus" = "#F7D98B")) +
-    scale_y_continuous(labels = lab_bn(sym), breaks = breaks_pretty(5)) +
+    scale_y_continuous(labels = lab_bn(sym), limits = nice_range, breaks = function(l) pretty(l), expand = expansion(mult = 0.02)) +
     scale_x_date(breaks = qtr_breaks(d$quarter), labels = qtr_label,
                  expand = expansion(mult = c(0.02, 0.02))) +
     guides(colour = guide_legend(order = 1), fill = guide_legend(order = 2)) +
@@ -207,7 +210,7 @@ p_gdp_q <- ggplot(gdp_q, aes(date, growth, fill = country)) +
   geom_hline(yintercept = 0, colour = csis_colours[["grey"]], linewidth = 0.4) +
   geom_col(position = position_dodge(width = 70), width = 66) +
   scale_fill_manual(values = au_us_colours) +
-  scale_y_continuous(labels = label_percent(scale = 1, accuracy = 0.5), breaks = breaks_pretty(5)) +
+  scale_y_continuous(labels = label_percent(scale = 1, accuracy = 0.5), limits = nice_range, breaks = function(l) pretty(l), expand = expansion(mult = 0.02)) +
   scale_x_date(breaks = qtr_breaks(gdp_q$date), labels = qtr_label, expand = expansion(mult = 0.02)) +
   labs(hover_accuracy = 0.1, title = "Quarterly real GDP growth, Australia and the U.S.",
        subtitle = sprintf("%% change on the previous quarter. Australia %+.1f%% in %s; U.S. %+.1f%% in %s",
@@ -241,7 +244,7 @@ p_tot <- ggplot(tot_shown, aes(date, value)) +
             vjust = -1, size = 3.4, colour = csis_colours[["grey"]]) +
   geom_text(data = lt, aes(label = sprintf("%.1f", value)), hjust = -0.3, size = 3.6,
             fontface = "bold", colour = csis_colours[["navy"]]) +
-  scale_y_continuous(expand = expansion(mult = c(0.08, 0.15))) +
+  scale_y_continuous(limits = function(l) range(pretty(l)), breaks = function(l) pretty(l), expand = expansion(mult = c(0.02, 0.08))) +
   scale_x_date(breaks = qtr_breaks(tot_shown$date), labels = qtr_label,
                expand = expansion(mult = c(0.02, 0.09))) +
   labs(hover_accuracy = 0.1, title = "Australia's terms of trade",
@@ -317,7 +320,7 @@ if (!nzchar(bea_key)) {
       geom_hline(yintercept = 0, colour = csis_colours[["grey"]], linewidth = 0.4) +
       geom_col(position = position_dodge(width = 70), width = 66) +
       scale_fill_manual(values = setNames(unname(csis_colours[c("red", "navy")]), di_levels)) +
-      scale_y_continuous(labels = lab_bn(sym), breaks = breaks_pretty(5)) +
+      scale_y_continuous(labels = lab_bn(sym), limits = nice_range, breaks = function(l) pretty(l), expand = expansion(mult = 0.02)) +
       scale_x_date(breaks = qtr_breaks(d$date), labels = qtr_label, expand = expansion(mult = 0.02)) +
       labs(hover_accuracy = 0.1, title = "U.S.-Australia direct investment flows, by quarter",
            subtitle = sprintf("New direct investment, net of withdrawals. Last four quarters: U.S. into Australia %s; Australia into the U.S. %s",
@@ -369,7 +372,7 @@ if (nzchar(bea_key)) {
       geom_point(data = flows, aes(quarter, value, colour = series), size = 1.6) +
       scale_colour_manual(values = setNames(unname(csis_colours[c("navy", "red")]), flow_levels)) +
       scale_fill_manual(values = c("U.S. services trade surplus" = "#F7D98B")) +
-      scale_y_continuous(labels = lab_bn(sym), limits = c(0, NA), breaks = breaks_pretty(5)) +
+      scale_y_continuous(labels = lab_bn(sym), limits = nice_range, breaks = function(l) pretty(l), expand = expansion(mult = 0.02)) +
       scale_x_date(breaks = qtr_breaks(d$quarter), labels = qtr_label, expand = expansion(mult = c(0.02, 0.02))) +
       guides(colour = guide_legend(order = 1), fill = guide_legend(order = 2)) +
       labs(hover_accuracy = 0.1, title = "Australia's trade with the United States",

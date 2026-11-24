@@ -35,6 +35,9 @@ source(file.path(Sys.getenv("DASHBOARD_DIR"), "0. Takeaways.R"))       # line un
 # Axis labels for U.S.-share charts: as many decimals as the axis steps need,
 # so small shares read 0.02%, 0.04%, ... rather than 0%, 0%, ... (whole
 # percentages, as before, whenever the steps are 1% or more)
+# Y axis for the share charts: from 0 to the first "nice" break at or above the
+# highest value, so the top label always sits above the line (73% -> axis to 80%)
+nice_top <- function(lim) range(pretty(c(0, lim)))
 pct_axis <- function(x) {
   v <- x[is.finite(x)] * 100
   acc <- 1
@@ -1542,7 +1545,7 @@ export_chart_csv <- function(p, file,
   # Pull styling/scale info from the plot itself
   lyr_params <- p$layers[[1]]$aes_params
   y_scale    <- p$scales$get_scales("y")
-  y_lims     <- if (!is.null(y_scale)) y_scale$limits else NULL
+  y_lims     <- if (!is.null(y_scale) && !is.function(y_scale$limits)) y_scale$limits else NULL   # a limits function (nice_top) reads as "auto"
   fmt_lim    <- function(v) if (is.null(v) || is.na(v)) "auto" else as.character(v)
   
   meta <- data.table(
@@ -1707,7 +1710,7 @@ for (fl in names(flow_meta)) {
       geom_line(colour = fm$colour, linewidth = 0.9, na.rm = TRUE) +
       geom_point(colour = fm$colour, size = 2, na.rm = TRUE) +
       scale_y_continuous(labels = pct_axis,
-                         limits = c(0, NA), expand = expansion(mult = c(0, 0.05))) +
+                         limits = nice_top, breaks = function(l) pretty(l), expand = expansion(mult = c(0, 0.02))) +
       scale_x_continuous(breaks = pretty_breaks(n = 8)) +
       labs(title    = service_title(fm, svc),
            subtitle = sprintf("United States as a share of total Australian services %s, calendar years", fm$short),
@@ -1918,7 +1921,7 @@ for (fl in names(goods_meta)) {
     geom_line(colour = gm$colour, linewidth = 0.9, na.rm = TRUE) +
     geom_point(colour = gm$colour, size = 2, na.rm = TRUE) +
     scale_y_continuous(labels = pct_axis,
-                       limits = c(0, NA), expand = expansion(mult = c(0, 0.05))) +
+                       limits = nice_top, breaks = function(l) pretty(l), expand = expansion(mult = c(0, 0.02))) +
     scale_x_continuous(breaks = pretty_breaks(n = 8)) +
     labs(title    = gm$title,
          subtitle = sprintf("United States as a share of total Australian goods %s, calendar years", gm$short),
@@ -1987,7 +1990,7 @@ export_chart_csv <- function(p, file,
   # Pull styling/scale info from the plot itself
   lyr_params <- p$layers[[1]]$aes_params
   y_scale    <- p$scales$get_scales("y")
-  y_lims     <- if (!is.null(y_scale)) y_scale$limits else NULL
+  y_lims     <- if (!is.null(y_scale) && !is.function(y_scale$limits)) y_scale$limits else NULL   # a limits function (nice_top) reads as "auto"
   fmt_lim    <- function(v) if (is.null(v) || is.na(v)) "auto" else as.character(v)
   
   meta <- data.table(
@@ -2094,7 +2097,7 @@ for (fl in names(flow_meta)) {
       geom_line(colour = fm$colour, linewidth = 0.9, na.rm = TRUE) +
       geom_point(colour = fm$colour, size = 2, na.rm = TRUE) +
       scale_y_continuous(labels = pct_axis,
-                         limits = c(0, NA), expand = expansion(mult = c(0, 0.05))) +
+                         limits = nice_top, breaks = function(l) pretty(l), expand = expansion(mult = c(0, 0.02))) +
       scale_x_continuous(breaks = pretty_breaks(n = 8)) +
       labs(title    = paste0(fm$title, ": ", ind),
            subtitle = sprintf("United States as a share of total Australian goods %s, calendar years", fm$short),
@@ -2238,6 +2241,7 @@ ggplot() +
   scale_fill_manual(values = c("U.S. trade surplus" = "#F7D98B")) +
   scale_linetype_manual(values = c("U.S. surplus excluding gold" = "22")) +
   scale_y_continuous(labels = bn_label,                                  # a label every 20bn
+                     limits = function(l) c(20 * floor(min(0, l[1]) / 20), 20 * ceiling(l[2] / 20)),   # top label above the highest line
                      breaks = function(l) seq(20 * floor(l[1] / 20), 20 * ceiling(l[2] / 20), by = 20)) +
   scale_x_continuous(breaks = scales::pretty_breaks(8),
                      expand = expansion(mult = c(0.01, 0.15))) +
