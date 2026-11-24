@@ -75,6 +75,7 @@ Critical minerals/**
 # Quarterly charts ('1l. Quarterly.R', Nov 2026)
 !Investment/us_au_direct_investment_quarterly.png
 !Trade/us_au_trade_quarterly.png
+!Trade/us_au_services_quarterly.png
 !Economy/gdp_growth_quarterly_au_us.png
 !Economy/terms_of_trade_quarterly.png
 !Trade/dfat_*.png

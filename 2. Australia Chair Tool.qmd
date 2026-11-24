@@ -162,7 +162,7 @@ tile <- function(page, title, text, img) {
 }
 
 tiles <- c(
-  tile("trade-overview", "Trade Overview", "Australia&rsquo;s trade by partner and sector, and the U.S. trade balance with Australia, by year and by quarter.", "Trade/us_au_trade_balance.png"),
+  tile("trade-overview", "Trade Overview", "Australia&rsquo;s trade by partner and sector, and the U.S. trade balance with Australia, by year and by quarter (goods and services).", "Trade/us_au_trade_balance.png"),
   tile("trade-in-goods", "Trade in Goods", "The goods Australia and the U.S. trade with each other.", "Trade/goods_top10_us.png"),
   tile("trade-in-services", "Trade in Services", "Services traded with the U.S., from travel and education to intellectual property charges.", "Trade/credits_13_total_services.png"),
   tile("investment", "Foreign Investment", "Two-way investment positions with the U.S. and Australia&rsquo;s other partners, and quarterly direct investment flows.", "Investment/iip_levels_latest.png"),
@@ -291,13 +291,21 @@ cat(paste0(
 
 ## Column {width="50%"}
 
-::: {.card .trade-us title="U.S. Trade Balance with Australia, by Year"}
-![](Trade/us_au_trade_balance.png){title="Australia's Trade with the United States"}
+### Row
+
+::: {.card title="U.S. Trade Balance with Australia, by Year"}
+![](Trade/us_au_trade_balance.png){title="Australia's Trade with the United States, Goods and Services, Calendar Years"}
 :::
 
-::: {.card .trade-us-q title="U.S. Goods Trade Balance with Australia, by Quarter"}
-![](Trade/us_au_trade_quarterly.png){title="Australia's Goods Trade with the United States, by Quarter"}
-:::
+### Row {.tabset title="U.S. Trade Balance with Australia, by Quarter"}
+
+#### Goods
+
+![](Trade/us_au_trade_quarterly.png){title="Australia's Trade with the United States, Goods, Quarterly"}
+
+#### Services
+
+![](Trade/us_au_services_quarterly.png){title="Australia's Trade with the United States, Services, Quarterly"}
 
 
 # Trade in Goods
