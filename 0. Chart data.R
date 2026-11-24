@@ -647,6 +647,10 @@ hover_time_axis <- function(built, layers) {
 hover_value <- function(built, v, whole, axis = "y") {
   sy <- if (axis == "x") built$layout$panel_scales_x[[1]] else built$layout$panel_scales_y[[1]]
   digits <- if (whole) 0 else max(1, min(3, 1 - floor(log10(max(abs(v), 1e-9)))))
+  # A chart can fix the pop-ups' precision with labs(hover_accuracy = 0.1)
+  # (one decimal place), whatever the size of the value
+  hacc <- built$plot$labels$hover_accuracy
+  if (is.numeric(hacc) && length(hacc) == 1 && hacc > 0) digits <- max(0, -round(log10(hacc)))
   plain <- function(v) formatC(round(v, digits), format = "f", digits = digits, big.mark = ",")
   f <- sy$labels
   if (!is.function(f)) return(plain(v))
@@ -654,7 +658,8 @@ hover_value <- function(built, v, whole, axis = "y") {
   env <- environment(f)
   if (!is.null(env) && exists("accuracy", envir = env, inherits = FALSE)) {
     sc <- if (exists("scale", envir = env, inherits = FALSE) && is.numeric(env$scale)) env$scale else 1
-    acc_digits <- if (whole && sc == 1) 0 else max(1, min(3, 1 - floor(log10(max(abs(v * sc), 1e-9)))))
+    acc_digits <- if (is.numeric(hacc) && length(hacc) == 1 && hacc > 0) digits else
+      if (whole && sc == 1) 0 else max(1, min(3, 1 - floor(log10(max(abs(v * sc), 1e-9)))))
     env2 <- new.env(parent = env)          # finer accuracy; everything else as the axis has it
     env2$accuracy <- 10^-acc_digits
     environment(f) <- env2
@@ -701,6 +706,26 @@ time_series_spots <- function(built) {
   names(layers) <- keep
   kind <- hover_time_axis(built, layers)
   if (is.na(kind)) return(NULL)
+  # Bars dodged side by side sit either side of their date; snap each back to
+  # the nearest date in the plotted data, so the pop-up names the right period
+  if (kind == "date") {
+    true_x <- tryCatch({
+      xs <- unlist(lapply(built$plot$layers, function(l) {
+        dat <- if (is.data.frame(l$data) && nrow(l$data)) l$data else built$plot$data
+        m <- l$computed_mapping$x
+        if (is.null(m)) m <- built$plot$mapping$x
+        if (is.null(m) || !is.data.frame(dat)) return(NULL)
+        tryCatch(as.numeric(rlang::eval_tidy(m, dat)), error = function(e) NULL)   # e.g. a reference line without dates
+      }))
+      sort(unique(xs[is.finite(xs)]))
+    }, error = function(e) NULL)
+    if (length(true_x) >= 2)
+      for (k in names(layers)) {
+        if (!"x" %in% names(layers[[k]])) next
+        x <- layers[[k]]$x
+        layers[[k]]$x_period <- vapply(x, function(v) if (is.finite(v)) true_x[which.min(abs(true_x - v))] else v, 0)
+      }
+  }
 
   sx <- built$layout$panel_scales_x[[1]]
   period <- function(x) {
@@ -708,7 +733,7 @@ time_series_spots <- function(built) {
     if (kind == "year") return(as.character(round(x)))
     d <- as.Date(if (inherits(sx, "ScaleContinuousDatetime")) as.POSIXct(x, origin = "1970-01-01") else x,
                  origin = "1970-01-01")
-    all_d <- as.Date(unlist(lapply(layers, function(l) l$x)), origin = "1970-01-01")
+    all_d <- as.Date(unlist(lapply(layers, function(l) if ("x_period" %in% names(l)) l$x_period else l$x)), origin = "1970-01-01")
     m <- as.integer(format(all_d, "%m"))
     steps <- diff(sort(unique(as.numeric(all_d))))
     quarterly <- length(unique(m %% 3)) == 1 && length(steps) && stats::median(steps) > 80 && stats::median(steps) < 100
@@ -757,7 +782,7 @@ time_series_spots <- function(built) {
     facet <- vapply(as.character(d$PANEL), facet_of, "")
     name <- ifelse(is.na(series), facet,
                    ifelse(is.na(facet) | facet == series, series, paste0(series, " (", facet, ")")))
-    when <- period(d$x)
+    when <- period(if ("x_period" %in% names(d)) d$x_period else d$x)
     vals <- vapply(val, function(v) hover_value(built, v, whole), "")
     # Heading: the period; then "Series: value" (the value as the axis shows it)
     text <- ifelse(is.na(name), paste0("<b>", when, "</b><br>", vals),

@@ -20,6 +20,8 @@ source(file.path(DASHBOARD_DIR, "0. Exchange rates.R"))   # A$/US$ toggle
 #        quarter, Australia and the U.S. (ABS 5206.0; BEA NIPA Table 1.1.6)
 #   3. Economy/terms_of_trade_quarterly.png    Australia's terms of trade
 #        (ABS 5206.0)
+#   5. Trade/us_au_services_quarterly.png      Australia's services trade with
+#        the U.S. by quarter (BEA, Table 1.3); needs the BEA key, like 4
 #   4. Investment/us_au_direct_investment_quarterly.png  U.S.-Australia
 #        direct investment flows by quarter (BEA international transactions,
 #        Table 1.3). Needs a free BEA API key (see section 4); skipped
@@ -82,8 +84,11 @@ qtr_label <- function(d) paste0("Q", (as.integer(format(d, "%m")) - 1) %/% 3 + 1
 qtr_breaks <- function(dates) { u <- sort(unique(dates)); rev(rev(u)[seq(1, length(u), by = 4)]) }
 first_quarter_shown <- function(latest)
   seq(latest, by = "-3 months", length.out = 4 * YEARS_SHOWN)[4 * YEARS_SHOWN]
-fmt_bn <- function(x, sym) ifelse(x < 0, paste0("-", sym, number(abs(x), accuracy = 1), "bn"),
-                                  paste0(sym, number(x, accuracy = 1), "bn"))
+fmt_bn <- function(x, sym, accuracy = 1) ifelse(x < 0, paste0("-", sym, number(abs(x), accuracy = accuracy), "bn"),
+                                                paste0(sym, number(x, accuracy = accuracy), "bn"))
+# Axis labels in whole billions; the hover pop-ups ask for one decimal place
+# (labs(hover_accuracy = 0.1), which '0. Chart data.R' passes in as accuracy)
+lab_bn <- function(sym, accuracy = 1) function(x) fmt_bn(x, sym, accuracy)
 
 
 # ---- 1. Quarterly goods trade with the U.S. -----------------------------------
@@ -131,18 +136,18 @@ make_trade_q <- function(cur) {
     geom_point(data = flows, aes(quarter, value, colour = series), size = 1.6) +
     scale_colour_manual(values = setNames(unname(csis_colours[c("navy", "red")]), flow_levels)) +
     scale_fill_manual(values = c("U.S. goods trade surplus" = "#F7D98B")) +
-    scale_y_continuous(labels = function(x) fmt_bn(x, sym), breaks = breaks_pretty(5)) +
+    scale_y_continuous(labels = lab_bn(sym), breaks = breaks_pretty(5)) +
     scale_x_date(breaks = qtr_breaks(d$quarter), labels = qtr_label,
                  expand = expansion(mult = c(0.02, 0.02))) +
     guides(colour = guide_legend(order = 1), fill = guide_legend(order = 2)) +
-    labs(title = "Australia's goods trade with the United States, by quarter",
-         subtitle = sprintf("%s: U.S. surplus %s; exports to the U.S. %s, imports from the U.S. %s",
-                            qtr_label(last$quarter), fmt_bn(last$surplus, sym),
-                            fmt_bn(last$au_exports, sym), fmt_bn(last$us_exports, sym)),
+    # Same title as the annual chart (Trade/us_au_trade_balance.png); the
+    # subtitle says which trade and how often
+    labs(hover_accuracy = 0.1, title = "Australia's trade with the United States",
+         subtitle = "Goods, quarterly",
          x = NULL, y = NULL,
          caption = paste0(
            "Source: ABS, International Trade in Goods (cat. 5368.0), Tables 14a and 14b; monthly values summed to quarters.\n",
-           "Notes: Goods only; the ABS does not publish services trade by country each quarter. ",
+           "Notes: The ABS does not publish services trade by country each quarter; see the Services tab (BEA data). ",
            "U.S. surplus = Australian imports from the U.S. less Australian exports to the U.S. ",
            "Exports are free on board; imports are at customs value. Includes non-monetary gold, ",
            "which drove much of the rise in exports to the U.S. in 2025. Not seasonally adjusted.",
@@ -204,7 +209,7 @@ p_gdp_q <- ggplot(gdp_q, aes(date, growth, fill = country)) +
   scale_fill_manual(values = au_us_colours) +
   scale_y_continuous(labels = label_percent(scale = 1, accuracy = 0.5), breaks = breaks_pretty(5)) +
   scale_x_date(breaks = qtr_breaks(gdp_q$date), labels = qtr_label, expand = expansion(mult = 0.02)) +
-  labs(title = "Quarterly real GDP growth, Australia and the U.S.",
+  labs(hover_accuracy = 0.1, title = "Quarterly real GDP growth, Australia and the U.S.",
        subtitle = sprintf("%% change on the previous quarter. Australia %+.1f%% in %s; U.S. %+.1f%% in %s",
                           last_au$growth, qtr_label(last_au$date), last_us$growth, qtr_label(last_us$date)),
        x = NULL, y = NULL,
@@ -239,7 +244,7 @@ p_tot <- ggplot(tot_shown, aes(date, value)) +
   scale_y_continuous(expand = expansion(mult = c(0.08, 0.15))) +
   scale_x_date(breaks = qtr_breaks(tot_shown$date), labels = qtr_label,
                expand = expansion(mult = c(0.02, 0.09))) +
-  labs(title = "Australia's terms of trade",
+  labs(hover_accuracy = 0.1, title = "Australia's terms of trade",
        subtitle = sprintf("Export prices relative to import prices, index (%s). %s: %.1f, %+.1f%% on the previous quarter",
                           ref_lab, qtr_label(lt$date), lt$value,
                           100 * (lt$value / tot_shown$value[nrow(tot_shown) - 1] - 1)),
@@ -312,9 +317,9 @@ if (!nzchar(bea_key)) {
       geom_hline(yintercept = 0, colour = csis_colours[["grey"]], linewidth = 0.4) +
       geom_col(position = position_dodge(width = 70), width = 66) +
       scale_fill_manual(values = setNames(unname(csis_colours[c("red", "navy")]), di_levels)) +
-      scale_y_continuous(labels = function(x) fmt_bn(x, sym), breaks = breaks_pretty(5)) +
+      scale_y_continuous(labels = lab_bn(sym), breaks = breaks_pretty(5)) +
       scale_x_date(breaks = qtr_breaks(d$date), labels = qtr_label, expand = expansion(mult = 0.02)) +
-      labs(title = "U.S.-Australia direct investment flows, by quarter",
+      labs(hover_accuracy = 0.1, title = "U.S.-Australia direct investment flows, by quarter",
            subtitle = sprintf("New direct investment, net of withdrawals. Last four quarters: U.S. into Australia %s; Australia into the U.S. %s",
                               fmt_bn(tot$v[tot$series == di_levels[1]], sym), fmt_bn(tot$v[tot$series == di_levels[2]], sym)),
            x = NULL, y = NULL,
@@ -328,6 +333,59 @@ if (!nzchar(bea_key)) {
   # US$ data: the A$ version is the default file name, as for every other chart
   save_both(make_di, "Investment/us_au_direct_investment_quarterly.png", save_plot)
   write.csv(di, "Investment/us_au_direct_investment_quarterly_tidy.csv", row.names = FALSE)
+}
+
+# ---- 5. Quarterly services trade with the U.S. (BEA) ----------------------------
+# BEA international transactions accounts, Table 1.3, Australia, seasonally
+# adjusted, US$ million. ExpServ = U.S. services exports to Australia
+# (Australia's imports from the U.S.); ImpServ = U.S. services imports from
+# Australia (Australia's exports to the U.S.). Shown beside the quarterly goods
+# chart on Trade Overview. Same BEA key as section 4.
+if (nzchar(bea_key)) {
+  svc <- bind_rows(lapply(c("ExpServ", "ImpServ"), function(i)
+    bea_api(method = "GetData", DataSetName = "ITA", Indicator = i, AreaOrCountry = "Australia",
+            Frequency = "QSA", Year = "ALL")$Data)) |>
+    transmute(ind = Indicator,
+              quarter = as.Date(sprintf("%s-%02d-01", substr(TimePeriod, 1, 4), as.integer(substr(TimePeriod, 6, 6)) * 3)),
+              value = suppressWarnings(as.numeric(gsub(",", "", DataValue))) / 1000) |>
+    filter(!is.na(value)) |>
+    pivot_wider(names_from = ind, values_from = value) |>
+    filter(!is.na(ExpServ), !is.na(ImpServ)) |>
+    transmute(quarter, au_exports = ImpServ, us_exports = ExpServ, surplus = ExpServ - ImpServ) |>
+    arrange(quarter)
+  svc <- filter(svc, quarter >= first_quarter_shown(max(svc$quarter)))
+  make_svc_q <- function(cur) {
+    k <- if (cur == "AUD") 1 / fx_quarter(svc$quarter) else 1      # BEA data are in US$
+    sym <- cur_sym[[cur]]
+    d <- svc |> mutate(au_exports = au_exports * k, us_exports = us_exports * k, surplus = surplus * k)
+    flows <- bind_rows(
+      d |> transmute(quarter, value = au_exports, series = flow_levels[1]),
+      d |> transmute(quarter, value = us_exports, series = flow_levels[2])) |>
+      mutate(series = factor(series, flow_levels))
+    ggplot() +
+      geom_col(data = d, aes(quarter, surplus, fill = "U.S. services trade surplus"), width = 62) +
+      geom_hline(yintercept = 0, colour = csis_colours[["grey"]], linewidth = 0.5) +
+      geom_line(data = flows, aes(quarter, value, colour = series), linewidth = 1) +
+      geom_point(data = flows, aes(quarter, value, colour = series), size = 1.6) +
+      scale_colour_manual(values = setNames(unname(csis_colours[c("navy", "red")]), flow_levels)) +
+      scale_fill_manual(values = c("U.S. services trade surplus" = "#F7D98B")) +
+      scale_y_continuous(labels = lab_bn(sym), limits = c(0, NA), breaks = breaks_pretty(5)) +
+      scale_x_date(breaks = qtr_breaks(d$quarter), labels = qtr_label, expand = expansion(mult = c(0.02, 0.02))) +
+      guides(colour = guide_legend(order = 1), fill = guide_legend(order = 2)) +
+      labs(hover_accuracy = 0.1, title = "Australia's trade with the United States",
+           subtitle = "Services, quarterly",
+           x = NULL, y = NULL,
+           caption = paste0(
+             "Source: U.S. BEA, International Transactions Accounts, Table 1.3 (Australia).\n",
+             "Notes: U.S. data, seasonally adjusted. Australian exports to the U.S. are U.S. imports of services from Australia, ",
+             "and Australian imports from the U.S. are U.S. exports to Australia. U.S. surplus = U.S. exports less U.S. imports. ",
+             "BEA figures differ from the ABS services data in the annual chart (timing, valuation and coverage).",
+             if (cur == "AUD") fx_note_aud_from_usd else "")) +
+      theme_csis() +
+      theme(legend.box = "vertical", legend.box.just = "left",
+            legend.spacing.y = unit(0, "pt"), legend.margin = margin(0, 0, 0, 0))
+  }
+  save_both(make_svc_q, "Trade/us_au_services_quarterly.png", save_plot)
 }
 
 message("Quarterly charts done.")
