@@ -169,7 +169,7 @@ tiles <- c(
   tile("data-centers", "Data Centers", "Data centers&rsquo; share of electricity use, and investment in data centers in Australia.", "Data centres/12_dc_share_of_grid_au_us.png"),
   tile("intellectual-property", "Intellectual Property", "U.S. patents and trademarks in Australia and joint U.S.-Australian filings.", "Patents/us_applicants_share.png"),
   tile("critical-minerals", "Critical Minerals", "Mines and deposits, Australia&rsquo;s share of world supply and U.S. import reliance.", "Critical minerals/minerals_au_world_share_us_reliance.png"),
-  tile("economic-indicators", "Economic Indicators", "Size, growth and productivity of the two economies, and Australia&rsquo;s terms of trade.", "Economy/gdp_growth_quarterly_au_us.png"),
+  tile("economic-indicators", "Economic Indicators", "Size, growth and productivity of the two economies.", "Economy/gdp_growth_quarterly_au_us.png"),
   tile("energy", "Energy", "Energy security, prices, the cost of new solar and wind, and each country&rsquo;s electricity mix.", "Energy/03_primary_vs_electricity.png"),
   tile("research-and-ai", "Research and AI", "Research strengths in critical technologies, collaboration with the U.S. and China, AI models and R&amp;D.", "Tech/D_collaboration_partners.png"),
   tile("human-capital", "Human Capital", "Skilled and student flows between the two countries.", "Migration/e3_visas_australians.png"),
@@ -906,13 +906,18 @@ if (!file.exists(mtab_file)) {
 
 ## Column {.tabset .econ-over-time width="50%" title="Economy over Time"}
 
-### Quarterly Growth
-
-![](<Economy/gdp_growth_quarterly_au_us.png>){title="Quarterly Real GDP Growth, Australia and the United States"}
-
 ### GDP
 
+<!-- Annual / Quarterly toggle (theme/navigation.html, section 1d): two cards (the label
+     comes from the view-<Label> class),
+     one shown at a time; the toggle sits above them like the Goods/Services tabs -->
+::: {.card .view-toggle .view-Annual}
 ![](<Economy/gdp_au_us.png>){title="Real GDP, Australia and the United States"}
+:::
+
+::: {.card .view-toggle .view-Quarterly}
+![](<Economy/gdp_growth_quarterly_au_us.png>){title="Quarterly Real GDP Growth, Australia and the United States"}
+:::
 
 ### GDP per Person
 
@@ -921,10 +926,6 @@ if (!file.exists(mtab_file)) {
 ### Productivity
 
 ![](<Economy/productivity_both_au_us.png>){title="Labor Productivity, Australia and the United States"}
-
-### Terms of Trade
-
-![](<Economy/terms_of_trade_quarterly.png>){title="Australia's Terms of Trade"}
 
 
 # Energy {orientation="columns"}

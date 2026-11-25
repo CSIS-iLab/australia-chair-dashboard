@@ -149,6 +149,41 @@
     pr.addEventListener("click", function () { printHead(); window.print(); });
   }
 
+  // ---- 1d. Annual / Quarterly toggle (Nov 2026) --------------------------------
+  // Cards marked .view-toggle and .view-<Label> (e.g. .view-Annual) that sit in one
+  // tab are shown one at a time, with tabs above them styled like the
+  // Goods/Services tabs. The first card is shown first.
+  (function () {
+    var groups = [];
+    document.querySelectorAll(".card.view-toggle").forEach(function (c) {
+      var parent = c.parentElement;
+      var g = groups.filter(function (x) { return x.parent === parent; })[0];
+      if (!g) { g = { parent: parent, cards: [] }; groups.push(g); }
+      g.cards.push(c);
+    });
+    groups.forEach(function (g) {
+      var ul = document.createElement("ul");
+      ul.className = "nav nav-tabs view-toggle-tabs";
+      ul.setAttribute("role", "tablist");
+      g.cards.forEach(function (c, i) {
+        var li = document.createElement("li"); li.className = "nav-item";
+        var a = document.createElement("a"); a.className = "nav-link" + (i === 0 ? " active" : "");
+        a.href = "#"; a.setAttribute("role", "tab");
+        a.textContent = ([].filter.call(c.classList, function (k) { return /^view-[A-Z]/.test(k); })[0] || "view-View").slice(5);
+        a.addEventListener("click", function (e) {
+          e.preventDefault();
+          ul.querySelectorAll(".nav-link").forEach(function (x) { x.classList.toggle("active", x === a); });
+          g.cards.forEach(function (x) { x.classList.toggle("view-hidden", x !== c); });
+          window.dispatchEvent(new Event("resize"));
+        });
+        li.appendChild(a); ul.appendChild(li);
+        if (i > 0) c.classList.add("view-hidden");
+      });
+      g.parent.insertBefore(ul, g.cards[0]);
+      g.parent.classList.add("view-toggle-host");
+    });
+  })();
+
   // ---- 1c. Critical minerals: the filters are for the map only -------------
   // The page's sidebar (end-use family, lifecycle stage) filters the map, so
   // it is hidden, and the charts take the full width, on the other tabs.
