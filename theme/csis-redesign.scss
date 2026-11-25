@@ -645,3 +645,12 @@ $border-radius:           6px;
 .ov.ov-home .ov-tile-go { color: $gold; margin: 0 0 0 auto !important; white-space: nowrap; }
 .ov.ov-home .ov-tile:hover .ov-tile-body { background: $navy-2; }
 .ov.ov-home .ov-tile-go { text-align: right; padding-left: 8px; }
+
+// Annual / Quarterly toggle inside a tab (theme/navigation.html, 1d): the
+// tabs sit above the chart, and only the chosen card is shown
+.view-toggle-host { display: flex !important; flex-direction: column !important; }
+.view-toggle-host > .view-toggle-tabs { flex: 0 0 auto !important; display: flex !important; flex-direction: row !important;
+  justify-content: flex-end; border-bottom: 1px solid $rule; margin: 0 0 6px; padding: 0 8px; }
+.view-toggle-host > .view-toggle-tabs .nav-link { padding: 4px 12px; font-family: $headings-font-family; color: $navy; }
+.view-toggle-host > .card.view-toggle { flex: 1 1 auto !important; min-height: 0; }
+.view-toggle-host > .card.view-hidden { display: none !important; }
