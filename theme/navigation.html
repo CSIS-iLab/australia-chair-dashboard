@@ -152,7 +152,8 @@
   // ---- 1d. Annual / Quarterly toggle (Nov 2026) --------------------------------
   // Cards marked .view-toggle and .view-<Label> (e.g. .view-Annual) that sit in one
   // tab are shown one at a time, with tabs above them styled like the
-  // Goods/Services tabs. The first card is shown first.
+  // Goods/Services tabs. The first card is shown first. Underscores in the
+  // label become spaces (.view-Latest_Year shows as "Latest Year").
   (function () {
     var groups = [];
     document.querySelectorAll(".card.view-toggle").forEach(function (c) {
@@ -169,7 +170,7 @@
         var li = document.createElement("li"); li.className = "nav-item";
         var a = document.createElement("a"); a.className = "nav-link" + (i === 0 ? " active" : "");
         a.href = "#"; a.setAttribute("role", "tab");
-        a.textContent = ([].filter.call(c.classList, function (k) { return /^view-[A-Z]/.test(k); })[0] || "view-View").slice(5);
+        a.textContent = ([].filter.call(c.classList, function (k) { return /^view-[A-Z]/.test(k); })[0] || "view-View").slice(5).replace(/_/g, " ");
         a.addEventListener("click", function (e) {
           e.preventDefault();
           ul.querySelectorAll(".nav-link").forEach(function (x) { x.classList.toggle("active", x === a); });

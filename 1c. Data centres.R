@@ -770,8 +770,8 @@ save_both(make_p14, "14_commercial_nec_building.png", save_csis, height = 6)
 # average (monthly values faint); IMT capex is quarterly (rolling four-quarter
 # sum), so it has its own panel.
 imp_url <- paste0("https://data.api.abs.gov.au/rest/data/ABS,MERCH_IMP,1.0.0/",
-                  "752+759.TOT+USA.TOT.M?startPeriod=2009-01")
-imp_file <- file.path("raw", "abs_merch_imp_752_759.csv")
+                  "752+759.TOT+USA+CHIN+TAIW.TOT.M?startPeriod=2009-01")
+imp_file <- file.path("raw", "abs_merch_imp_752_759_v2.csv")   # v2: adds China and Taiwan (Nov 2026)
 dir.create("raw", showWarnings = FALSE)
 if (!file.exists(imp_file) || difftime(Sys.time(), file.mtime(imp_file), units = "days") > 7)
   utils::download.file(imp_url, imp_file, mode = "wb", quiet = TRUE,
@@ -785,7 +785,7 @@ imp <- utils::read.csv(imp_file) |>
 imt_epm <- cp |>
   filter(measure == "Actual", industry == IMT, asset == EPM, date >= as.Date("2009-01-01")) |>
   transmute(date, value)
-imp_lbl <- c(TOT = "All countries", USA = "From the U.S.")
+imp_lbl <- c(TOT = "All countries", USA = "From the U.S.", CHIN = "From China", TAIW = "From Taiwan")
 imp_for <- function(cur) imp |>
   mutate(value = if (cur == "USD") value * fx_or_latest(fx_month(date)) else value) |>
   group_by(origin) |> mutate(smooth = roll12(value)) |> ungroup() |>
@@ -806,7 +806,10 @@ make_p15 <- function(cur) {
     facet_wrap(~panel, ncol = 1, scales = "free_y") +
     scale_colour_manual(values = c(`All countries` = csis_colours[["navy"]],
                                    `From the U.S.` = csis_colours[["red"]],   # must match imp_lbl
-                                   `Equipment capex, information media and telecoms` = csis_colours[["gold"]])) +
+                                   `From China` = csis_colours[["gold"]],
+                                   `From Taiwan` = csis_colours[["teal"]],
+                                   `Equipment capex, information media and telecoms` = csis_colours[["grey"]]),
+                        breaks = c(unname(imp_lbl), "Equipment capex, information media and telecoms")) +
     scale_y_continuous(labels = label_dollar(prefix = cur_sym[[cur]], suffix = "bn", accuracy = 0.5),
                        expand = expansion(c(0, 0.05)), limits = c(0, NA)) +
     scale_x_date(date_breaks = "2 years", date_labels = "%Y", expand = expansion(mult = c(0.01, 0.01))) +
@@ -816,6 +819,7 @@ make_p15 <- function(cur) {
          caption = paste("Sources: ABS, merchandise imports by SITC and country of origin (ABS Data API),",
                          "SITC 752 (computers) and 759 (parts);\nABS 5625.0 for capex.",
                          GAPS, if (cur == "USD") fx_note[["USD"]] else "")) +
+    guides(colour = guide_legend(nrow = 2, byrow = TRUE)) +
     theme(strip.text = element_text(face = "bold", hjust = 0, colour = csis_colours[["navy"]]))
 }
 save_both(make_p15, "15_computer_imports.png", save_csis, height = 6.5)
@@ -882,11 +886,11 @@ local({
     it <- imp_for(cur) |> filter(!is.na(smooth))
     tot <- it |> filter(origin == "TOT") |> arrange(date)
     il <- tot[nrow(tot), ]; ip <- tot[nrow(tot) - 12, ]
-    us <- it |> filter(origin == "USA", date == il$date)
+    sh <- function(o) 100 * (it |> filter(origin == o, date == il$date))$smooth / il$smooth
     sprintf(paste("Imports of computers and parts averaged %s a month in the 12 months to %s, %.0f%% more",
-                  "than a year earlier; %.0f%% came from the U.S."),
+                  "than a year earlier; %.0f%% came from China, %.0f%% from Taiwan and %.0f%% from the U.S."),
             fmt_bn(il$smooth / 1000, cur_sym[[cur]], 2), format(il$date, "%B %Y"),
-            100 * (il$smooth / ip$smooth - 1), 100 * us$smooth / il$smooth)
+            100 * (il$smooth / ip$smooth - 1), sh("CHIN"), sh("TAIW"), sh("USA"))
   }
   takeaway(dc("15_computer_imports.png"), line15("AUD"), line15("USD"))
   line16 <- function(cur) sprintf(
