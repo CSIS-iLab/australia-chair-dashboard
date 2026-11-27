@@ -18,6 +18,9 @@ source(file.path(DASHBOARD_DIR, "0. Exchange rates.R"))   # A$/US$ toggle
 #        U.S. and the U.S. surplus, by quarter (ABS 5368.0, monthly, summed)
 #   2. Economy/gdp_growth_quarterly_au_us.png  Real GDP growth, quarter on
 #        quarter, Australia and the U.S. (ABS 5206.0; BEA NIPA Table 1.1.6)
+#   2b. Economy/gdp_per_capita_growth_quarterly_au_us.png and
+#   2c. Economy/productivity_growth_quarterly_au_us.png  the same for real GDP
+#        per person and labor productivity
 #   3. Economy/terms_of_trade_quarterly.png    Australia's terms of trade
 #        (ABS 5206.0)
 #   5. Trade/us_au_services_quarterly.png      Australia's services trade with
@@ -221,6 +224,68 @@ p_gdp_q <- ggplot(gdp_q, aes(date, growth, fill = country)) +
                         "U.S. growth is not annualized, so it is about a quarter of BEA's headline rate.")) +
   theme_csis()
 save_plot(p_gdp_q, "Economy/gdp_growth_quarterly_au_us.png")
+
+
+# ---- 2b, 2c. Quarterly growth in real GDP per person and in productivity ------
+# Added Nov 2026 for the Quarterly views of the GDP per Person and Productivity
+# tabs, drawn like the GDP chart above (% change on the previous quarter, not
+# annualized; same five years of quarters, from the latest Australian quarter).
+#   GDP per person: Australia ABS 5206.0 Table 1, GDP per capita, chain volume
+#     measures, seasonally adjusted; U.S. BEA real GDP (NIPA Table 1.1.6,
+#     A191RX) over population (Table 2.1, B230RC), as on the annual tab.
+#   Productivity: Australia ABS 5206.0 Table 1, GDP per hour worked, market
+#     sector, seasonally adjusted (A3606058X); U.S. BLS Productivity and Costs,
+#     business sector output per hour of all persons (PRS84006093), read from
+#     FRED (OPHPBS), which republishes it unchanged. BLS's headline is
+#     annualized, about four times as large.
+quarterly_growth_chart <- function(levels_df, title, what, caption, file) {
+  g <- levels_df |>
+    arrange(country, date) |> group_by(country) |>
+    mutate(growth = 100 * (value / lag(value) - 1)) |> ungroup() |>
+    filter(!is.na(growth))
+  stopifnot(n_distinct(g$country) == 2)
+  g <- filter(g, date >= first_quarter_shown(max(g$date[g$country == "Australia"])))
+  la <- g |> filter(country == "Australia") |> slice_max(date)
+  lu <- g |> filter(country == "United States") |> slice_max(date)
+  p <- ggplot(g, aes(date, growth, fill = country)) +
+    geom_hline(yintercept = 0, colour = csis_colours[["grey"]], linewidth = 0.4) +
+    geom_col(position = position_dodge(width = 70), width = 66) +
+    scale_fill_manual(values = au_us_colours) +
+    scale_y_continuous(labels = label_percent(scale = 1, accuracy = 0.5), limits = nice_range, breaks = function(l) pretty(l), expand = expansion(mult = 0.02)) +
+    scale_x_date(breaks = qtr_breaks(g$date), labels = qtr_label, expand = expansion(mult = 0.02)) +
+    labs(hover_accuracy = 0.1, title = title,
+         subtitle = sprintf("%% change in %s on the previous quarter. Australia %+.1f%% in %s; U.S. %+.1f%% in %s",
+                            what, la$growth, qtr_label(la$date), lu$growth, qtr_label(lu$date)),
+         x = NULL, y = NULL, caption = caption) +
+    theme_csis()
+  save_plot(p, file)
+  invisible(g)
+}
+
+pc_q <- bind_rows(
+  na5206 |> filter(series == "GDP per capita: Chain volume measures ;", series_type == "Seasonally Adjusted") |>
+    transmute(date = quarter_end(date), value, country = "Australia"),
+  inner_join(bea_nipa_q("A191RX"), bea_nipa_q("B230RC"), by = "date", suffix = c("_gdp", "_pop")) |>
+    transmute(date, value = value_gdp / value_pop, country = "United States"))
+quarterly_growth_chart(
+  pc_q, "Quarterly growth in real GDP per person, Australia and the U.S.", "real GDP per person",
+  paste0("Sources: ABS, Australian National Accounts (cat. no. 5206.0), Table 1; U.S. BEA, NIPA Tables 1.1.6 and 2.1 ",
+         "(real GDP over population).\nNotes: Chain volume measures (Australia) and chained dollars (U.S.), seasonally adjusted. ",
+         "Not annualized."),
+  "Economy/gdp_per_capita_growth_quarterly_au_us.png")
+
+# FRED refuses R's default HTTP/2 download with a custom header, so it is read directly (as in '1b. Economy.R')
+prod_us <- utils::read.csv("https://fred.stlouisfed.org/graph/fredgraph.csv?id=OPHPBS")
+prod_q <- bind_rows(
+  na5206 |> filter(series_id == "A3606058X") |> transmute(date = quarter_end(date), value, country = "Australia"),
+  data.frame(date = quarter_end(as.Date(prod_us[[1]])), value = suppressWarnings(as.numeric(prod_us[[2]])),
+             country = "United States") |> filter(!is.na(value)))
+quarterly_growth_chart(
+  prod_q, "Quarterly growth in labor productivity, Australia and the U.S.", "output per hour worked",
+  paste0("Sources: ABS, Australian National Accounts (cat. no. 5206.0), Table 1; U.S. Bureau of Labor Statistics, ",
+         "Productivity and Costs (via FRED).\nNotes: Seasonally adjusted. Australia: market sector; United States: business sector. ",
+         "U.S. growth is not annualized, so it is about a quarter of BLS's headline rate."),
+  "Economy/productivity_growth_quarterly_au_us.png")
 
 
 # ---- 3. Australia's terms of trade --------------------------------------------

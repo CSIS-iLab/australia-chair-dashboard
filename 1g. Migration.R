@@ -181,14 +181,14 @@ write.csv(nom_all, file.path(OUT_DIR, "abs_nom_all_countries.csv"), row.names = 
 # --- Step 4: charts --------------------------------------------------------
 
 abs_caption <- paste0(
-  "Source: ABS, Overseas Migration, cube ", CUBE_ID,
+  "Source: ABS, Overseas Migration, cube ", CUBE_ID, ", accessed ", format(Sys.Date(), "%B %Y"),
   ". Years ending 30 June. Rounded to the nearest 10. Latest year preliminary.\n",
   # Checked against the ABS Overseas Migration methodology (2024-25): NOM covers
   # people regardless of nationality, citizenship or legal status, and country
   # of birth is usually taken from the traveller's passport or visa.
   "Counts people born in the United States, whatever their citizenship: it includes Australian and dual citizens\n",
   "born in the U.S., and leaves out U.S. citizens born elsewhere. People count as migrants when they spend ",
-  "12 months or more of a 16-month period in (or away from) Australia. Retrieved ", trimws(format(Sys.Date(), "%e %B %Y")), "."
+  "12 months or more of a 16-month period in (or away from) Australia."
 )
 
 p_national <- nom_usa |>

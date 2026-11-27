@@ -387,7 +387,7 @@ p_b <- quality_gap |>
   scale_x_continuous(labels = percent_format(accuracy = 0.1)) +
   labs(
     title    = "Australian share of world publications: all papers and top 10% cited",
-    subtitle = "Share of world output, all papers vs the top 10% most cited",
+    subtitle = sprintf("Share of world output, all papers vs the top 10%% most cited, %d\u2013%d", min(YEARS), max(YEARS)),
     x = NULL, y = NULL, colour = NULL,
     caption = paste0(OA_SRC, "
 ", OA_NOTE, " ", KW_NOTE)

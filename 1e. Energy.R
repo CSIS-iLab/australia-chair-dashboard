@@ -459,7 +459,7 @@ p2 <- ggplot(state_mix, aes(share, label, fill = fuel)) +
   guides(fill = guide_legend(nrow = 2)) +
   labs(
     title    = "Electricity generation by source, by state",
-    subtitle = "Share of generation by source, calendar years, including rooftop solar. Right-hand figure is renewable share.",
+    subtitle = sprintf("Share of generation by source, including rooftop solar: Australia calendar 2025, U.S. %d. Right-hand figure is renewable share.", st_year),
     x = NULL, y = NULL,
     caption  = paste0("Sources: DCCEEW, Australian Energy Statistics, Table O (calendar 2025); EIA, Electric Power ",
                       "Annual, net generation by state and Table 3.21\n(small-scale solar), calendar ", st_year,
@@ -959,6 +959,201 @@ draw_sec(oil_combine(au_trade), oil_combine(us_trade), SEC_LEVELS_OIL, sec_cols_
 
 
 # ------------------------------------------------------------------------------
+# 7d. ENERGY SECURITY (simpler, Nov 2026) - self-sufficiency by fuel
+#
+# Production as a share of use, fuel by fuel: below 100% the country is a net
+# importer of that fuel, above 100% a net exporter. Replaces the net energy
+# trade chart (08_energy_security_oil.png, still written above) on the
+# dashboard; first drafted in 'For feedback/Analysis/Energy self-sufficiency.R'.
+#   Australia: Table J, latest financial year. Use = production + imports -
+#     exports (apparent use; stock changes left out).
+#   U.S.: EIA Monthly Energy Review Tables 1.2 (production) and 1.3 (use),
+#     latest calendar year.
+# Oil is crude oil, condensate and natural gas liquids (including LPG) for both
+# countries; use includes refined products.
+# ------------------------------------------------------------------------------
+
+ss_cols <- tj_hdr                                             # Table J header row (read in 7c)
+ss_fy_cols <- which(grepl("^\\d{4}-\\d{2}$", trimws(unlist(tj[ss_cols, ]))))
+ss_item <- sub("\\s*\\[.*$", "", trimws(tj[[1]]))
+ss_val <- function(rows) {                                    # sum of the given rows, one value per year
+  m <- sapply(ss_fy_cols, function(j) suppressWarnings(as.numeric(tj[[j]][rows])))
+  m <- matrix(m, nrow = length(rows)); m[is.na(m)] <- 0
+  colSums(m)
+}
+ss_rows <- function(start, end, items) {
+  i <- which(ss_item == start)[1]; j <- which(ss_item == end)[1]
+  r <- (i + 1):(j - 1); r[ss_item[r] %in% items]
+}
+ss_fys <- trimws(unlist(tj[ss_cols, ss_fy_cols]))
+ss_au_year <- as.integer(substr(ss_fys, 1, 4)) + 1L           # financial years by the year they end
+SS_COAL <- c("Black coal", "Brown coal", "Coke", "Briquettes", "Brown coal briquettes")
+SS_OIL_TRADE <- c("Crude oil and ORF", "LPG", "Automotive gasoline", "Aviation gasoline", "Aviation turbine fuel",
+                  "Lighting kerosene", "Power kerosene", "ADO", "IDF", "Fuel oil", "Lubes and greases", "Bitumen",
+                  "Other petroleum products")
+ss_au_one <- function(fuel, prod_items, trade_items) {
+  p  <- ss_val(ss_rows("Indigenous production", "Imports", prod_items))
+  im <- ss_val(ss_rows("Imports", "Exports", trade_items))
+  ex <- ss_val(ss_rows("Exports", "Stock changes and discrepancies", trade_items))
+  tibble(country = "Australia", year = ss_au_year, fy = ss_fys, fuel = fuel, production = p, use = p + im - ex)
+}
+ss_au <- bind_rows(ss_au_one("Coal", "Coal", SS_COAL),
+                   ss_au_one("Natural gas", "Natural gas", "Natural gas"),
+                   ss_au_one("Oil", c("Crude oil and NGL", "LPG"), SS_OIL_TRADE)) |>
+  filter(year == max(year))
+stopifnot("Table J: self-sufficiency inputs look wrong" = all(ss_au$production > 0 & ss_au$use > 0))
+
+ss_us_raw <- bind_rows(mer_annual("T01.02"), mer_annual("T01.03")) |>
+  filter(msn %in% c("CLPRBUS", "NGPRBUS", "PAPRBUS", "NLPRBUS", "CLTCBUS", "NNTCBUS", "PMTCBUS"), !is.na(gwh)) |>
+  tidyr::pivot_wider(names_from = msn, values_from = gwh)     # quadrillion Btu (column named gwh by mer_annual)
+ss_us_year <- max(ss_us_raw$year[complete.cases(ss_us_raw)])
+ss_us <- ss_us_raw |> filter(year == ss_us_year) |>
+  with(tibble(country = "United States", year = ss_us_year, fy = as.character(ss_us_year),
+              fuel = c("Coal", "Natural gas", "Oil"),
+              production = c(CLPRBUS, NGPRBUS, PAPRBUS + NLPRBUS), use = c(CLTCBUS, NNTCBUS, PMTCBUS)))
+
+ss <- bind_rows(ss_au, ss_us) |>
+  mutate(ratio = production / use,
+         fuel = factor(fuel, levels = rev(c("Coal", "Natural gas", "Oil"))),
+         series = factor(if_else(country == "Australia", sprintf("Australia (%d, year to June)", max(ss_au$year)),
+                                 sprintf("United States (%d)", ss_us_year))),
+         series = factor(series, levels = rev(levels(series))))
+ss_au_oil_ex_lpg <- {
+  p <- ss_val(ss_rows("Indigenous production", "Imports", "Crude oil and NGL"))
+  p[length(p)] / ss_au$use[ss_au$fuel == "Oil"]
+}
+ss_dodge <- position_dodge(width = 0.75)
+ss_lev <- c(grep("^Australia", levels(ss$series), value = TRUE), grep("^United", levels(ss$series), value = TRUE))
+p_ss <- ggplot(ss, aes(ratio, fuel, fill = series, group = series)) +
+  geom_col(position = ss_dodge, width = 0.7) +
+  geom_vline(xintercept = 1, linetype = "22", colour = "grey35", linewidth = 0.5) +
+  geom_text(aes(label = percent(ratio, accuracy = 1)), position = ss_dodge, hjust = -0.15, size = 3.3, colour = "grey30") +
+  annotate("text", x = 1, y = 3.45, label = "Self-sufficient", hjust = -0.05, vjust = 0, size = 3.2, colour = "grey30") +
+  scale_y_discrete(expand = expansion(add = c(0.6, 0.75))) +
+  annotate("segment", x = 1.04, xend = 1.85, y = 2.5, yend = 2.5, colour = "grey30", linewidth = 0.5,
+           arrow = grid::arrow(length = grid::unit(0.12, "inches"), type = "closed")) +
+  annotate("text", x = 1.95, y = 2.5, label = "Excess production exported (net)", hjust = 0, vjust = 0.5,
+           size = 3.6, colour = "grey30") +
+  scale_fill_manual(values = setNames(c("#00205B", "#D2232A"), ss_lev), breaks = ss_lev) +
+  scale_x_continuous(labels = percent_format(accuracy = 1), breaks = seq(0, 8, 1), expand = expansion(mult = c(0, 0.08))) +
+  labs(title = "Energy self-sufficiency by fuel",
+       subtitle = "Production as a share of use. Below 100% means net fuel importer, above 100% means net fuel exporter",
+       x = NULL, y = NULL,
+       caption = paste0("Sources: DCCEEW, Australian Energy Statistics, Table J; EIA, Monthly Energy Review, Tables 1.2 and 1.3.\n",
+                        "Note: Oil includes crude oil, condensate and natural gas liquids (including LPG) for both countries; use includes refined ",
+                        "products. Excluding LPG, Australia's oil production covers ", percent(ss_au_oil_ex_lpg, accuracy = 1), " of use. ",
+                        "Most Australian crude oil and condensate is exported, so most of the oil Australia uses is imported. ",
+                        "Net exports are exports minus imports of the same fuel: a country above 100% exports more of that fuel than it imports, ",
+                        "though it may still import some (e.g. the U.S. still imports crude oil).")) +
+  theme_csis() +
+  theme(panel.grid.major.y = element_blank(), panel.grid.major.x = element_line(colour = "grey92"),
+        legend.position = "top", legend.justification = "left", axis.text.y = element_text(size = 11))
+ggsave("08_self_sufficiency_by_fuel.png", p_ss, width = 9, height = 5.7, dpi = 150, bg = "white")
+ss_note <- with(ss, sprintf(
+  "Australia's production equaled %s of its coal use and %s of its gas use but only %s of its oil use in the %s financial year; U.S. production equaled %s, %s and %s in %d.",
+  percent(ratio[country == "Australia" & fuel == "Coal"], 1), percent(ratio[country == "Australia" & fuel == "Natural gas"], 1),
+  percent(ratio[country == "Australia" & fuel == "Oil"], 1), ss_au$fy[1],
+  percent(ratio[country == "United States" & fuel == "Coal"], 1), percent(ratio[country == "United States" & fuel == "Natural gas"], 1),
+  percent(ratio[country == "United States" & fuel == "Oil"], 1), ss_us_year))
+message(ss_note)
+
+
+# ------------------------------------------------------------------------------
+# 7e. CLEAN TECH IMPORTS (Nov 2026) - reliance on China
+#
+# China's share of each country's imports (by value) of:
+#   Solar cells and panels   HS 854142 + 854143 (from 2022); HS 854140 before
+#                            2022 (that code also covered LEDs and other
+#                            light-sensitive devices, so earlier years overstate)
+#   Lithium-ion batteries    HS 850760
+#   Electric cars            HS 870380 (battery electric passenger vehicles)
+# Australia: UN Comtrade (Australia's reported imports, US$), free preview API,
+#   one call per year, cached in Energy/raw/comtrade (the latest two years are
+#   fetched again after 30 days, as late reports come in).
+# U.S.: U.S. Census Bureau international trade API (general imports). Needs a
+#   free key (https://api.census.gov/data/key_signup.html) in the CENSUS_API_KEY
+#   environment variable or in Energy/raw/census_api_key.txt (never committed).
+#   Without a key the chart is left as it is.
+# First drafted in 'For feedback/Analysis/China clean tech imports.R'.
+# ------------------------------------------------------------------------------
+
+CT_YEARS <- 2017:(as.integer(format(Sys.Date(), "%Y")) - 1L)
+CT_CODES <- c("850760", "854140", "854142", "854143", "870380")
+ct_product <- function(code) case_when(code == "850760" ~ "Lithium-ion batteries",
+                                       code == "870380" ~ "Electric cars",
+                                       TRUE ~ "Solar cells and panels")
+ct_key <- Sys.getenv("CENSUS_API_KEY")
+if (ct_key == "" && file.exists(file.path("raw", "census_api_key.txt")))
+  ct_key <- trimws(readLines(file.path("raw", "census_api_key.txt"), warn = FALSE)[1])
+
+if (ct_key == "") {
+  message("Clean tech imports chart not updated: no Census API key (see section 7e).")
+} else {
+  dir.create(file.path("raw", "comtrade"), recursive = TRUE, showWarnings = FALSE)
+  ct_au <- bind_rows(lapply(CT_YEARS, function(y) {
+    f <- file.path("raw", "comtrade", sprintf("au_%d.json", y))
+    stale <- !file.exists(f) || (y >= max(CT_YEARS) - 1 && difftime(Sys.time(), file.mtime(f), units = "days") > 30)
+    if (stale) {
+      Sys.sleep(3)                                            # the free preview allows about one call a second
+      try(utils::download.file(sprintf("https://comtradeapi.un.org/public/v1/preview/C/A/HS?reporterCode=36&period=%d&partnerCode=0,156&cmdCode=%s&flowCode=M",
+                                       y, paste(CT_CODES, collapse = ",")), f, quiet = TRUE))
+    }
+    if (!file.exists(f)) return(NULL)
+    d <- jsonlite::fromJSON(f)$data
+    if (is.null(d) || !NROW(d)) return(NULL)
+    tibble(country = "Australia", year = y, code = d$cmdCode,
+           partner = if_else(d$partnerCode == 156, "China", "World"), value = d$primaryValue)
+  }))
+  ct_us <- bind_rows(lapply(CT_YEARS, function(y) bind_rows(lapply(CT_CODES, function(code) {
+    r <- tryCatch(jsonlite::fromJSON(sprintf(
+      "https://api.census.gov/data/timeseries/intltrade/imports/hs?get=CTY_CODE,GEN_VAL_YR&I_COMMODITY=%s&time=%d-12&key=%s",
+      code, y, ct_key)), error = function(e) NULL)
+    if (is.null(r) || NROW(r) < 2) return(NULL)
+    r <- as_tibble(r[-1, , drop = FALSE], .name_repair = ~ c("cty", "value", "code", "time"))
+    r |> filter(cty %in% c("-", "5700")) |>
+      transmute(country = "United States", year = y, code, partner = if_else(cty == "5700", "China", "World"),
+                value = as.numeric(value))
+  }))))
+  ct <- bind_rows(ct_au, ct_us) |>
+    filter(!(code == "854140" & year >= 2022), !(code %in% c("854142", "854143") & year < 2022)) |>
+    mutate(product = ct_product(code)) |>
+    group_by(country, year, product, partner) |> summarise(value = sum(value), .groups = "drop") |>
+    tidyr::pivot_wider(names_from = partner, values_from = value, values_fill = 0) |>
+    filter(World > 0) |>
+    mutate(share = China / World,
+           product = factor(product, levels = c("Solar cells and panels", "Lithium-ion batteries", "Electric cars")))
+  # Keep years both countries report
+  ct_last <- min(tapply(ct$year, ct$country, max))
+  ct <- ct |> filter(year <= ct_last)
+  stopifnot("Clean tech imports: missing data" = n_distinct(ct$country) == 2, all(ct$share <= 1))
+
+  p_ct <- ggplot(ct, aes(year, share, colour = country)) +
+    geom_line(linewidth = 1) + geom_point(size = 1.6) +
+    facet_wrap(~product, nrow = 1) +
+    scale_colour_manual(values = c(Australia = "#00205B", `United States` = "#D2232A")) +
+    scale_y_continuous(labels = percent, limits = c(0, 1), breaks = seq(0, 1, 0.2)) +
+    scale_x_continuous(breaks = seq(min(ct$year), ct_last, 2)) +
+    labs(title = "Reliance on China for solar panels, batteries and electric cars",
+         subtitle = sprintf("China's share of imports by value, %d–%d", min(ct$year), ct_last),
+         x = NULL, y = NULL,
+         caption = paste0("Sources: UN Comtrade (Australia); U.S. Census Bureau (U.S.).\n",
+                          "Note: Solar before 2022 is HS 854140, which also includes LEDs and other light-sensitive devices; from 2022 HS 854142-43 ",
+                          "(cells and panels only). Lithium-ion batteries HS 850760; electric cars HS 870380 (battery electric).")) +
+    theme_csis() +
+    theme(legend.position = "top", legend.justification = "left", strip.text = element_text(face = "bold", size = 11),
+          panel.grid.major.x = element_blank())
+  ggsave("08_clean_tech_imports_china.png", p_ct, width = 10, height = 5, dpi = 150, bg = "white")
+  ct_l <- ct |> filter(year == ct_last)
+  g_ct <- function(c, p) percent(ct_l$share[ct_l$country == c & ct_l$product == p], accuracy = 1)
+  ct_note <- sprintf(
+    "In %d China supplied %s of Australia's imports of solar cells and panels, %s of its lithium-ion batteries and %s of its electric cars; for the U.S. the figures were %s, %s and %s.",
+    ct_last, g_ct("Australia", "Solar cells and panels"), g_ct("Australia", "Lithium-ion batteries"), g_ct("Australia", "Electric cars"),
+    g_ct("United States", "Solar cells and panels"), g_ct("United States", "Lithium-ion batteries"), g_ct("United States", "Electric cars"))
+  message(ct_note)
+}
+
+
+# ------------------------------------------------------------------------------
 # 8. Tidy exports
 # ------------------------------------------------------------------------------
 
@@ -1440,6 +1635,8 @@ local({
     "Renewables supplied %.0f%% of Australia's electricity in the %s financial year and %.0f%% of the U.S.'s in calendar %d.",
     v("au"), fy(rl$year[rl$k == "au"] - 1), v("us"), rl$year[rl$k == "us"]))
   takeaway(en("08_energy_security_oil.png"), per_fuel_note)
+  takeaway(en("08_self_sufficiency_by_fuel.png"), ss_note)
+  if (exists("ct_note")) takeaway(en("08_clean_tech_imports_china.png"), ct_note)
   l6 <- function(cur) {
     k <- if (cur == "AUD") 1 / lcoe_rate else 1
     v <- function(t, c) lcoe_latest$lcoe[lcoe_latest$technology == t & lcoe_latest$country == c] * k

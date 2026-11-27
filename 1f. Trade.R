@@ -1405,6 +1405,62 @@ partner_hover <- function(make, file, d, totals, cur_of) for (cur in c("AUD", "U
 partner_hover(make_services_partner, "services_trade_by_partner.png", svc_partner, svc_tot)
 
 # ---------------------------------------------------------------
+# Services exports and imports over time, five largest partners (Nov 2026)
+# For the Over Time view of the dashboard's Services tab, drawn like the goods
+# charts (dfat_exports_partners_long.png): the five largest partners for each
+# flow in the latest year, every year the ABS cube covers, labels showing each
+# partner's rank among all partners in the latest year.
+# ---------------------------------------------------------------
+svc_long_all <- bind_rows(
+  as.data.frame(svc_cr) |> mutate(flow = "Exports"),
+  as.data.frame(svc_db) |> mutate(flow = "Imports")
+) |>
+  filter(!is.na(value_m), !grepl(SVC_DROP, country, perl = TRUE)) |>
+  mutate(partner = if_else(country %in% names(SVC_SHORT), SVC_SHORT[country], country)) |>
+  filter(!partner %in% svc_regions)
+make_svc_long <- function(fl) function(cur) {
+  d_fl <- svc_long_all |> filter(flow == fl)
+  ranks <- d_fl |> filter(year == svc_yr) |> arrange(desc(value_m)) |> mutate(rank = row_number())
+  top5 <- head(ranks$partner, 5)
+  if (!"United States" %in% top5) top5 <- c(head(top5, 4), "United States")   # the U.S. is always shown
+  d <- d_fl |> filter(partner %in% top5) |>
+    mutate(value_bn = value_m / 1000,
+           value_bn = if (cur == "USD") aud_to_usd(value_bn, fx_calendar_year(year)) else value_bn,
+           partner = factor(partner, levels = top5))
+  ends <- d |> filter(year == svc_yr) |>
+    left_join(ranks |> select(partner, rank) |> mutate(partner = factor(partner, levels = top5)), by = "partner") |>
+    mutate(label = paste0("#", rank, " ", partner))
+  others <- setdiff(top5, "United States")
+  pal <- unname(csis_colours[c("navy", "teal", "gold", "grey", "ltgrey")])
+  cols <- setNames(c(csis_colours[["red"]], pal[seq_along(others)]), c("United States", others))
+  ggplot(d, aes(year, value_bn, colour = partner, group = partner)) +
+    geom_line(linewidth = 0.9) +
+    geom_point(size = 1.4) +
+    geom_text_repel(data = ends, aes(label = str_wrap(label, 16)),
+                    family = "source_sans", size = 3.2, fontface = "bold", lineheight = 0.9,
+                    hjust = 0, direction = "y", nudge_x = 0.5, segment.size = 0.3, segment.alpha = 0.5,
+                    min.segment.length = 0, seed = 42) +
+    scale_colour_manual(values = cols) +
+    scale_x_continuous(breaks = seq(min(d$year) + (max(d$year) - min(d$year)) %% 2, max(d$year), by = 2),
+                       expand = expansion(mult = c(0.02, 0.18))) +
+    scale_y_continuous(labels = label_dollar(prefix = cur_sym[[cur]], suffix = "bn", accuracy = 1),
+                       limits = c(0, NA), expand = expansion(mult = c(0, 0.08))) +
+    labs(title = sprintf("Australian services %s, five largest partners", tolower(fl)),
+         subtitle = paste0("By partner, ", cur_sym[[cur]], " billion, ", min(d$year), "–", max(d$year),
+                           ". Labels show each partner's rank among all partners in ", svc_yr, "."),
+         caption = paste0("Source: ABS, International Trade: Supplementary Information, calendar years.",
+                          if (length(intersect(names(svc_notes), top5))) paste0("\n", paste(svc_notes[names(svc_notes) %in% top5], collapse = " ")) else "",
+                          if (cur == "USD") fx_note[["USD"]] else ""),
+         x = NULL, y = NULL) +
+    theme_csis() +
+    theme(legend.position = "none")
+}
+save_both(make_svc_long("Exports"), "services_exports_partners_long.png",
+          function(p, f) ggsave(f, p, width = 8.5, height = 5, dpi = 150, bg = "white"))
+save_both(make_svc_long("Imports"), "services_imports_partners_long.png",
+          function(p, f) ggsave(f, p, width = 8.5, height = 5, dpi = 150, bg = "white"))
+
+# ---------------------------------------------------------------
 # Goods trade by partner: exports and imports, latest year
 # Source: DFAT country and commodity pivot table (dfat_trade_by_country.csv)
 # ---------------------------------------------------------------

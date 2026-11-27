@@ -199,9 +199,37 @@ imports <- MINERALS |>
   }) |>
   list_rbind()
 
+# China's share of US imports, 2021-24 (Nov 2026). Same USGS import-sources
+# table, on the same line as the US import reliance figure where USGS gives
+# several (e.g. refined metal); NA where USGS does not list China among the
+# main sources. Titanium comes from Figure 3, as for Australia.
+CN_IMPORT_LINE <- c(
+  "Lithium" = "^All$", "Zirconium" = "Zirconium ores", "Titanium (rutile)" = "fig3:Titanium",
+  "Titanium (ilmenite)" = "fig3:Titanium", "Bauxite" = "^Bauxite$", "Alumina (refined)" = "^Alumina$",
+  "Lead" = "Refined metal", "Zinc" = "Refined metal", "Manganese" = "Manganese contained",
+  "Rare earths" = "Rare-earth compounds", "Tin" = "Refined tin", "Silver" = "^All$",
+  "Copper" = "Refined copper", "Tantalum" = "^Total$", "Cobalt" = "Metal, oxide",
+  "Antimony" = "Total metal and oxide", "Nickel" = "Primary nickel", "Tungsten" = "Ores, concentrates")
+stopifnot(all(MINERALS$label %in% names(CN_IMPORT_LINE)))
+cn_rows <- mcs |> filter(Statistics == "Import sources 2021-2024", Country == "China")
+cn_imports <- MINERALS |>
+  select(label, commodity) |>
+  pmap(function(label, commodity) {
+    line <- CN_IMPORT_LINE[[label]]
+    v <- if (str_starts(line, "fig3:")) {
+      num(fig3 |> filter(str_detect(Commodity, str_remove(line, "^fig3:")), Import_Source_2021_24 == "China") |> pull(Percent))
+    } else {
+      num(cn_rows |> filter(Commodity == commodity, str_detect(Statistics_detail, line)) |> pull(Value))
+    }
+    if (length(v) > 1) stop("Import share for China not unique for ", label)
+    tibble(label, cn_import_share = if (length(v)) v / 100 else NA_real_)
+  }) |>
+  list_rbind()
+
 minerals <- prod |>
   left_join(nir, by = "label") |>
   left_join(imports, by = "label") |>
+  left_join(cn_imports, by = "label") |>
   left_join(resv |> select(label, reserves_share = share, reserves_rank = rank,
                            reserves_lower_bound = world_lower_bound), by = "label") |>
   arrange(desc(share))
@@ -392,6 +420,7 @@ write_csv(minerals |>
                       au_production = au_value, world_production = world_value,
                       us_net_import_reliance = nir_raw,
                       au_share_us_imports_2021_24_pct = round(au_import_share * 100),
+                      cn_share_us_imports_2021_24_pct = round(cn_import_share * 100),
                       au_share_world_reserves_pct = round(reserves_share * 100, 1),
                       au_reserves_rank = reserves_rank,
                       countries_withheld = withheld,

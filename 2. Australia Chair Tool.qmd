@@ -170,7 +170,7 @@ tiles <- c(
   tile("intellectual-property", "Intellectual Property", "U.S. patents and trademarks in Australia and joint U.S.-Australian filings.", "Patents/us_applicants_share.png"),
   tile("critical-minerals", "Critical Minerals", "Mines and deposits, Australia&rsquo;s share of world supply and U.S. import reliance.", "Critical minerals/minerals_au_world_share_us_reliance.png"),
   tile("economic-indicators", "Economic Indicators", "Size, growth and productivity of the two economies.", "Economy/gdp_growth_quarterly_au_us.png"),
-  tile("energy", "Energy", "Energy security, prices, the cost of new solar and wind, and each country&rsquo;s electricity mix.", "Energy/03_primary_vs_electricity.png"),
+  tile("energy", "Energy", "Energy security, prices, the cost of new solar and wind, clean tech imports, and each country&rsquo;s electricity mix.", "Energy/03_primary_vs_electricity.png"),
   tile("research-and-ai", "Research and AI", "Research strengths in critical technologies, collaboration with the U.S. and China, AI models and R&amp;D.", "Tech/D_collaboration_partners.png"),
   tile("human-capital", "Human Capital", "Skilled and student flows between the two countries.", "Migration/e3_visas_australians.png"),
   tile("geography", "Geography", "Two continent-sized countries at the same scale, and the distances between them.", "Overview/australia_over_us.png")
@@ -269,25 +269,39 @@ cat(paste0(
 
 ## Column {.tabset width="50%" title="Australia's Trade by Partner"}
 
-### Goods by Partner
+### Goods
 
+<!-- Latest Year / Over Time toggles (theme/navigation.html, section 1d);
+     underscores in the view-<Label> class become spaces in the toggle -->
+::: {.card .view-toggle .view-Latest_Year}
 ![](Trade/goods_trade_by_partner.png){title="Australia's Goods Trade by Partner"}
+:::
 
-### Services by Partner
-
-![](Trade/services_trade_by_partner.png){title="Australia's Services Trade by Partner"}
-
-### Goods Exports
-
-![](Trade/dfat_exports_partners_long.png){title="Australian Goods Exports, Five Largest Partners"}
-
-### Goods Imports
-
-![](Trade/dfat_imports_partners_long.png){title="Australian Goods Imports, Five Largest Partners"}
-
-### Goods by Sector
-
+::: {.card .view-toggle .view-By_Sector}
 ![](Trade/dfat_sector_composition_both.png){title="Australia's Goods Trade by Sector"}
+:::
+
+::: {.card .view-toggle .view-Exports_over_Time}
+![](Trade/dfat_exports_partners_long.png){title="Australian Goods Exports, Five Largest Partners"}
+:::
+
+::: {.card .view-toggle .view-Imports_over_Time}
+![](Trade/dfat_imports_partners_long.png){title="Australian Goods Imports, Five Largest Partners"}
+:::
+
+### Services
+
+::: {.card .view-toggle .view-Latest_Year}
+![](Trade/services_trade_by_partner.png){title="Australia's Services Trade by Partner"}
+:::
+
+::: {.card .view-toggle .view-Exports_over_Time}
+![](Trade/services_exports_partners_long.png){title="Australian Services Exports, Five Largest Partners"}
+:::
+
+::: {.card .view-toggle .view-Imports_over_Time}
+![](Trade/services_imports_partners_long.png){title="Australian Services Imports, Five Largest Partners"}
+:::
 
 ## Column {width="50%"}
 
@@ -804,17 +818,25 @@ if (!file.exists(mtab_file)) {
   bar <- function(v, txt, col, key) {
     if (is.na(v)) return(sprintf('<td class="mt-na" data-sort="-1">%s</td>', txt))
     sprintf('<td data-sort="%s"><div class="mt-cell"><span class="mt-bar" style="width:%.1f%%;background:%s"></span><span class="mt-val">%s</span></div></td>',
-            key, max(0.8, 0.7 * v), col, txt)   # 100% fills 70% of the cell, leaving room for the value
+            key, max(0.8, 0.55 * v), col, txt)   # 100% fills 55% of the cell, leaving room for the value
   }
   rows <- vapply(seq_len(nrow(m)), function(i) paste0(
     '<tr><th scope="row" data-sort="', esc(m$mineral[i]), '">', esc(m$mineral[i]), '</th>',
     bar(m$au_share_world_production_pct[i], sprintf("%.1f%%", m$au_share_world_production_pct[i]), "#00205B",
         m$au_share_world_production_pct[i]),
     '<td class="mt-rank" data-sort="', m$au_world_rank[i], '">#', m$au_world_rank[i], '</td>',
+    bar(m$au_share_world_reserves_pct[i],
+        if (is.na(m$au_share_world_reserves_pct[i])) "n/a" else sprintf("%.1f%%", m$au_share_world_reserves_pct[i]),
+        "#5B7FB5", m$au_share_world_reserves_pct[i]),
+    if (is.na(m$au_reserves_rank[i])) '<td class="mt-rank mt-na" data-sort="999">n/a</td>' else
+      paste0('<td class="mt-rank" data-sort="', m$au_reserves_rank[i], '">#', m$au_reserves_rank[i], '</td>'),
     bar(nir_num[i], paste0(esc(m$us_net_import_reliance[i]), "%"), "#D2232A", nir_num[i]),
     bar(m$au_share_us_imports_2021_24_pct[i],
         if (is.na(m$au_share_us_imports_2021_24_pct[i])) "Not a major source" else sprintf("%.0f%%", m$au_share_us_imports_2021_24_pct[i]),
         "#0098A8", m$au_share_us_imports_2021_24_pct[i]),
+    bar(m$cn_share_us_imports_2021_24_pct[i],
+        if (is.na(m$cn_share_us_imports_2021_24_pct[i])) "Not a major source" else sprintf("%.0f%%", m$cn_share_us_imports_2021_24_pct[i]),
+        "#8C9196", m$cn_share_us_imports_2021_24_pct[i]),
     '</tr>'), "")
   rows <- paste(rows, collapse = "")                      # one table, all rows
   csv_uri <- paste0("data:text/csv;base64,", base64enc::base64encode(mtab_file))
@@ -825,7 +847,7 @@ if (!file.exists(mtab_file)) {
     '<div class="mt-wrap">',
     '<style>',
     '.mt-wrap{height:100%;overflow:auto;padding:0.25rem 0.75rem 0.5rem;}',
-    '.mt-table{width:100%;border-collapse:collapse;font-size:0.9rem;color:#1F2A3A;}',
+    '.mt-table{width:100%;border-collapse:collapse;font-size:0.84rem;color:#1F2A3A;}',
     '.mt-table thead th{position:sticky;top:0;background:#FFFFFF;z-index:1;border-bottom:2px solid #00205B;vertical-align:bottom;padding:0;}',
     '.mt-table thead button{all:unset;cursor:pointer;display:block;width:100%;box-sizing:border-box;padding:0.45rem 0.6rem;font-weight:700;color:#00205B;line-height:1.25;}',
     '.mt-table thead button:focus-visible{outline:2px solid #F2A900;outline-offset:-2px;}',
@@ -837,7 +859,7 @@ if (!file.exists(mtab_file)) {
     '.mt-table tbody tr:nth-child(even){background:#F3F5F8;}',      # row guides
     '.mt-table tbody tr:hover{background:#E6ECF5;}',
     '.mt-table tbody th{font-weight:600;white-space:nowrap;}',
-    '.mt-table td{width:27%;}.mt-table td.mt-rank{width:7%;text-align:center;font-variant-numeric:tabular-nums;}',
+    '.mt-table td{width:15%;}.mt-table td.mt-rank{width:6%;text-align:center;font-variant-numeric:tabular-nums;}',
     '.mt-cell{display:flex !important;flex-direction:row !important;align-items:center;justify-content:flex-start;gap:0.4rem;height:auto !important;}',
     '.mt-bar{display:inline-block;height:0.8rem;border-radius:2px;flex:0 0 auto;}',
     '.mt-val{font-variant-numeric:tabular-nums;white-space:nowrap;}',
@@ -849,15 +871,19 @@ if (!file.exists(mtab_file)) {
     head_cell("Mineral", "text"),
     head_cell("Australia&rsquo;s share of world production", "num"),
     head_cell("World rank as producer", "num", "mt-rank"),
+    head_cell("Australia&rsquo;s share of world reserves", "num"),
+    head_cell("World rank by reserves", "num", "mt-rank"),
     head_cell("U.S. net import reliance (share of U.S. use imported)", "num"),
     head_cell("Australia&rsquo;s share of U.S. imports, 2021&ndash;24", "num"),
+    head_cell("China&rsquo;s share of U.S. imports, 2021&ndash;24", "num"),
     '</tr></thead><tbody>', rows, '</tbody></table>',
     '<p class="mt-note">Click a column heading to sort; click again to reverse. ',
     'Bars show each value out of 100%. ',
     'Source: USGS, Mineral Commodity Summaries 2026 data release (doi:10.5066/P1WKQ63T); 2025 values are USGS estimates. ',
     'Alumina is refinery output; all others are mine output. Titanium import share covers all titanium mineral concentrates. ',
     'Import reliance for lead, zinc and tin is for refined metal, for rare earths compounds and metals, and for zirconium ores and concentrates; ',
-    '&lsquo;&gt;&rsquo; and &lsquo;&lt;&rsquo; are USGS bounds. &lsquo;Not a major source&rsquo;: USGS does not list Australia among the main U.S. suppliers. ',
+    '&lsquo;&gt;&rsquo; and &lsquo;&lt;&rsquo; are USGS bounds. &lsquo;Not a major source&rsquo;: USGS does not list that country among the main U.S. suppliers. ',
+    'Import shares are for the same form as the import reliance figure (e.g. refined metal; for zirconium, ores and concentrates). Reserves are as estimated by USGS; n/a where USGS gives no world total. ',
     'World totals for lithium and bauxite exclude U.S. output, which USGS withholds. ',
     'Some countries&rsquo; output is withheld for antimony; ranks count only published figures. ',
     '<a href="', csv_uri, '" download="minerals_au_us.csv">Download data (CSV)</a></p>',
@@ -878,11 +904,6 @@ if (!file.exists(mtab_file)) {
   ))
 }
 ```
-
-### Reserves vs Production
-
-![](<Critical minerals/minerals_au_reserves_vs_production.png>){title="Australia's Share of World Reserves and World Production, Critical Minerals"}
-
 
 # Economic Indicators {orientation="columns"}
 
@@ -921,11 +942,23 @@ if (!file.exists(mtab_file)) {
 
 ### GDP per Person
 
+::: {.card .view-toggle .view-Annual}
 ![](<Economy/gdp_per_capita_au_us.png>){title="Real GDP per Person, Australia and the United States"}
+:::
+
+::: {.card .view-toggle .view-Quarterly}
+![](<Economy/gdp_per_capita_growth_quarterly_au_us.png>){title="Quarterly Growth in Real GDP per Person, Australia and the United States"}
+:::
 
 ### Productivity
 
+::: {.card .view-toggle .view-Annual}
 ![](<Economy/productivity_both_au_us.png>){title="Labor Productivity, Australia and the United States"}
+:::
+
+::: {.card .view-toggle .view-Quarterly}
+![](<Economy/productivity_growth_quarterly_au_us.png>){title="Quarterly Growth in Labor Productivity, Australia and the United States"}
+:::
 
 
 # Energy {orientation="columns"}
@@ -934,15 +967,19 @@ if (!file.exists(mtab_file)) {
 
 ### Energy Security
 
-![](Energy/08_energy_security_oil.png){title="Energy Security"}
+![](Energy/08_self_sufficiency_by_fuel.png){title="Energy Self-Sufficiency by Fuel, Australia and the United States"}
 
-### Wholesale Prices, Australia vs U.S.
+### Wholesale Prices
 
 ![](Energy/07_wholesale_prices_au_us.png){title="Wholesale Electricity Prices, Australian NEM Regions, California and Texas (ERCOT)"}
 
 ### Cost of New Solar and Wind
 
 ![](Energy/06_lcoe_au_us.png){title="Cost of New Solar and Wind, Australia and the United States"}
+
+### Clean Tech Imports
+
+![](Energy/08_clean_tech_imports_china.png){title="Reliance on China for Solar Panels, Batteries and Electric Cars, Australia and the United States"}
 
 ## Column {.tabset width="50%" title="Electricity Mix"}
 
@@ -1027,10 +1064,6 @@ if (!file.exists(mtab_file)) {
 ### Net Migration
 
 ![](Migration/nom_usa_national.png){title="Net Migration of Americans to Australia"}
-
-### Net Migration by State
-
-![](Migration/nom_usa_states.png){title="Net Migration of Americans to Australia, by State and Territory"}
 
 ### Skilled Visas by Occupation
 

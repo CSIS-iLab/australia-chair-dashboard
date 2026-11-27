@@ -77,10 +77,13 @@ Critical minerals/**
 !Trade/us_au_trade_quarterly.png
 !Trade/us_au_services_quarterly.png
 !Economy/gdp_growth_quarterly_au_us.png
+!Economy/gdp_per_capita_growth_quarterly_au_us.png
+!Economy/productivity_growth_quarterly_au_us.png
 !Economy/terms_of_trade_quarterly.png
 !Trade/dfat_*.png
 !Trade/overview_us_share_by_service.png
 !Trade/services_trade_by_partner.png
+!Trade/services_*_partners_long.png
 !Trade/goods_trade_by_partner.png
 !Trade/us_au_trade_balance.png
 !Trade/goods_exports_*.png
