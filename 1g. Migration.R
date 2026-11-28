@@ -423,7 +423,7 @@ p_e3 <- ggplot(e3, aes(fy, visas, colour = type)) +
   scale_x_continuous(breaks = seq(2006, niv_last, 2)) +
   guides(colour = guide_legend(nrow = 1)) +
   labs(title = "Skilled professional E-3 visas issued to Australians",
-       subtitle = sprintf("Visas issued by U.S. fiscal year, FY%d to FY%d",
+       subtitle = sprintf("Visas issued by U.S. fiscal year, FY%d\u2013FY%d",
                           min(e3$fy), niv_last),
        x = NULL, y = NULL,
        caption = paste0(NIV_CAPTION, " Visa class E-3; renewals and dependents do not count against the cap.",
@@ -447,7 +447,7 @@ p_fj <- ggplot(fj, aes(fy, visas, colour = type)) +
   scale_x_continuous(breaks = seq(2006, niv_last, 2)) +
   guides(colour = guide_legend(ncol = 1)) +
   labs(title = "Student and exchange visas issued to Australians",
-       subtitle = sprintf("Visas issued by U.S. fiscal year, FY%d to FY%d", min(fj$fy), niv_last),
+       subtitle = sprintf("Visas issued by U.S. fiscal year, FY%d\u2013FY%d", min(fj$fy), niv_last),
        x = NULL, y = NULL, caption = NIV_CAPTION) +
   theme_csis()
 
@@ -528,8 +528,8 @@ p_sk <- ggplot(sk_occ, aes(holders, occupation)) +
                           trimws(format(sk_last, "%e %B %Y"))),
        x = NULL, y = NULL,
        caption = paste0(HA_CAPTION, ", Temporary Resident (Skilled) visa holders (BP0014). ",
-                        "Covers Temporary Skill Shortage / Skills in Demand and\nearlier 457 visas; ",
-                        "occupations are those nominated by the sponsoring employer.")) +
+                        "\nCovers Temporary Skill Shortage / Skills in Demand and earlier 457 visas. ",
+                        "Occupations are those nominated by the sponsoring employer.")) +
   theme_csis() +
   theme(panel.grid.major.y = element_blank(),
         panel.grid.major.x = element_line(colour = "#E6E7E8", linewidth = 0.4),
@@ -571,7 +571,7 @@ p_temp <- ggplot(temp_ma, aes(snapshot, holders, fill = group)) +
   guides(fill = guide_legend(ncol = 2, reverse = TRUE)) +
   labs(title = "Temporary visas held by Americans in Australia, by type",
        subtitle = sprintf(paste0("U.S. citizens holding work, study and graduate visas, primary and secondary applicants.\n",
-                                 "Four-quarter moving average, %s to %s"),
+                                 "Four-quarter moving average, %s\u2013%s"),
                           format(min(temp_ma$snapshot), "%B %Y"), format(max(temp_ma$snapshot), "%B %Y")),
        x = NULL, y = NULL,
        caption = paste0(HA_CAPTION, ", temporary visa holders in Australia (BP0019). ",
@@ -700,7 +700,7 @@ p_lca_trend <- ggplot(lca_trend, aes(fy, lcas, fill = group)) +
   scale_x_continuous(breaks = seq(min(lca_trend$fy), max(lca_trend$fy), 2)) +
   guides(fill = guide_legend(ncol = 2)) +
   labs(title = "Skilled professional jobs certified for Australians, over time",
-       subtitle = sprintf("Certified Labor Condition Applications by occupation group and U.S. fiscal year, FY%d to FY%d",
+       subtitle = sprintf("Certified Labor Condition Applications by occupation group and U.S. fiscal year, FY%d\u2013FY%d",
                           min(lca_trend$fy), max(lca_trend$fy)),
        x = NULL, y = NULL,
        caption = paste0("Source: U.S. Department of Labor, Office of Foreign Labor Certification, LCA disclosure data. ",
@@ -740,8 +740,8 @@ p_lca_ec <- ggplot(emp_city, aes(lcas, item)) +
   labs(title = "Skilled professional jobs certified for Australians, by employer and city",
        subtitle = sprintf("Certified Labor Condition Applications, top employers and worksite cities, U.S. fiscal year %d", lca_fy),
        x = NULL, y = NULL,
-       caption = paste0("Source: U.S. Department of Labor, Office of Foreign Labor Certification, LCA disclosure data. ",
-                        "Employer names lightly standardized; first listed worksite. Visa class E-3.\n",
+       caption = paste0("Source: U.S. Department of Labor, Office of Foreign Labor Certification, LCA disclosure data.\n",
+                        "Employer names lightly standardized, first listed worksite. Visa class E-3. ",
                         LCA_NOTE)) +
   theme_csis() +
   theme(panel.grid.major.y = element_blank(),

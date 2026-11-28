@@ -546,8 +546,8 @@ scale_fill_csis <- function(...) {
 }
 
 ABS_SOURCE <- paste0(
-  "Source: Australian Bureau of Statistics, International Trade: ",
-  "Supplementary Information, Calendar Year 2025."
+  "Source: ABS, International Trade: ",
+  "Supplementary Information, Calendar Year."
 )
 
 
@@ -674,8 +674,7 @@ scale_fill_csis <- function(...) {
 }
 
 DFAT_SOURCE <- paste0(
-  "Source: DFAT, Australia's goods exports and imports country ",
-  "and commodity pivot table (ABS cat. 5368.0), calendar years."
+  "Source: DFAT, Australia's goods exports and imports country and commodity pivot table (ABS cat. no. 5368.0), calendar years."
 )
 
 
@@ -1004,8 +1003,7 @@ ggplot(plot_dat,
     subtitle = paste0("By destination, ", cur_sym[[cur]], " billion, 2006–", max(plot_dat$year),
                       ". Labels show each partner's rank among all destinations in ", max(plot_dat$year), "."),
     caption  = paste0(
-      "Source: DFAT, Australia's goods exports and imports country ",
-      "and commodity pivot table (ABS cat. 5368.0), calendar years.",
+      "Source: DFAT, Australia's goods exports and imports country and commodity pivot table (ABS cat. no. 5368.0), calendar years.",
       "\nGoods only. Not comparable in level with ABS ",
       "series covering goods and services.",
       if (cur == "USD") fx_note[["USD"]] else ""
@@ -1052,8 +1050,7 @@ p_shares_long <- ggplot(plot_dat,
     title = "Share of Australia's total goods exports",
     subtitle = "By destination, 2006–2025",
     caption  = paste0(
-      "Source: DFAT, Australia's goods exports and imports country ",
-      "and commodity pivot table (ABS cat. 5368.0), calendar years."
+      "Source: DFAT, Australia's goods exports and imports country and commodity pivot table (ABS cat. no. 5368.0), calendar years."
     ),
     x = NULL, y = "Share of total goods exports"
   ) +
@@ -1201,8 +1198,7 @@ plot_partner_series <- function(dat, yvar, ylab, y_scale,
 }
 
 DFAT_SRC <- paste0(
-  "Source: DFAT, Australia's goods exports and imports country ",
-  "and commodity pivot table (ABS cat. 5368.0), calendar years."
+  "Source: DFAT, Australia's goods exports and imports country and commodity pivot table (ABS cat. no. 5368.0), calendar years."
 )
 GOODS_NOTE <- paste0(
   "\nGoods only. Not comparable in level with ABS ",
@@ -1381,7 +1377,7 @@ make_services_partner <- function(cur) {
       subtitle = paste0("Services exports and imports, ten largest partners by two-way trade, ", cur_sym[[cur]], ", ",
                         svc_yr),
       x = NULL, y = NULL,
-      caption = paste0("Source: ABS, International Trade: Supplementary Information, Calendar Year ", svc_yr, ".\n",
+      caption = paste0("Source: ABS, International Trade: Supplementary Information, Calendar Year.\n",
                        paste(svc_notes, collapse = " "),
                        if (cur == "USD") fx_note[["USD"]] else "")
     ) +
@@ -1448,7 +1444,7 @@ make_svc_long <- function(fl) function(cur) {
     labs(title = sprintf("Australian services %s, five largest partners", tolower(fl)),
          subtitle = paste0("By partner, ", cur_sym[[cur]], " billion, ", min(d$year), "–", max(d$year),
                            ". Labels show each partner's rank among all partners in ", svc_yr, "."),
-         caption = paste0("Source: ABS, International Trade: Supplementary Information, calendar years.",
+         caption = paste0("Source: ABS, International Trade: Supplementary Information, Calendar Year.",
                           if (length(intersect(names(svc_notes), top5))) paste0("\n", paste(svc_notes[names(svc_notes) %in% top5], collapse = " ")) else "",
                           if (cur == "USD") fx_note[["USD"]] else ""),
          x = NULL, y = NULL) +
@@ -1508,8 +1504,7 @@ make_goods_partner <- function(cur) {
       subtitle = paste0("Goods exports and imports, ten largest partners by two-way trade, ", cur_sym[[cur]], ", ",
                         goods_yr),
       x = NULL, y = NULL,
-      caption = paste0("Source: DFAT, Australia's goods exports and imports by country and commodity ",
-                       "(ABS cat. 5368.0), calendar ", goods_yr, ".\n",
+      caption = paste0("Source: DFAT, Australia's goods exports and imports country and commodity pivot table (ABS cat. no. 5368.0), calendar ", goods_yr, ".\n",
                        paste(goods_notes, collapse = " "),
                        if (cur == "USD") fx_note[["USD"]] else "")
     ) +
@@ -2123,7 +2118,7 @@ theme_dash <- theme_minimal(base_size = 11) +
         plot.caption     = element_text(hjust = 0, colour = "grey40", size = 8),
         panel.grid.minor = element_blank())
 
-src_caption <- "Source: DFAT country and SITC pivot tables (ABS International Trade in Goods), calendar years. Goods trade basis."
+src_caption <- "Source: DFAT, Australia's goods exports and imports country and commodity pivot table (ABS cat. no. 5368.0), calendar years. Goods trade basis."
 
 # ---- One chart per flow x industry ------------------------------------------
 # Clear last run's charts first: the number in each file name is the
@@ -2308,7 +2303,7 @@ ggplot() +
     subtitle = paste0(if (INCLUDE_SERVICES) "Goods and services" else "Goods", ", calendar years"),
     x = NULL, y = NULL,
     caption  = paste0(
-      "Sources: DFAT country and commodity pivot table (ABS cat. 5368.0)",
+      "Sources: DFAT, Australia's goods exports and imports country and commodity pivot table (ABS cat. no. 5368.0)",
       if (INCLUDE_SERVICES) "; ABS, International Trade: Supplementary Information, Calendar Year" else "",
       ".\nU.S. surplus = Australian imports from the U.S. less Australian exports to the U.S.",   # notes (run on after the sources)
       " The dashed line leaves out non-monetary gold (SITC 971) from both exports and imports.",
@@ -2412,7 +2407,7 @@ make_top10 <- function(cur) {
                        expand = expansion(mult = c(0, 0.05))) +
     labs(title = "Top ten goods traded with the United States",
          subtitle = sprintf("Value by product (SITC 3-digit), calendar %d, %s billion", top_yr, cur_sym[[cur]]),
-         caption = paste0("Source: DFAT country and commodity pivot table (ABS cat. 5368.0). ",
+         caption = paste0("Source: DFAT, Australia's goods exports and imports country and commodity pivot table (ABS cat. no. 5368.0). ",
                           "Confidential items (SITC 988) are not shown.", gold_note,
                           if (cur == "USD") fx_note[["USD"]] else ""),
          x = NULL, y = NULL) +

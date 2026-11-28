@@ -98,7 +98,7 @@ lab_bn <- function(sym, accuracy = 1) function(x) fmt_bn(x, sym, accuracy)
 
 
 # ---- 1. Quarterly goods trade with the U.S. -----------------------------------
-# ABS International Trade in Goods (cat. 5368.0), Tables 14a (merchandise
+# ABS International Trade in Goods (cat. no. 5368.0), Tables 14a (merchandise
 # exports by country, FOB) and 14b (merchandise imports by country, customs
 # value), monthly, $ million, original. Months are summed to quarters; only
 # complete quarters are kept. ABS does not publish services trade by country
@@ -152,7 +152,7 @@ make_trade_q <- function(cur) {
          subtitle = "Goods, quarterly",
          x = NULL, y = NULL,
          caption = paste0(
-           "Source: ABS, International Trade in Goods (cat. 5368.0), Tables 14a and 14b; monthly values summed to quarters.\n",
+           "Source: ABS, International Trade in Goods (cat. no. 5368.0), Tables 14a and 14b; monthly values summed to quarters.\n",
            "Notes: The ABS does not publish services trade by country each quarter; see the Services tab (BEA data). ",
            "U.S. surplus = Australian imports from the U.S. less Australian exports to the U.S. ",
            "Exports are free on board; imports are at customs value. Includes non-monetary gold, ",
@@ -215,7 +215,7 @@ p_gdp_q <- ggplot(gdp_q, aes(date, growth, fill = country)) +
   scale_fill_manual(values = au_us_colours) +
   scale_y_continuous(labels = label_percent(scale = 1, accuracy = 0.5), limits = nice_range, breaks = function(l) pretty(l), expand = expansion(mult = 0.02)) +
   scale_x_date(breaks = qtr_breaks(gdp_q$date), labels = qtr_label, expand = expansion(mult = 0.02)) +
-  labs(hover_accuracy = 0.1, title = "Quarterly real GDP growth, Australia and the U.S.",
+  labs(hover_accuracy = 0.1, title = "Quarterly real GDP growth, Australia and the United States",
        subtitle = sprintf("%% change on the previous quarter. Australia %+.1f%% in %s; U.S. %+.1f%% in %s",
                           last_au$growth, qtr_label(last_au$date), last_us$growth, qtr_label(last_us$date)),
        x = NULL, y = NULL,
@@ -268,7 +268,7 @@ pc_q <- bind_rows(
   inner_join(bea_nipa_q("A191RX"), bea_nipa_q("B230RC"), by = "date", suffix = c("_gdp", "_pop")) |>
     transmute(date, value = value_gdp / value_pop, country = "United States"))
 quarterly_growth_chart(
-  pc_q, "Quarterly growth in real GDP per person, Australia and the U.S.", "real GDP per person",
+  pc_q, "Quarterly growth in real GDP per person, Australia and the United States", "real GDP per person",
   paste0("Sources: ABS, Australian National Accounts (cat. no. 5206.0), Table 1; U.S. BEA, NIPA Tables 1.1.6 and 2.1 ",
          "(real GDP over population).\nNotes: Chain volume measures (Australia) and chained dollars (U.S.), seasonally adjusted. ",
          "Not annualized."),
@@ -281,7 +281,7 @@ prod_q <- bind_rows(
   data.frame(date = quarter_end(as.Date(prod_us[[1]])), value = suppressWarnings(as.numeric(prod_us[[2]])),
              country = "United States") |> filter(!is.na(value)))
 quarterly_growth_chart(
-  prod_q, "Quarterly growth in labor productivity, Australia and the U.S.", "output per hour worked",
+  prod_q, "Quarterly growth in labor productivity, Australia and the United States", "output per hour worked",
   paste0("Sources: ABS, Australian National Accounts (cat. no. 5206.0), Table 1; U.S. Bureau of Labor Statistics, ",
          "Productivity and Costs (via FRED).\nNotes: Seasonally adjusted. Australia: market sector; United States: business sector. ",
          "U.S. growth is not annualized, so it is about a quarter of BLS's headline rate."),

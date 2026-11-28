@@ -398,8 +398,8 @@ $border-radius:           6px;
 .bslib-sidebar-layout.cm-no-sidebar { grid-template-columns: minmax(0, 1fr) !important; }
 .bslib-sidebar-layout.cm-no-sidebar > .main { grid-column: 1 / -1 !important; }
 
-// Top bar on mid-size screens (about 1000-1300px): tighter menu so it fits
-@media (min-width: 992px) and (max-width: 1349.98px) {
+// Top bar on mid-size screens (about 1000-1550px): tighter menu so it fits
+@media (min-width: 992px) and (max-width: 1549.98px) {
   .navbar .navbar-nav .nav-link { padding-left: 0.45rem !important; padding-right: 0.45rem !important; font-size: 0.86rem; }
   .navbar .navbar-title { font-size: 0.95rem; max-width: 12rem; }
   .navbar .cur-toggle button { padding: 2px 8px; font-size: 0.78rem; }
@@ -520,7 +520,14 @@ $border-radius:           6px;
 // --true-w is the chart's width at its real point size; wider cards center it
 // instead of enlarging the text. Expanded (full-screen) cards may use the room.
 .quarto-dashboard img[data-truew] { max-width: min(100%, var(--true-w)) !important; }
-.quarto-dashboard .bslib-full-screen img[data-truew] { max-width: min(100%, calc(var(--true-w) * 1.6)) !important; }
+// Expanded (full-screen) charts fill the screen (Nov 2026): as large as the
+// space allows, keeping their shape (object-fit: contain; hover pop-ups allow
+// for the letterboxing). Charts are 150 dpi images, so on large screens they
+// are scaled up beyond their true size.
+.quarto-dashboard .bslib-full-screen img, .quarto-dashboard .bslib-full-screen img[data-truew],
+.quarto-dashboard .bslib-card[data-full-screen="true"] img, .quarto-dashboard .bslib-card[data-full-screen="true"] img[data-truew] {
+  width: 100% !important; height: 100% !important; max-width: 100% !important; max-height: 100% !important;
+  object-fit: contain; }
 .ov-home .ov-hero svg.ov-arcs { display: none; }
 
 // ---- "Print this tab" (theme/navigation.html) -------------------------------------
