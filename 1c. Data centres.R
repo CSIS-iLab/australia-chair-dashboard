@@ -75,7 +75,7 @@ theme_csis <- function(base_size = 12) {
 theme_set(theme_csis())
 
 SRC <- paste("Source: ABS, Private New Capital Expenditure and Expected",
-             "Expenditure, Australia (cat. 5625.0).")
+             "Expenditure, Australia (cat. no. 5625.0).")
 
 save_csis <- function(plot, file, width = 9, height = 5.5) {
   ggsave(file, plot,
@@ -757,8 +757,8 @@ make_p14 <- function(cur) {
          subtitle = paste("Private sector. Approvals: 12-month moving average, monthly values faint. The ABS includes",
                           "\ndata centers in this category, alongside other commercial buildings it does not list separately"),
          x = NULL, y = NULL,
-         caption = paste("Sources: ABS, Building Activity, Australia (cat. 8752.0), Table 51;",
-                         "ABS, Building Approvals, Australia (cat. 8731.0), Table 51.\nCurrent prices, original.",
+         caption = paste("Sources: ABS, Building Activity, Australia (cat. no. 8752.0), Table 51;",
+                         "ABS, Building Approvals, Australia (cat. no. 8731.0), Table 51.\nCurrent prices, original.",
                          if (cur == "USD") fx_note[["USD"]] else "")) +
     theme(strip.text = element_text(face = "bold", hjust = 0, colour = csis_colours[["navy"]]))
 }
@@ -817,7 +817,7 @@ make_p15 <- function(cur) {
          subtitle = "Current prices. Imports: 12-month moving average, monthly values faint",
          x = NULL, y = NULL,
          caption = paste("Sources: ABS, merchandise imports by SITC and country of origin (ABS Data API),",
-                         "SITC 752 (computers) and 759 (parts);\nABS 5625.0 for capex.",
+                         "SITC 752 (computers) and 759 (parts);\nABS (cat. no. 5625.0) for capex.",
                          GAPS, if (cur == "USD") fx_note[["USD"]] else "")) +
     guides(colour = guide_legend(nrow = 2, byrow = TRUE)) +
     theme(strip.text = element_text(face = "bold", hjust = 0, colour = csis_colours[["navy"]]))

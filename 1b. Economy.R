@@ -725,7 +725,8 @@ us_gdp_cy <- bea_nipa_q("A191RC") |>
   filter(n() == 4) |>
   summarise(usd_tn = mean(value) / 1e6, .groups = "drop")
 au_gdp_usd_tn <- function(yr) au_gdp_cy$usd_tn[au_gdp_cy$year == yr]
-GDP_SRC_AU <- "ABS (cat. no. 5206.0), converted at the RBA's average rate for the year"
+# Australia's GDP is in A$; only the US$ view converts it (at the RBA's average rate for the year)
+GDP_SRC_AU <- function(cur) if (cur == "USD") "ABS (cat. no. 5206.0), converted to US$ at the RBA's average rate for the year" else "ABS (cat. no. 5206.0)"
 
 # GDP per capita at PPP (World Bank): international dollars, no market rate
 wb <- WDI(country = c("AU", "US"),
@@ -774,7 +775,7 @@ make_size <- function(cur) {
   (p_agg | p_pcap) +
     plot_annotation(
       title   = "Aggregate GDP and GDP per person, Australia and the United States",
-      caption = paste0("Sources: aggregate GDP, ", GDP_SRC_AU, " (Australia) and U.S. BEA; GDP per person, ",
+      caption = paste0("Sources: Aggregate GDP, ", GDP_SRC_AU(cur), " for Australia and U.S. BEA; GDP per person, ",
                        "World Bank World Development Indicators (PPP, current international dollars). ", size_yr, " data.",
                        if (cur == "AUD") fx_note_aud_from_usd else ""),
       theme   = theme_csis()
@@ -837,8 +838,7 @@ make_states <- function(cur) {
   labs(title = "GDP of Australia and U.S. states",
        subtitle = paste0("GDP, current ", sym, ", ", states_yr, ". Australia in blue, the 15 largest U.S. states in red."),
        x = NULL, y = NULL,
-       caption = paste0("Sources: U.S. BEA, GDP by state (SAGDP2).
-Australia, ", GDP_SRC_AU, ".",
+       caption = paste0("Sources: U.S. BEA, GDP by state (SAGDP2); ", GDP_SRC_AU(cur), " for Australia.",
                         if (au_yr != states_yr) paste0(" Australia ", au_yr, ".") else "",
                         if (cur == "AUD") fx_note_aud_from_usd else "")) +
   theme_csis() +
@@ -940,7 +940,7 @@ make_oecd_rank <- function(cur) {
                          ". Ranking is among all 38 OECD members."),
        x = NULL, y = NULL,
        caption = paste0("Sources: World Bank World Development Indicators (GDP, current US$); OECD membership list.",
-                        "\nAustralia: ", GDP_SRC_AU, ", as in the other size charts.",
+                        "\nAustralia: ", GDP_SRC_AU(cur), ".",
                        if (cur == "AUD") fx_note_aud_from_usd else "")) +
   theme_csis() +
   theme_bars

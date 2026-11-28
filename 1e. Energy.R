@@ -1015,7 +1015,7 @@ ss_us <- ss_us_raw |> filter(year == ss_us_year) |>
 ss <- bind_rows(ss_au, ss_us) |>
   mutate(ratio = production / use,
          fuel = factor(fuel, levels = rev(c("Coal", "Natural gas", "Oil"))),
-         series = factor(if_else(country == "Australia", sprintf("Australia (%d, year to June)", max(ss_au$year)),
+         series = factor(if_else(country == "Australia", sprintf("Australia (%s)", ss_au$fy[1]),
                                  sprintf("United States (%d)", ss_us_year))),
          series = factor(series, levels = rev(levels(series))))
 ss_au_oil_ex_lpg <- {
@@ -1040,7 +1040,7 @@ p_ss <- ggplot(ss, aes(ratio, fuel, fill = series, group = series)) +
        subtitle = "Production as a share of use. Below 100% means net fuel importer, above 100% means net fuel exporter",
        x = NULL, y = NULL,
        caption = paste0("Sources: DCCEEW, Australian Energy Statistics, Table J; EIA, Monthly Energy Review, Tables 1.2 and 1.3.\n",
-                        "Note: Oil includes crude oil, condensate and natural gas liquids (including LPG) for both countries; use includes refined ",
+                        "Notes: Oil includes crude oil, condensate and natural gas liquids (including LPG) for both countries; use includes refined ",
                         "products. Excluding LPG, Australia's oil production covers ", percent(ss_au_oil_ex_lpg, accuracy = 1), " of use. ",
                         "Most Australian crude oil and condensate is exported, so most of the oil Australia uses is imported. ",
                         "Net exports are exports minus imports of the same fuel: a country above 100% exports more of that fuel than it imports, ",
@@ -1137,7 +1137,7 @@ if (ct_key == "") {
          subtitle = sprintf("China's share of imports by value, %d–%d", min(ct$year), ct_last),
          x = NULL, y = NULL,
          caption = paste0("Sources: UN Comtrade (Australia); U.S. Census Bureau (U.S.).\n",
-                          "Note: Solar before 2022 is HS 854140, which also includes LEDs and other light-sensitive devices; from 2022 HS 854142-43 ",
+                          "Notes: Solar before 2022 is HS 854140, which also includes LEDs and other light-sensitive devices; from 2022 HS 854142-43 ",
                           "(cells and panels only). Lithium-ion batteries HS 850760; electric cars HS 870380 (battery electric).")) +
     theme_csis() +
     theme(legend.position = "top", legend.justification = "left", strip.text = element_text(face = "bold", size = 11),
@@ -1515,7 +1515,7 @@ price_qtr <- bind_rows(
 stopifnot(n_distinct(price_qtr$region) == 5 + has_ercot)
 us_markets <- c("Texas (ERCOT)", "California (SP15)")
 
-qtr_label    <- function(d) paste0(format(d, "%Y"), " Q", (as.integer(format(d, "%m")) - 1) %/% 3 + 1)
+qtr_label    <- function(d) paste0("Q", (as.integer(format(d, "%m")) - 1) %/% 3 + 1, " ", format(d, "%Y"))
 price_latest <- price_qtr |> filter(quarter == max(quarter))
 price_q      <- max(price_latest$quarter)
 
@@ -1554,7 +1554,7 @@ ggplot(price_qtr, aes(quarter, price, colour = region)) +
     hover_suffix = "/MWh",   # unit for the hover pop-ups (theme/chart-footer.html)
     title    = if (has_ercot) "Wholesale electricity prices, Australian NEM regions, California and Texas (ERCOT)"
                else "Wholesale electricity prices, Australian NEM regions and California",
-    subtitle = sprintf(paste0("Average wholesale price, %s per MWh, calendar quarters, %s to %s.
+    subtitle = sprintf(paste0("Average wholesale price, %s per MWh, calendar quarters, %s\u2013%s.
 ",
                               "NEM and Texas: real-time prices; California: day-ahead prices."),
                        cur_sym[[cur]], qtr_label(min(price_qtr$quarter)), qtr_label(price_q)),

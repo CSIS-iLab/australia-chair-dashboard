@@ -677,7 +677,7 @@ if (is.null(rd) || nrow(rd) == 0) {
     scale_y_continuous(labels = function(x) paste0(x, "%")) +
     labs(
       title    = "R&D intensity",
-      subtitle = "Gross domestic expenditure on R&D, percent of GDP",
+      subtitle = "Gross domestic expenditure on R&D, % of GDP",
       x = NULL, y = NULL,
       caption = paste("Source: OECD, Main Science and Technology Indicators (from the ABS R&D surveys for Australia,",
                       "\nwhich are run every second year).")
